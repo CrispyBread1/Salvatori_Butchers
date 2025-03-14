@@ -17,6 +17,7 @@ class MainWindow(QMainWindow):
         self.content_layout = QVBoxLayout()
         self.label = QLabel("Welcome to the Main Window!", self)
         self.content_layout.addWidget(self.label)
+        
 
         # Set up the main window content inside the stacked widget
         main_content = QWidget()
@@ -56,7 +57,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.stacked_widget)
 
         # Set window geometry
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1200, 800)
 
     def open_product_window(self):
         """Switch to the product window in the main window"""
