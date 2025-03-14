@@ -8,8 +8,9 @@ class Product:
         self.stock_category = stock_category
         self.sold_as = sold_as
 
-    def total_profit(self):
-        return self.stock_count * self.product_value
-    
     def total_product_cost(self):
         return self.stock_count * self.cost
+    
+    def total_profit(self):
+        return (self.stock_count * self.product_value) - self.total_product_cost()
+    

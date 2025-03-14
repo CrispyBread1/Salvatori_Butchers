@@ -35,29 +35,20 @@ class ProductWindow(QWidget):
 
 
     def load_data(self):
-        # if self.table.itemChanged in self.table.__dict__.get('signals', {}).get('itemChanged', []):
-        #   self.table.itemChanged.disconnect(self.collect_changes)
-
-        """Fetches product data from the database and fills the table."""
         if not self.rows:
-          connection = sqlite3.connect("salvatori_butchers.db")  # Ensure this is the correct database path
+          connection = sqlite3.connect("salvatori_butchers.db") 
           cursor = connection.cursor()
 
           # Get all products
           cursor.execute("SELECT id, name, cost, stock_count, product_value, product_category, sold_as FROM products")
           self.rows = [Product(*product) for product in cursor.fetchall()]
-          connection.close()
+          connection.close()          
 
-          # Define column headers
-          
-
-        headers = ["Name", "Stock", "Price Per K/C/B £", "Total Cost £", "Stock Category", "Total Profit £"]
+        headers = ["Name", "Stock", "Stock Cost Per K/C/B £", "Total Cost £", "Stock Category", "Selling Price Per K/C/B £",  "Total Profit £"]
         # Set table row & column count
       
         self.table.setRowCount(len(self.rows))
         self.table.setColumnCount(len(headers))
-        self.table.clearContents()
-        # Set column headers
         self.table.setHorizontalHeaderLabels(headers)
 
         # Populate table
@@ -73,8 +64,10 @@ class ProductWindow(QWidget):
                   self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.total_product_cost())))
                 elif col_idx == 4:
                   self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.stock_category)))
+                elif col_idx == 5:
+                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.product_value)))
                 else:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.total_product_cost())))
+                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.total_profit())))
 
 
         # self.table.itemChanged.connect(self.collect_changes)
@@ -89,17 +82,14 @@ class ProductWindow(QWidget):
 
       # Retrieve the product object associated with this row
       product = self.rows[row_idx]
-      print("item: " + str(item) + " col_idx: " + str(col_idx))
-      # Check if you're updating the correct field in the Product object
-      if col_idx == 1:  # Example: Update stock count
-          print("col_idx 1:" + str(item.text()))
-          product.stock_count = float(item.text())
-      elif col_idx == 2:  # Example: Update product value
-          print("col_idx 2:" + str(item.text()))
-          product.cost = float(item.text())
-      elif col_idx == 4:  # Example: Update stock category
-          print("col_idx 4:" + str(item.text()))
-          product.stock_category = item.text()
 
-      print("Product: " + product.name + "Product stock: " + str(product.stock_count) + "Total Product cost: " + str(product.total_product_cost()) + "Product price: " + str(product.cost) + " Total Product Price: " + str(product.total_product_cost()))
+      # Check if you're updating the correct field in the Product object
+      if col_idx == 1:  
+          product.stock_count = float(item.text())
+      elif col_idx == 2:  
+          product.cost = float(item.text())
+      elif col_idx == 4:
+          product.stock_category = item.text()
+      elif col_idx == 5: 
+          product.product_value = float(item.text())
 
