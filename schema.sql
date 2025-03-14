@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS stock_take (
 );
 
 -- Insert initial product data
-INSERT INTO products (name, price, description) VALUES
+INSERT INTO products (name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as) VALUES
 -- (name, cost, stock_count, product_value, category, sage_code, supplier, sold_as)
 ('Topside', 0, 0, 0, 'fresh', 'beef', '', '', 'kilo'),
 ('Silverside', 0, 0, 0, 'fresh', 'beef', '', '', 'kilo'),
