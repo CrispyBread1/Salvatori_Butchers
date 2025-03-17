@@ -23,11 +23,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyqt5
           pip install psycopg2
+          pip install requests
           pip install pyinstaller
 
       - name: Clean and build executable using spec file
         run: |
-          pyinstaller --onefile --windowed --hidden-import=PyQt5 --hidden-import=psycopg2 --hidden-import=gui --hidden-import=database --hidden-import=controllers main.py
+          pyinstaller --onefile --windowed --hidden-import=PyQt5 --hidden-import=psycopg2 --hidden-import=gui --hidden-import=requests --hidden-import=database --hidden-import=controllers main.py
 
       - name: List dist directory
         run: dir dist
