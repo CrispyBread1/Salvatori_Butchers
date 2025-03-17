@@ -221,9 +221,3 @@ INSERT INTO products (name, cost, stock_count, product_value, stock_category, pr
 ('2.5kgs Mixed Veg', 0, 0, 0, 'dry', 'midland', '', '', 'bag'),
 ('2.5kgs Garden Peas', 0, 0, 0, 'dry', 'midland', '', '', 'bag'),
 ('Tins of Sweetcorn', 0, 0, 0, 'dry', 'midland', '', '', 'bag')
-
-
-
-
-
-
