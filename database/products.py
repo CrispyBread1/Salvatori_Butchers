@@ -1,21 +1,22 @@
 import psycopg2
 from psycopg2 import sql
-from dotenv import load_dotenv
-import os
 
-# Replace with your Supabase details
 
-load_dotenv()
+DB_HOST='db.qebranyoffuyctlpemxx.supabase.co'
+DB_PORT='5432'
+DB_NAME='postgres'
+DB_USER='postgres'
+DB_PASSWORD='KQz9Q0PP8vjCpaDR'
 
 def connect_db():
     try:
         # Establish the connection
         connection = psycopg2.connect(
-            host=os.getenv('DB_HOST'),
-            port=os.getenv('DB_PORT'),
-            dbname=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD')
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
         )
         print("Connection to database successful")
         return connection
@@ -70,6 +71,7 @@ def fetch_products():
         cursor.close()
         connection.close()
         return rows
+    
         
 
 if __name__ == "__main__":

@@ -38,7 +38,8 @@ class ProductWindow(QWidget):
         if not self.rows:
           # Get all products
           data = fetch_products()
-          self.rows = [Product(*product) for product in data]         
+          if data:
+            self.rows = [Product(*product) for product in data]         
 
         headers = ["Name", "Stock", "Stock Cost Per K/C/B £", "Total Cost £", "Stock Category", "Selling Price Per K/C/B £",  "Total Profit £"]
         # Set table row & column count
