@@ -1,6 +1,6 @@
-import sqlite3
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton
 from models.product import Product
+from database.products import fetch_products
 
 class ProductWindow(QWidget):
     rows = []
@@ -36,13 +36,9 @@ class ProductWindow(QWidget):
 
     def load_data(self):
         if not self.rows:
-          connection = sqlite3.connect("salvatori_butchers.db") 
-          cursor = connection.cursor()
-
           # Get all products
-          cursor.execute("SELECT id, name, cost, stock_count, product_value, product_category, sold_as FROM products")
-          self.rows = [Product(*product) for product in cursor.fetchall()]
-          connection.close()          
+          data = fetch_products()
+          self.rows = [Product(*product) for product in data]         
 
         headers = ["Name", "Stock", "Stock Cost Per K/C/B £", "Total Cost £", "Stock Category", "Selling Price Per K/C/B £",  "Total Profit £"]
         # Set table row & column count
