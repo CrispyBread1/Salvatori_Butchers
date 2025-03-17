@@ -25,7 +25,7 @@ jobs:
 
       - name: Clean and build executable using spec file
         run: |
-          pyinstaller --clean main.spec
+          pyinstaller --onefile --windowed main.py
 
       - name: List dist directory
         run: dir dist
@@ -34,4 +34,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: dist/ManageMeStock.exe
+          path: dist/main.exe
