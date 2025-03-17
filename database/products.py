@@ -3,7 +3,7 @@ from psycopg2 import sql
 
 
 DB_HOST='db.qebranyoffuyctlpemxx.supabase.co'
-DB_PORT='5432'
+DB_PORT='5433'
 DB_NAME='postgres'
 DB_USER='postgres'
 DB_PASSWORD='KQz9Q0PP8vjCpaDR'
