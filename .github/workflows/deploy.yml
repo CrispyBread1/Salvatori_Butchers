@@ -26,7 +26,7 @@ jobs:
 
       - name: Clean and build executable using spec file
         run: |
-          pyinstaller --onefile --windowed --hidden-import=PyQt5 main.py
+          pyinstaller --onefile --windowed --hidden-import=PyQt5 --hidden-import=gui --hidden-import=database --hidden-import=controllers main.py
 
       - name: List dist directory
         run: dir dist
