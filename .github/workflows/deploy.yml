@@ -23,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller
 
-      - name: Build executable
+      - name: Clean and build executable using spec file
         run: |
           pyinstaller --clean main.spec
 
@@ -31,7 +31,7 @@ jobs:
         run: dir dist
 
       - name: Upload executable as artifact
-        uses: actions/upload-artifact@v3g
+        uses: actions/upload-artifact@v2
         with:
           name: windows-executable
           path: dist/your_script.exe
