@@ -1,10 +1,10 @@
 import socket
 import psycopg2
 
-DB_HOST = "db.qebranyoffuyctlpemxx.supabase.co"
-DB_PORT = 5432
+DB_HOST = "aws-0-eu-west-2.pooler.supabase.co"
+DB_PORT = 6543
 DB_NAME = "postgres"
-DB_USER = "postgres"
+DB_USER = "postgres.qebranyoffuyctlpemxx"
 DB_PASSWORD = "KQz9Q0PP8vjCpaDR"
 
 def test_dns_resolution():

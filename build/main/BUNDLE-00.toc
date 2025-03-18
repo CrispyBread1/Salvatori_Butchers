@@ -1,3 +1,0 @@
-([('main',
-   '/Users/daniel/Desktop/savaltori_app/salvaotri_admin_app/dist/main',
-   'EXECUTABLE')],)
