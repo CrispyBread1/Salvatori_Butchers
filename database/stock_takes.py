@@ -1,6 +1,5 @@
 import psycopg2
 from psycopg2 import sql
-from models.product import Product
 
 DB_HOST='aws-0-eu-west-2.pooler.supabase.com'
 DB_PORT='6543'
@@ -25,7 +24,7 @@ def connect_db():
       return None
 
 
-def create_product_table():
+def create_stock_take_table():
   connection = connect_db()
   if connection:
       cursor = connection.cursor()
@@ -123,4 +122,4 @@ def insert_stock_take(take, product_category):
 #         print("Failed to connect to the database, product not updated.")
 
 if __name__ == "__main__":
-  create_product_table()
+  create_stock_take_table()

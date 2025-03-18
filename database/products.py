@@ -18,7 +18,7 @@ def connect_db():
           user=DB_USER,
           password=DB_PASSWORD
       )
-      print("Connection to database successful")
+      # print("Connection to database successful")
       return connection
   except Exception as e:
       print(f"Failed to connect to database: {e}")
