@@ -1,5 +1,5 @@
 from PyInstaller.utils.hooks import collect_submodules
-hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + collect_submodules("database")
+hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + collect_submodules("database") + collect_submodules("resources")
 
 a = Analysis(
     ["main.py"],

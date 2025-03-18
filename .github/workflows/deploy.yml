@@ -22,6 +22,7 @@ jobs:
           pip install pyqt5
           pip install psycopg2-binary
           pip install requests
+          pip install PyQtWebEngine
           pip install pyinstaller
 
       - name: Debug dependencies
