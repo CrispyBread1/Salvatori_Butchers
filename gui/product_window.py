@@ -35,40 +35,39 @@ class ProductWindow(QWidget):
 
 
     def load_data(self):
-        if not self.rows:
-          # Get all products
-          data = fetch_products()
-          if data:
-            self.rows = [Product(*product) for product in data]         
+      if not self.rows:
+        data = fetch_products()
+        if data:
+          self.rows = [Product(*product) for product in data]
+          self.rows.sort(key=lambda product: product.name)         
 
-        headers = ["Name", "Stock", "Stock Cost Per K/C/B £", "Total Cost £", "Stock Category", "Selling Price Per K/C/B £",  "Total Profit £"]
-        # Set table row & column count
-      
-        self.table.setRowCount(len(self.rows))
-        self.table.setColumnCount(len(headers))
-        self.table.setHorizontalHeaderLabels(headers)
+      headers = ["Name", "Stock", "Stock Cost Per K/C/B £", "Total Cost £", "Stock Category", "Selling Price Per K/C/B £",  "Total Profit £"]
+    
+      self.table.setRowCount(len(self.rows))
+      self.table.setColumnCount(len(headers))
+      self.table.setHorizontalHeaderLabels(headers)
 
-        # Populate table
-        for row_idx, product in enumerate(self.rows):
-            for col_idx in range(len(headers)):
-                if col_idx == 0:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.name)))
-                elif col_idx == 1:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.stock_count)))
-                elif col_idx == 2:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.cost)))
-                elif col_idx == 3:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.total_product_cost())))
-                elif col_idx == 4:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.stock_category)))
-                elif col_idx == 5:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.product_value)))
-                else:
-                  self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.total_profit())))
+      # Populate table
+      for row_idx, product in enumerate(self.rows):
+          for col_idx in range(len(headers)):
+              if col_idx == 0:
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.name)))
+              elif col_idx == 1:
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.stock_count)))
+              elif col_idx == 2:
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.cost)))
+              elif col_idx == 3:
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.total_product_cost())))
+              elif col_idx == 4:
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.stock_category)))
+              elif col_idx == 5:
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.product_value)))
+              else:
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(product.total_profit())))
 
 
-        # self.table.itemChanged.connect(self.collect_changes)
-        self.table.resizeColumnsToContents()  # Auto resize columns
+      # self.table.itemChanged.connect(self.collect_changes)
+      self.table.resizeColumnsToContents()  # Auto resize columns
 
     def reload_list(self):
       self.load_data()

@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame
-from gui.product_window import ProductWindow  # Assuming product_window.py exists
-
+from gui.product_window import ProductWindow   
+from gui.stock_take_window import StockTakeWindow   
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -26,7 +26,9 @@ class MainWindow(QMainWindow):
 
         # Create the product window as a component
         self.product_window = ProductWindow()
+        self.stock_take_window = StockTakeWindow()
         self.stacked_widget.addWidget(self.product_window)
+        self.stacked_widget.addWidget(self.stock_take_window)
 
         # Side navigation layout (the nav bar remains static)
         self.nav_layout = QVBoxLayout()
@@ -38,13 +40,13 @@ class MainWindow(QMainWindow):
         self.nav_button_2.clicked.connect(self.show_settings)
         self.nav_button_3 = QPushButton("Products", self)
         self.nav_button_3.clicked.connect(self.open_product_window)
-        self.reload_button = QPushButton("Reload", self)
-        self.reload_button.clicked.connect(self.reload_page)
+        self.nav_button_4 = QPushButton("Stock Take", self)
+        self.nav_button_4.clicked.connect(self.open_stock_take_window)
 
         self.nav_layout.addWidget(self.nav_button_1)
         self.nav_layout.addWidget(self.nav_button_2)
         self.nav_layout.addWidget(self.nav_button_3)
-        self.nav_layout.addWidget(self.reload_button)
+        self.nav_layout.addWidget(self.nav_button_4)
 
         # Create the navigation bar as a sidebar (frame)
         side_bar = QFrame(self.central_widget)
@@ -60,8 +62,10 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1200, 800)
 
     def open_product_window(self):
-        """Switch to the product window in the main window"""
         self.stacked_widget.setCurrentWidget(self.product_window)
+
+    def open_stock_take_window(self):
+        self.stacked_widget.setCurrentWidget(self.stock_take_window)
 
     def reload_page(self):
         """Reload the current page by refreshing the content"""
