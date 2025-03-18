@@ -121,7 +121,7 @@ def update_product(product_id, name=None, cost=None, stock_count=None,
                                       supplier, sold_as, product_id))
         
         connection.commit()  # Commit the changes
-        print(f"Product with ID {product_id} updated successfully!")
+        # print(f"Product with ID {product_id} updated successfully!")
         
         cursor.close()
         connection.close()

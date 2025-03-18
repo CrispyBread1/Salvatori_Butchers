@@ -5,11 +5,14 @@ from PyQt5.QtWidgets import (
 )
 from database.products import fetch_products_stock_take, update_product
 from resources.pdf_exporter import export_to_pdf 
+from database.stock_takes import insert_stock_take
+import json
 
 class StockTakeWindow(QMainWindow):
   data = {}
   form_loaded = False
   spin_boxes = {}
+  category = []
 
   def __init__(self):
       super().__init__()
@@ -62,6 +65,7 @@ class StockTakeWindow(QMainWindow):
       self.main_layout.addWidget(self.label)  # Add label below form
 
   def load_data(self, stock_category):
+      self.category = stock_category
       self.data = fetch_products_stock_take(stock_category)
       self.render_stock_form()
 
@@ -148,9 +152,12 @@ class StockTakeWindow(QMainWindow):
     updated_data = {}
     
     for product_id, spin_box in self.spin_boxes.items():
-        print(self.spin_boxes.items()) 
+        # print(self.spin_boxes.items()) 
         updated_data[product_id] = spin_box.value()  # Get the value from the spin box
-        # update_product(product_id, stock_count=spin_box.value())
+        update_product(product_id, stock_count=spin_box.value())
+
+    json_data = json.dumps(updated_data)
+    insert_stock_take(json_data, str(self.category))
 
     
 
