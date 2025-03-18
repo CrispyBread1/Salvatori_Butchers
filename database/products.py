@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2 import sql
+from test_connection import *
 
 
 DB_HOST='db.qebranyoffuyctlpemxx.supabase.co'
@@ -75,5 +76,8 @@ def fetch_products():
         
 
 if __name__ == "__main__":
+    test_dns_resolution()
+    test_database_connection()
     create_product_table()
+    
 
