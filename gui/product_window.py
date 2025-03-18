@@ -38,7 +38,8 @@ class ProductWindow(QWidget):
       if not self.rows:
         data = fetch_products()
         if data:
-          self.rows = [Product(*product) for product in data]         
+          self.rows = [Product(*product) for product in data]
+          self.rows.sort(key=lambda product: product.name)         
 
       headers = ["Name", "Stock", "Stock Cost Per K/C/B £", "Total Cost £", "Stock Category", "Selling Price Per K/C/B £",  "Total Profit £"]
     
