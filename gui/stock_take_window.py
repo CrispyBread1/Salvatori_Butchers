@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QWidget, QFormLayout, QSpinBox, QPushButton, QLabel, QScrollArea,
-    QVBoxLayout, QFrame, QHBoxLayout, QMainWindow, QGridLayout
+    QVBoxLayout, QFrame, QHBoxLayout, QMainWindow, QGridLayout, QMessageBox
 )
 from database.products import fetch_products_stock_take, update_product
 from resources.pdf_exporter import export_to_pdf 
@@ -68,7 +68,7 @@ class StockTakeWindow(QMainWindow):
   def render_stock_form(self):
 
     self.save_button = QPushButton("Save", self)
-    self.save_button.clicked.connect(self.save_form_data)
+    self.save_button.clicked.connect(self.confirm_save)
     self.export_button = QPushButton("Export to PDF", self)
     self.export_button.clicked.connect(self.export_pdf)
 
@@ -124,14 +124,33 @@ class StockTakeWindow(QMainWindow):
     
     self.scroll_layout.addLayout(column_layout)  # Add columns to the scrollable layout
 
+  def confirm_save(self):
+        # Create a confirmation message box
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setWindowTitle('Confirm Save')
+        msg_box.setText('Are you sure you want to save this data?')
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.Yes)
+
+        # Show the message box and get user response
+        response = msg_box.exec_()
+
+        # Check the response (Yes or No)
+        if response == QMessageBox.Yes:
+            self.save_form_data()  # Call the function to save data
+        else:
+            print("Save canceled.")  # Optionally handle cancellation
+
+
   def save_form_data(self):
     """Get the updated stock values from the form."""
-    # updated_data = {}
+    updated_data = {}
     
     for product_id, spin_box in self.spin_boxes.items():
-        # print(self.spin_boxes.items()) 
-        # updated_data[product_id] = spin_box.value()  # Get the value from the spin box
-        update_product(product_id, stock_count=spin_box.value())
+        print(self.spin_boxes.items()) 
+        updated_data[product_id] = spin_box.value()  # Get the value from the spin box
+        # update_product(product_id, stock_count=spin_box.value())
 
     
 
