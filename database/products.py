@@ -78,13 +78,14 @@ def fetch_products_stock_take(categories):
   connection = connect_db()
   results = {}
   if connection:
-      for category in categories:
-        cursor = connection.cursor()
-        cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
-        results[category] = convert_to_product_objects(cursor.fetchall())
-        cursor.close()
-        connection.close()
-        return results
+    cursor = connection.cursor()
+    for category in categories:
+      cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
+      results[category] = convert_to_product_objects(cursor.fetchall())
+
+    cursor.close()
+    connection.close()
+    return results
       
 def convert_to_product_objects(products):
   return [Product(*product) for product in products]
