@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: dist/main.exe
+          path: dist/ManageMeStock.exe
 
       - name: Upload build logs
         uses: actions/upload-artifact@v4
