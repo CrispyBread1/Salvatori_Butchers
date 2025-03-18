@@ -2,10 +2,10 @@ import psycopg2
 from psycopg2 import sql
 
 
-DB_HOST='db.qebranyoffuyctlpemxx.supabase.co'
-DB_PORT='5432'
+DB_HOST='aws-0-eu-west-2.pooler.supabase.com'
+DB_PORT='6543'
 DB_NAME='postgres'
-DB_USER='postgres'
+DB_USER='postgres.qebranyoffuyctlpemxx'
 DB_PASSWORD='KQz9Q0PP8vjCpaDR'
 
 def connect_db():
