@@ -70,7 +70,7 @@ class StockTakeWindow(QMainWindow):
     self.back_button = QPushButton("Back", self)
     self.back_button.clicked.connect(self.reset_ui)
     self.export_button = QPushButton("Export to PDF", self)
-    self.export_button.clicked.connect(self.export_pdf)
+    self.export_button.clicked.connect(lambda: export_to_pdf(self, self.data))
     self.save_button = QPushButton("Save", self)
     self.save_button.clicked.connect(self.confirm_save)
 
@@ -90,7 +90,6 @@ class StockTakeWindow(QMainWindow):
   def load_specific_data(self, stock_category):
     self.category = stock_category
     self.data = fetch_products_stock_take(stock_category)
-    print(self.data)
     self.render_stock_form()
 
   def load_all_data(self):
@@ -233,5 +232,4 @@ class StockTakeWindow(QMainWindow):
      self.most_recent_stock_take = fetch_most_recent_stock_take(self.categories)
      self.categories.pop()
 
-  def export_pdf(self):
-    export_to_pdf(self, self.data)
+
