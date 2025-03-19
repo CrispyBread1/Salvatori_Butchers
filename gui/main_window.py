@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         # Create the navigation bar as a sidebar (frame)
         side_bar = QFrame(self.central_widget)
         side_bar.setLayout(self.nav_layout)
-        side_bar.setFixedWidth(150)
+        side_bar.setFixedWidth(100)
 
         # Set up the main layout (main window and sidebar)
         main_layout = QHBoxLayout(self.central_widget)

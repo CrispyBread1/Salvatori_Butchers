@@ -67,19 +67,18 @@ def fetch_products():
   if connection:
       cursor = connection.cursor()
       cursor.execute("SELECT * FROM products")
-      rows = cursor.fetchall()
+      rows = convert_to_product_objects(cursor.fetchall())
       cursor.close()
       connection.close()
       return rows
     
-def fetch_products_stock_take(categories):
+def fetch_products_stock_take(category):
   connection = connect_db()
   results = {}
   if connection:
     cursor = connection.cursor()
-    for category in categories:
-      cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
-      results[category] = convert_to_product_objects(cursor.fetchall())
+    cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
+    results[category] = convert_to_product_objects(cursor.fetchall())
 
     cursor.close()
     connection.close()
