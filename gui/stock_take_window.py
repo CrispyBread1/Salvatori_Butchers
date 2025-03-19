@@ -93,10 +93,16 @@ class StockTakeWindow(QMainWindow):
 
   def load_all_data(self):
     self.category = self.categories
-    results = fetch_products()
+    results = fetch_products() 
+    self.data = {}  # Ensure it's a clean dictionary before populating
+
     for product in results:
-       self.data[product.stock_category] = product
+        if product.stock_category not in self.data:
+            self.data[product.stock_category] = []  
+        self.data[product.stock_category].append(product)  # Append product to list
+
     self.render_stock_form()
+
 
   def render_stock_form(self):
     """Render stock take form dynamically."""
