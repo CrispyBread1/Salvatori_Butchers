@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2 import sql
+from models.stock_take import StockTake
 
 DB_HOST='aws-0-eu-west-2.pooler.supabase.com'
 DB_PORT='6543'
@@ -41,16 +42,20 @@ def create_stock_take_table():
       cursor.close()
       connection.close()
 
-def insert_stock_take(take, product_category):
+def insert_stock_take(take, product_categories):
   connection = connect_db()
+  category = ""
+  for product_category in product_categories:
+     category += product_category
+  print(category)
   if connection:
       cursor = connection.cursor()
       cursor.execute("""
           INSERT INTO stock_takes (take, product_category) 
           VALUES (%s, %s)
-      """, (take, product_category))
+      """, (take, category))
       connection.commit()
-      print(f"Stock take {product_category} added successfully!")
+      print(f"Stock take {category} added successfully!")
       cursor.close()
       connection.close()
 
@@ -65,18 +70,27 @@ def insert_stock_take(take, product_category):
 #       connection.close()
 #       return rows
     
-# def fetch_products_stock_take(categories):
-#   connection = connect_db()
-#   results = {}
-#   if connection:
-#     cursor = connection.cursor()
-#     for category in categories:
-#       cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
-#       results[category] = convert_to_product_objects(cursor.fetchall())
+def fetch_most_recent_stock_take(categories):
+  connection = connect_db()
+  results = {}
+  if connection:
+    cursor = connection.cursor()
+    for category in categories:
+      # cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
+      cursor.execute(
+        "SELECT * FROM stock_takes WHERE product_category = %s ORDER BY date DESC LIMIT 1",
+        (category,)
+      )
+      print(convert_to_stock_take_objects(cursor.fetchall()))
+      # results[category] = convert_to_stock_take_objects(cursor.fetchall())
 
-#     cursor.close()
-#     connection.close()
-#     return results
+    cursor.close()
+    connection.close()
+    print(results)
+    return results
+  
+def convert_to_stock_take_objects(stock_takes):
+  return [StockTake(*stock_take) for stock_take in stock_takes]
       
 # def convert_to_product_objects(products):
 #   return [Product(*product) for product in products]
