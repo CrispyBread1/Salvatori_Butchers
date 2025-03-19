@@ -7,6 +7,7 @@ from database.products import fetch_products_stock_take, update_product, fetch_p
 from resources.pdf_exporter import export_to_pdf 
 from database.stock_takes import insert_stock_take, fetch_most_recent_stock_take
 import json
+import datetime
 
 class StockTakeWindow(QMainWindow):
   data = {}
@@ -82,8 +83,9 @@ class StockTakeWindow(QMainWindow):
     self.export_button.hide()
     self.save_button.hide()
 
-    self.render_last_stock_take()
     self.load_most_recent_stock_take()
+    self.render_last_stock_take()
+
 
   def load_specific_data(self, stock_category):
     self.category = stock_category
@@ -92,7 +94,7 @@ class StockTakeWindow(QMainWindow):
     self.render_stock_form()
 
   def load_all_data(self):
-    self.category = self.categories
+    self.category = 'all'
     results = fetch_products() 
     self.data = {}  # Ensure it's a clean dictionary before populating
 
@@ -217,15 +219,19 @@ class StockTakeWindow(QMainWindow):
 
   def render_last_stock_take(self):
     self.last_stock_take_layout = QVBoxLayout()
+    self.categories.append('all')
     for category in self.categories:
-      last_stock_take_label = QLabel(f"<b>Last stock take for {category.title()}: </b>")
+      time_stamp = self.most_recent_stock_take[category].date
+      last_stock_take_label = QLabel(f"<b>Last stock take for {category.title()}: </b>" + time_stamp.strftime('%y-%m-%d, %H:%M:%S'))
       # last_stock_take_label.setAlignment(Qt.AlignCenter)
       self.last_stock_take_layout.addWidget(last_stock_take_label)
     self.scroll_layout.addLayout(self.last_stock_take_layout)
+    self.categories.pop()
 
   def load_most_recent_stock_take(self):
+     self.categories.append('all')
      self.most_recent_stock_take = fetch_most_recent_stock_take(self.categories)
-     print(self.most_recent_stock_take)
+     self.categories.pop()
 
   def export_pdf(self):
     export_to_pdf(self, self.data)

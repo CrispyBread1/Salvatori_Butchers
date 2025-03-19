@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2 import sql
 from models.stock_take import StockTake
+import datetime
 
 DB_HOST='aws-0-eu-west-2.pooler.supabase.com'
 DB_PORT='6543'
@@ -81,12 +82,10 @@ def fetch_most_recent_stock_take(categories):
         "SELECT * FROM stock_takes WHERE product_category = %s ORDER BY date DESC LIMIT 1",
         (category,)
       )
-      print(convert_to_stock_take_objects(cursor.fetchall()))
-      # results[category] = convert_to_stock_take_objects(cursor.fetchall())
-
+      # print(cursor.fetchone())
+      results[category] = StockTake(*cursor.fetchone())
     cursor.close()
     connection.close()
-    print(results)
     return results
   
 def convert_to_stock_take_objects(stock_takes):
