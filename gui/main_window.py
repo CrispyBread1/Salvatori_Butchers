@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame
-from gui.product_window import ProductWindow   
+from gui.product_value_window import ProductWindow   
 from gui.stock_take_window import StockTakeWindow 
 from resources.update_release import update  
 class MainWindow(QMainWindow):
@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         self.nav_button_1.clicked.connect(self.show_home)
         self.nav_button_2 = QPushButton("Settings", self)
         self.nav_button_2.clicked.connect(self.show_settings)
-        self.nav_button_3 = QPushButton("Products", self)
+        self.nav_button_3 = QPushButton("Product Value", self)
         self.nav_button_3.clicked.connect(self.open_product_window)
         self.nav_button_4 = QPushButton("Stock Take", self)
         self.nav_button_4.clicked.connect(self.open_stock_take_window)
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         # Create the navigation bar as a sidebar (frame)
         side_bar = QFrame(self.central_widget)
         side_bar.setLayout(self.nav_layout)
-        side_bar.setFixedWidth(100)
+        side_bar.setFixedWidth(150)
 
         # Set up the main layout (main window and sidebar)
         main_layout = QHBoxLayout(self.central_widget)
