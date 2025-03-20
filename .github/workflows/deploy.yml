@@ -75,3 +75,33 @@ jobs:
         with:
           name: windows-executable
           path: dist/ManageMeStock.exe
+
+  release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ManageMeStock-Windows
+          path: dist/
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ManageMeStock-Mac
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/ManageMeStock.exe
+            dist/ManageMeStock.app
+          tag_name: ${{ github.event.inputs.version }}
+          release_name: Release ${{ github.event.inputs.version }}
+          draft: false
+          prerelease: false
