@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QWidget, QSpinBox, QPushButton, QLabel, QScrollArea,
+    QWidget, QDoubleSpinBox, QPushButton, QLabel, QScrollArea,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow, QGridLayout, QMessageBox
 )
 from database.products import fetch_products_stock_take, update_product, fetch_products
@@ -142,8 +142,11 @@ class StockTakeWindow(QMainWindow):
 
         row = 1
         for product in products:
-            product_spin_box = QSpinBox()
+            product_spin_box = QDoubleSpinBox()
+            product_spin_box.setMaximum(100000)
+            product_spin_box.setDecimals(2) 
             form_label = QLabel(product.name)
+            
             column_layout.addWidget(form_label, row, col)
             column_layout.addWidget(product_spin_box, row + 1, col)
             self.spin_boxes[product.id] = product_spin_box

@@ -1,6 +1,7 @@
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QFileDialog, QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+from datetime import datetime
 
 def export_to_pdf(parent, data):
     """Generate a PDF by converting product list to HTML with larger columns"""
@@ -98,7 +99,8 @@ def export_to_pdf(parent, data):
             html_content += f'<div class="product">{product.name}<div class="empty-box"></div></div>'
         
         html_content += '</div>'  # End of product grid
-
+    date = datetime.now().strftime('%d-%m-%y, %A')
+    html_content += f'<div class="date"><h2>{date}</h2</div>'
     html_content += "</body></html>"
 
     # Use QFileDialog to select the save location
