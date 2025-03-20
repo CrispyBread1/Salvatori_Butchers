@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from gui.main_window import MainWindow
-from resources.update_release import update
+
 
 
 def main():
@@ -12,7 +12,6 @@ def main():
 
 
 if __name__ == "__main__":
-    update()
     main()
     
 

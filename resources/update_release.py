@@ -1,3 +1,4 @@
+from PyQt5.QtWidgets import QMessageBox
 import requests
 import os
 import sys
@@ -17,11 +18,17 @@ def update():
 def check_for_update():
   """Compares current version with the latest GitHub release."""
   latest_version = get_latest_version()
+    
   if latest_version and latest_version != CURRENT_VERSION:
-    print(f"A new version ({latest_version}) is available!")
-    return latest_version
+      # Display a pop-up message for the user
+      message_box = QMessageBox()
+      message_box.setIcon(QMessageBox.Information)
+      message_box.setWindowTitle("New Version Available")
+      message_box.setText(f"A new version ({latest_version}) is available!")
+      message_box.setStandardButtons(QMessageBox.Ok)
+      message_box.exec_()  # Show the message box and wait for the user to acknowledge
+      return latest_version
   else:
-    print("You're using the latest version.")
     return None
 
 def get_latest_version():

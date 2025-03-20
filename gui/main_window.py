@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame
 from gui.product_window import ProductWindow   
-from gui.stock_take_window import StockTakeWindow   
+from gui.stock_take_window import StockTakeWindow 
+from resources.update_release import update  
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -60,6 +61,7 @@ class MainWindow(QMainWindow):
 
         # Set window geometry
         self.setGeometry(100, 100, 1200, 800)
+        
 
     def open_product_window(self):
         self.stacked_widget.setCurrentWidget(self.product_window)
