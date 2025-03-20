@@ -103,8 +103,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/ManageMeStock.exe
-            dist/ManageMeStock.app
+            dist/ManageMeStockW.exe
+            dist/ManageMeStockM.app
           tag_name: ${{ github.event.inputs.version }}
           release_name: Release ${{ github.event.inputs.version }}
           draft: false
