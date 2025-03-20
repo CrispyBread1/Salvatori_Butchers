@@ -43,7 +43,7 @@ def create_stock_take_table():
       cursor.close()
       connection.close()
 
-def insert_stock_take(take, product_categories):
+def insert_stock_take(take, product_categories, date):
   connection = connect_db()
   category = ""
   for product_category in product_categories:
@@ -52,9 +52,9 @@ def insert_stock_take(take, product_categories):
   if connection:
       cursor = connection.cursor()
       cursor.execute("""
-          INSERT INTO stock_takes (take, product_category) 
-          VALUES (%s, %s)
-      """, (take, category))
+          INSERT INTO stock_takes (date, take, product_category) 
+          VALUES (%s, %s, %s)
+      """, (date, take, category))
       connection.commit()
       print(f"Stock take {category} added successfully!")
       cursor.close()

@@ -1,13 +1,14 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QWidget, QDoubleSpinBox, QPushButton, QLabel, QScrollArea,
+    QWidget, QDoubleSpinBox, QPushButton, QLabel, QScrollArea, QDateEdit,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow, QGridLayout, QMessageBox
 )
 from database.products import fetch_products_stock_take, update_product, fetch_products
 from resources.pdf_exporter import export_to_pdf 
 from database.stock_takes import insert_stock_take, fetch_most_recent_stock_take
+from resources.date_input_dialog import DateInputDialog
 import json
-import datetime
+from datetime import datetime
 
 class StockTakeWindow(QMainWindow):
   data = {}
@@ -186,17 +187,38 @@ class StockTakeWindow(QMainWindow):
     """Save stock take data and reset the UI."""
     updated_data = {}
     
-    for product_id, spin_box in self.spin_boxes.items():
-      updated_data[product_id] = spin_box.value()
-      update_product(product_id, stock_count=spin_box.value())
+    # Ask if stock take was done today
+    taken_today_msg_box = QMessageBox(self)
+    taken_today_msg_box.setIcon(QMessageBox.Question)
+    taken_today_msg_box.setWindowTitle('Date taken')
+    taken_today_msg_box.setText('Was this stock take done today?')
+    taken_today_msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+    taken_today_msg_box.setDefaultButton(QMessageBox.Yes)
+    response = taken_today_msg_box.exec_()
+    
+    # Get today's date by default
+    date = datetime.now().strftime('%Y-%m-%d, %H:%M:%S')
 
+    if response == QMessageBox.No:
+      # Open date input dialog
+      dialog = DateInputDialog(self)
+      if dialog.exec_():  # If user clicks OK
+        date = dialog.get_date()  # Get selected date
+    else:
+      for product_id, spin_box in self.spin_boxes.items():
+        updated_data[product_id] = spin_box.value()
+        update_product(product_id, stock_count=spin_box.value())
+    
+    # Process the stock take data
     json_data = json.dumps(updated_data)
-    insert_stock_take(json_data, str(self.category))
 
-    QMessageBox.information(self, "Success", "Stock take saved successfully!")
+    # Insert stock take with selected date
+    print(date)
+    insert_stock_take(json_data, str(self.category), date)
 
     # Reset the form after saving
     self.reset_ui()
+
 
   def reset_ui(self):
     """Clears the form and resets UI back to the menu."""
