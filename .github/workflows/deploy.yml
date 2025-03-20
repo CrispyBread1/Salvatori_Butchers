@@ -1,89 +1,77 @@
-name: Build and Release
+name: Build Executable for macOS & Windows
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version (e.g., v1.0.0)"
-        required: true
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-macos:
+    runs-on: macos-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
+
+      - name: Install PostgreSQL (Required for psycopg2)
+        run: |
+          brew update
+          brew install postgresql
+          echo "PATH=$(brew --prefix postgresql)/bin:$PATH" >> $GITHUB_ENV
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with:
           python-version: '3.9'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyqt5 psycopg2-binary requests PyQtWebEngine pyinstaller
+          pip install pyqt5
+          pip install psycopg2-binary
+          pip install requests
+          pip install PyQtWebEngine
+          pip install pyinstaller
+
+      - name: Debug dependencies
+        run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
 
       - name: Build executable
         run: pyinstaller main.spec
 
-      - name: Upload Windows executable
+      - name: Upload executable as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ManageMeStock-Windows
-          path: dist/ManageMeStock.exe
+          name: macos-executable
+          path: dist/ManageMeStock
 
-  build-macos:
-    runs-on: macos-latest
+  build-windows:
+    runs-on: windows-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with:
           python-version: '3.9'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyqt5 psycopg2-binary requests PyQtWebEngine pyinstaller
+          pip install pyqt5
+          pip install psycopg2-binary
+          pip install requests
+          pip install PyQtWebEngine
+          pip install pyinstaller
 
-      - name: Build macOS app
-        run: pyinstaller --windowed --name ManageMeStock main.py
+      - name: Debug dependencies
+        run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
 
-      - name: Upload macOS app
+      - name: Build executable
+        run: pyinstaller main.spec
+
+      - name: Upload executable as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ManageMeStock-Mac
-          path: dist/ManageMeStock.app
-
-  release:
-    needs: [build-windows, build-macos]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ManageMeStock
-          path: dist/
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ManageMeStock
-          path: dist/
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            dist/ManageMeStock.exe
-            dist/ManageMeStock.app
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
-          draft: false
-          prerelease: false
+          name: windows-executable
+          path: dist/ManageMeStock.exe
