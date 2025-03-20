@@ -1,4 +1,4 @@
-name: Build Executable for macOS & Windows
+name: Build and Release
 
 on:
   workflow_dispatch:
