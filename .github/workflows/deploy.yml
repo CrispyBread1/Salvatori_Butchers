@@ -91,13 +91,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ManageMeStockW
-          path: dist/
+          path: .
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
           name: ManageMeStockM
-          path: dist/
+          path: .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
