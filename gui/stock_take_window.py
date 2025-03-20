@@ -221,7 +221,7 @@ class StockTakeWindow(QMainWindow):
     self.categories.append('all')
     for category in self.categories:
       time_stamp = self.most_recent_stock_take[category].date
-      last_stock_take_label = QLabel(f"<b>Last stock take for {category.title()}: </b>" + time_stamp.strftime('%y-%m-%d, %H:%M:%S'))
+      last_stock_take_label = QLabel(f"<b>Last stock take for {category.title()}: </b>" + time_stamp.strftime('%d-%m-%y, %H:%M:%S'))
       # last_stock_take_label.setAlignment(Qt.AlignCenter)
       self.last_stock_take_layout.addWidget(last_stock_take_label)
     self.scroll_layout.addLayout(self.last_stock_take_layout)
