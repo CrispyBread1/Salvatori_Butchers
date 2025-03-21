@@ -86,7 +86,7 @@ class EditProductWindow(QMainWindow):
           # Make the product name clickable (opens detailed edit)
           self.table.item(row_idx, 0).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
-        self.table.itemChanged.connect(self.cell_edited)
+        # self.table.itemChanged.connect(self.cell_edited)
         self.table.cellDoubleClicked.connect(self.open_product_detail)
         self.table.resizeColumnsToContents()
 
@@ -95,23 +95,23 @@ class EditProductWindow(QMainWindow):
         self.products = self.sort_products(fetch_products())
         self.load_product_table()
 
-    def cell_edited(self, item):
-        """Show Save button next to the changed cell."""
-        row_idx = item.row()
-        col_idx = item.column()
+    # def cell_edited(self, item):
+    #     """Show Save button next to the changed cell."""
+    #     row_idx = item.row()
+    #     col_idx = item.column()
 
-        if col_idx == 2:  # Stock Count should not be editable
-            return
+    #     if col_idx == 2:  # Stock Count should not be editable
+    #         return
 
-        # Remove previous Save button if it exists
-        if hasattr(self, 'save_button'):
-            self.save_button.deleteLater()
+    #     # Remove previous Save button if it exists
+    #     if hasattr(self, 'save_button'):
+    #         self.save_button.deleteLater()
 
-        # Create and show Save button next to the cell that was edited
-        self.save_button = QPushButton("Save", self)
-        self.save_button.clicked.connect(lambda: self.save_product(row_idx))
-        self.layout.addWidget(self.save_button)
-        self.save_button.show()
+    #     # Create and show Save button next to the cell that was edited
+    #     self.save_button = QPushButton("Save", self)
+    #     self.save_button.clicked.connect(lambda: self.save_product(row_idx))
+    #     self.layout.addWidget(self.save_button)
+    #     self.save_button.show()
 
     def save_product(self, row_idx):
         """Save changes of a specific row to the database."""

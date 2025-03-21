@@ -139,8 +139,10 @@ class ProductDetailWindow(QMainWindow):
         product.sage_code = self.sage_code_edit.text()
         product.supplier = self.supplier_edit.text()
         product.sold_as = self.sold_as_edit.text()
-
-        update_product(product)
+        
+        update_product(product.id, name=product.name, cost=product.cost, 
+                   product_value=product.product_value, stock_category=product.stock_category, product_category=product.product_category, 
+                   sage_code=product.sage_code, supplier=product.supplier, sold_as=product.sold_as)
         QMessageBox.information(self, "Success", "Product updated successfully!")
 
     def cancel_edit(self):
