@@ -38,6 +38,10 @@ class EditProductWindow(QMainWindow):
         # Load Data
         self.load_product_table()
 
+        # self.table_button = QPushButton("Save", self)
+        # self.table_button.clicked.connect(self.reload_list)
+        # self.layout.addWidget(self.table_button)
+
     def load_product_table(self):
         """Load product data into the table (Hardcoded Columns)."""
         if not self.products:
@@ -86,7 +90,7 @@ class EditProductWindow(QMainWindow):
           # Make the product name clickable (opens detailed edit)
           self.table.item(row_idx, 0).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 
-        # self.table.itemChanged.connect(self.cell_edited)
+        self.table.itemChanged.connect(self.cell_edited)
         self.table.cellDoubleClicked.connect(self.open_product_detail)
         self.table.resizeColumnsToContents()
 
@@ -95,23 +99,26 @@ class EditProductWindow(QMainWindow):
         self.products = self.sort_products(fetch_products())
         self.load_product_table()
 
-    # def cell_edited(self, item):
-    #     """Show Save button next to the changed cell."""
-    #     row_idx = item.row()
-    #     col_idx = item.column()
+    def cell_edited(self, item):
+      """Show Save button at the bottom after editing a cell."""
+      row_idx = item.row()
+      col_idx = item.column()
 
-    #     if col_idx == 2:  # Stock Count should not be editable
-    #         return
+      if col_idx == 2:  # Stock Count should not be editable
+          return
 
-    #     # Remove previous Save button if it exists
-    #     if hasattr(self, 'save_button'):
-    #         self.save_button.deleteLater()
+      # Remove previous Save button if it exists
+      if hasattr(self, 'save_button'):
+          self.save_button.deleteLater()
 
-    #     # Create and show Save button next to the cell that was edited
-    #     self.save_button = QPushButton("Save", self)
-    #     self.save_button.clicked.connect(lambda: self.save_product(row_idx))
-    #     self.layout.addWidget(self.save_button)
-    #     self.save_button.show()
+      # Create and show Save button at the bottom of the layout
+      self.save_button = QPushButton("Save", self)
+      self.save_button.clicked.connect(lambda: self.save_product(row_idx))
+
+      # Add the Save button at the bottom of the layout (below the current widgets)
+      self.layout.addWidget(self.save_button)
+      self.save_button.show()
+
 
     def save_product(self, row_idx):
         """Save changes of a specific row to the database."""
@@ -127,7 +134,9 @@ class EditProductWindow(QMainWindow):
         product.supplier = self.table.item(row_idx, 7).text()
         product.sold_as = self.table.item(row_idx, 8).text()
 
-        update_product(product)  # Save changes to DB
+        update_product(product.id, name=product.name, cost=product.cost, 
+                       product_value=product.product_value, stock_category=product.stock_category, product_category=product.product_category, 
+                       sage_code=product.sage_code, supplier=product.supplier, sold_as=product.sold_as)  # Save changes to DB
 
         QMessageBox.information(self, "Success", "Product updated successfully!")
         self.save_button.deleteLater()

@@ -1,6 +1,6 @@
+import json
 from PyQt5.QtWidgets import (
-    QWidget, QPushButton, QLabel, QVBoxLayout,
-    QMainWindow, QLineEdit, QMessageBox
+    QWidget, QPushButton, QLabel, QVBoxLayout, QMainWindow, QLineEdit, QMessageBox, QHBoxLayout
 )
 from PyQt5.QtCore import Qt
 from database.products import update_product
@@ -52,11 +52,30 @@ class ProductDetailWindow(QMainWindow):
         self.product_category_edit.setText(self.products[self.current_index].product_category)
         self.layout.addWidget(self.product_category_edit)
 
-        self.sage_code_label = QLabel("Sage Code:")
+        # Sage Code
+        self.sage_code_label = QLabel("Sage Code(s):")
         self.layout.addWidget(self.sage_code_label)
-        self.sage_code_edit = QLineEdit(self)
-        self.sage_code_edit.setText(self.products[self.current_index].sage_code)
-        self.layout.addWidget(self.sage_code_edit)
+
+        # Create a layout specifically for the Sage Code inputs
+        self.sage_code_layout = QVBoxLayout()
+        
+        # Original Sage Code field
+        if self.products[self.current_index].sage_code:
+          sage_codes = json.loads(self.products[self.current_index].sage_code)
+        else:
+          sage_codes = []
+        
+        self.sage_code_inputs = []
+        for sage_code in sage_codes:
+            self.add_sage_code_input(sage_code)
+
+        # Add the Sage Code layout to the main layout
+        self.layout.addLayout(self.sage_code_layout)
+
+        # Add Another Code Button
+        self.add_code_button = QPushButton("Add Another Code", self)
+        self.add_code_button.clicked.connect(self.add_sage_code_input)
+        self.layout.addWidget(self.add_code_button)
 
         self.supplier_label = QLabel("Supplier:")
         self.layout.addWidget(self.supplier_label)
@@ -77,9 +96,9 @@ class ProductDetailWindow(QMainWindow):
 
         self.prev_button = QPushButton("Previous", self)
         if self.current_index < 1:
-          self.prev_button.setEnabled(False)
+            self.prev_button.setEnabled(False)
         else:
-           self.prev_button.setEnabled(True)
+            self.prev_button.setEnabled(True)
         self.prev_button.clicked.connect(self.prev_product)
         self.layout.addWidget(self.prev_button)
 
@@ -105,28 +124,60 @@ class ProductDetailWindow(QMainWindow):
         self.save_button.clicked.connect(self.save_product)
         self.layout.addWidget(self.save_button)
 
-        self.cancel_button = QPushButton("Cancel", self)
-        self.cancel_button.clicked.connect(self.cancel_edit)
-        self.layout.addWidget(self.cancel_button)
+    def add_sage_code_input(self, sage_code=""):
+      """Dynamically adds another Sage Code input and delete button under the first one"""
+      # Ensure sage_code is a string
+      if not isinstance(sage_code, str):
+          sage_code = ""  # If not a string, default to an empty string
+
+      # Create a new QLineEdit for another Sage Code
+      new_sage_code_edit = QLineEdit(self)
+      new_sage_code_edit.setText(sage_code)  # Set the text to the valid string
+      self.sage_code_layout.addWidget(new_sage_code_edit)
+
+      # Create the delete button for this QLineEdit
+      delete_button = QPushButton("Delete", self)
+      delete_button.clicked.connect(lambda: self.delete_sage_code_input(new_sage_code_edit, delete_button))
+
+      # Layout to keep the QLineEdit and delete button in the same row
+      h_layout = QHBoxLayout()
+      h_layout.addWidget(new_sage_code_edit)
+      h_layout.addWidget(delete_button)
+
+      # Add the row (QHBoxLayout) to the Sage Code layout
+      self.sage_code_layout.addLayout(h_layout)
+
+      # Add the new QLineEdit to the list of inputs
+      self.sage_code_inputs.append(new_sage_code_edit)
+
+
+    def delete_sage_code_input(self, line_edit, delete_button):
+        """Deletes the given line edit and delete button"""
+        self.sage_code_layout.removeWidget(line_edit)
+        self.sage_code_layout.removeWidget(delete_button)
+        line_edit.deleteLater()
+        delete_button.deleteLater()
+
+        # Remove the line edit from the list of inputs
+        self.sage_code_inputs.remove(line_edit)
 
     def prev_product(self):
         """Navigate to the previous product."""
-        print(self.current_index)
-        if self.current_index > 1:
+        if self.current_index > 0:
             self.current_index -= 1
             self.load_product()
             self.prev_button.setEnabled(True)
         else:
-          self.prev_button.setEnabled(False)
+            self.prev_button.setEnabled(False)
 
     def next_product(self):
         """Navigate to the next product."""
         if self.current_index < len(self.products) - 1:
-          self.current_index += 1
-          self.load_product()
-          self.prev_button.setEnabled(True)
+            self.current_index += 1
+            self.load_product()
+            self.prev_button.setEnabled(True)
         else:
-          self.prev_button.setEnabled(False)
+            self.prev_button.setEnabled(False)
 
     def save_product(self):
         """Save edited product back to the database."""
@@ -136,18 +187,18 @@ class ProductDetailWindow(QMainWindow):
         product.product_value = float(self.product_value_edit.text())
         product.stock_category = self.stock_category_edit.text()
         product.product_category = self.product_category_edit.text()
-        product.sage_code = self.sage_code_edit.text()
+
+        # Save all the Sage Codes from the dynamic fields
+        sage_codes = [sage_code.text() for sage_code in self.sage_code_inputs]
+        product.sage_code = json.dumps(sage_codes)
+
         product.supplier = self.supplier_edit.text()
         product.sold_as = self.sold_as_edit.text()
-        
-        update_product(product.id, name=product.name, cost=product.cost, 
-                   product_value=product.product_value, stock_category=product.stock_category, product_category=product.product_category, 
-                   sage_code=product.sage_code, supplier=product.supplier, sold_as=product.sold_as)
-        QMessageBox.information(self, "Success", "Product updated successfully!")
 
-    def cancel_edit(self):
-        """Cancel the editing of the product."""
-        self.load_product()
+        update_product(product.id, name=product.name, cost=product.cost, 
+                       product_value=product.product_value, stock_category=product.stock_category, product_category=product.product_category, 
+                       sage_code=product.sage_code, supplier=product.supplier, sold_as=product.sold_as)
+        QMessageBox.information(self, "Success", "Product updated successfully!")
 
     def load_product(self):
         """Load the selected product details into editable fields."""
@@ -157,6 +208,14 @@ class ProductDetailWindow(QMainWindow):
         self.product_value_edit.setText(str(product.product_value))
         self.stock_category_edit.setText(product.stock_category)
         self.product_category_edit.setText(product.product_category)
-        self.sage_code_edit.setText(product.sage_code)
+
+        # Populate the Sage Code fields
+        if self.products[self.current_index].sage_code:
+          sage_codes = json.loads(self.products[self.current_index].sage_code)
+        else:
+          sage_codes = []
+        for sage_code_input, sage_code in zip(self.sage_code_inputs, sage_codes):
+            sage_code_input.setText(sage_code)
+        
         self.supplier_edit.setText(product.supplier)
         self.sold_as_edit.setText(product.sold_as)
