@@ -18,7 +18,7 @@ def update():
 def check_for_update():
   """Compares current version with the latest GitHub release."""
   latest_version = get_latest_version()
-  print(latest_version)
+  # print(latest_version)
   if latest_version != CURRENT_VERSION:
       # Display a pop-up message for the user
       message_box = QMessageBox()
