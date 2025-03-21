@@ -26,7 +26,7 @@ class ProductWindow(QWidget):
         self.load_data()
 
         self.table_button = QPushButton("Reload List", self)
-        self.table_button.clicked.connect(self.reload_list)
+        self.table_button.clicked.connect(lambda: self.reload_list())
 
         self.table.itemChanged.connect(self.collect_changes)
 
