@@ -27,7 +27,7 @@ class EditProductWindow(QMainWindow):
         self.layout.addWidget(self.label)
 
         # Reload Button (Above the Table)
-        self.table_button = QPushButton("Reload List", self)
+        self.table_button = QPushButton("Reload", self)
         self.table_button.clicked.connect(self.reload_list)
         self.layout.addWidget(self.table_button)
 
