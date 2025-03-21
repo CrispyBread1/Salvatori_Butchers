@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame
-from gui.product_window import ProductWindow   
+from gui.product_value_window import ProductWindow   
 from gui.stock_take_window import StockTakeWindow 
+from gui.edit_product_window import EditProductWindow
 from resources.update_release import update  
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -28,8 +29,10 @@ class MainWindow(QMainWindow):
         # Create the product window as a component
         self.product_window = ProductWindow()
         self.stock_take_window = StockTakeWindow()
+        self.edit_product_window = EditProductWindow()
         self.stacked_widget.addWidget(self.product_window)
         self.stacked_widget.addWidget(self.stock_take_window)
+        self.stacked_widget.addWidget(self.edit_product_window)
 
         # Side navigation layout (the nav bar remains static)
         self.nav_layout = QVBoxLayout()
@@ -39,20 +42,23 @@ class MainWindow(QMainWindow):
         self.nav_button_1.clicked.connect(self.show_home)
         self.nav_button_2 = QPushButton("Settings", self)
         self.nav_button_2.clicked.connect(self.show_settings)
-        self.nav_button_3 = QPushButton("Products", self)
-        self.nav_button_3.clicked.connect(self.open_product_window)
-        self.nav_button_4 = QPushButton("Stock Take", self)
-        self.nav_button_4.clicked.connect(self.open_stock_take_window)
+        self.nav_button_3 = QPushButton("Product Value", self)
+        self.nav_button_3.clicked.connect(self.open_product_value_window)
+        self.nav_button_4 = QPushButton("Edit Products", self)
+        self.nav_button_4.clicked.connect(self.open_edit_product_window)
+        self.nav_button_5 = QPushButton("Stock Take", self)
+        self.nav_button_5.clicked.connect(self.open_stock_take_window)
 
         self.nav_layout.addWidget(self.nav_button_1)
         self.nav_layout.addWidget(self.nav_button_2)
         self.nav_layout.addWidget(self.nav_button_3)
         self.nav_layout.addWidget(self.nav_button_4)
+        self.nav_layout.addWidget(self.nav_button_5)
 
         # Create the navigation bar as a sidebar (frame)
         side_bar = QFrame(self.central_widget)
         side_bar.setLayout(self.nav_layout)
-        side_bar.setFixedWidth(100)
+        side_bar.setFixedWidth(150)
 
         # Set up the main layout (main window and sidebar)
         main_layout = QHBoxLayout(self.central_widget)
@@ -63,11 +69,14 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1200, 800)
         
 
-    def open_product_window(self):
+    def open_product_value_window(self):
         self.stacked_widget.setCurrentWidget(self.product_window)
 
     def open_stock_take_window(self):
         self.stacked_widget.setCurrentWidget(self.stock_take_window)
+
+    def open_edit_product_window(self):
+        self.stacked_widget.setCurrentWidget(self.edit_product_window)
 
     def reload_page(self):
         """Reload the current page by refreshing the content"""

@@ -15,7 +15,7 @@ class ProductWindow(QWidget):
         self.resize(1200, 800)
 
         # Label for product window
-        label = QLabel("Product List", self)
+        label = QLabel("Product Value", self)
         layout.addWidget(label)
 
         # Create Table Widget
@@ -85,4 +85,3 @@ class ProductWindow(QWidget):
           product.stock_category = item.text()
       elif col_idx == 5: 
           product.product_value = float(item.text())
-

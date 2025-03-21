@@ -204,6 +204,8 @@ class StockTakeWindow(QMainWindow):
       dialog = DateInputDialog(self)
       if dialog.exec_():  # If user clicks OK
         date = dialog.get_date()  # Get selected date
+      for product_id, spin_box in self.spin_boxes.items():
+        updated_data[product_id] = spin_box.value()
     else:
       for product_id, spin_box in self.spin_boxes.items():
         updated_data[product_id] = spin_box.value()
