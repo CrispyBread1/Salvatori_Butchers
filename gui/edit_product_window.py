@@ -39,7 +39,7 @@ class EditProductWindow(QMainWindow):
         self.layout.addWidget(self.table)
 
         # Load Data
-        # self.load_product_table()
+        self.load_product_table()
 
         # self.table_button = QPushButton("Save", self)
         # self.table_button.clicked.connect(self.reload_list)
@@ -56,6 +56,12 @@ class EditProductWindow(QMainWindow):
 
         # Clear existing table contents before reloading data
         self.table.clearContents()
+        
+        try:
+          self.table.cellDoubleClicked.disconnect()
+        except:
+            pass
+
         self.table.setRowCount(len(self.products))
 
         # Set headers manually (matching database fields)
@@ -90,6 +96,7 @@ class EditProductWindow(QMainWindow):
 
         self.table.setUpdatesEnabled(True)
         self.table.itemChanged.connect(self.cell_edited)
+         
         self.table.cellDoubleClicked.connect(self.open_product_detail)
         self.table.resizeColumnsToContents()
 

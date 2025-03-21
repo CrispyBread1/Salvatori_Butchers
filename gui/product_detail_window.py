@@ -60,7 +60,6 @@ class ProductDetailWindow(QMainWindow):
         self.sage_code_layout = QVBoxLayout()
         
         # Original Sage Code field
-        print(self.products[self.current_index].sage_code)
         if self.products[self.current_index].sage_code:
             sage_codes = json.loads(self.products[self.current_index].sage_code)
         else:
