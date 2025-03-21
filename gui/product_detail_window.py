@@ -60,12 +60,15 @@ class ProductDetailWindow(QMainWindow):
         self.sage_code_layout = QVBoxLayout()
         
         # Original Sage Code field
+        print(self.products[self.current_index].sage_code)
         if self.products[self.current_index].sage_code:
-          sage_codes = json.loads(self.products[self.current_index].sage_code)
+            sage_codes = json.loads(self.products[self.current_index].sage_code)
         else:
-          sage_codes = []
+            sage_codes = []
         
-        self.sage_code_inputs = []
+        self.sage_code_inputs = []  # List to hold the QLineEdit inputs
+        self.delete_buttons = []  # List to hold the delete buttons
+
         for sage_code in sage_codes:
             self.add_sage_code_input(sage_code)
 
@@ -125,31 +128,31 @@ class ProductDetailWindow(QMainWindow):
         self.layout.addWidget(self.save_button)
 
     def add_sage_code_input(self, sage_code=""):
-      """Dynamically adds another Sage Code input and delete button under the first one"""
-      # Ensure sage_code is a string
-      if not isinstance(sage_code, str):
-          sage_code = ""  # If not a string, default to an empty string
+        """Dynamically adds another Sage Code input and delete button under the first one"""
+        # Ensure sage_code is a string
+        if not isinstance(sage_code, str):
+            sage_code = ""  # If not a string, default to an empty string
 
-      # Create a new QLineEdit for another Sage Code
-      new_sage_code_edit = QLineEdit(self)
-      new_sage_code_edit.setText(sage_code)  # Set the text to the valid string
-      self.sage_code_layout.addWidget(new_sage_code_edit)
+        # Create a new QLineEdit for another Sage Code
+        new_sage_code_edit = QLineEdit(self)
+        new_sage_code_edit.setText(sage_code)  # Set the text to the valid string
+        self.sage_code_layout.addWidget(new_sage_code_edit)
 
-      # Create the delete button for this QLineEdit
-      delete_button = QPushButton("Delete", self)
-      delete_button.clicked.connect(lambda: self.delete_sage_code_input(new_sage_code_edit, delete_button))
+        # Create the delete button for this QLineEdit
+        delete_button = QPushButton("Delete", self)
+        delete_button.clicked.connect(lambda: self.delete_sage_code_input(new_sage_code_edit, delete_button))
 
-      # Layout to keep the QLineEdit and delete button in the same row
-      h_layout = QHBoxLayout()
-      h_layout.addWidget(new_sage_code_edit)
-      h_layout.addWidget(delete_button)
+        # Layout to keep the QLineEdit and delete button in the same row
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(new_sage_code_edit)
+        h_layout.addWidget(delete_button)
 
-      # Add the row (QHBoxLayout) to the Sage Code layout
-      self.sage_code_layout.addLayout(h_layout)
+        # Add the row (QHBoxLayout) to the Sage Code layout
+        self.sage_code_layout.addLayout(h_layout)
 
-      # Add the new QLineEdit to the list of inputs
-      self.sage_code_inputs.append(new_sage_code_edit)
-
+        # Add the new QLineEdit and delete button to the lists
+        self.sage_code_inputs.append(new_sage_code_edit)
+        self.delete_buttons.append(delete_button)
 
     def delete_sage_code_input(self, line_edit, delete_button):
         """Deletes the given line edit and delete button"""
@@ -158,8 +161,9 @@ class ProductDetailWindow(QMainWindow):
         line_edit.deleteLater()
         delete_button.deleteLater()
 
-        # Remove the line edit from the list of inputs
+        # Remove the line edit and delete button from the lists
         self.sage_code_inputs.remove(line_edit)
+        self.delete_buttons.remove(delete_button)
 
     def prev_product(self):
         """Navigate to the previous product."""
@@ -211,11 +215,19 @@ class ProductDetailWindow(QMainWindow):
 
         # Populate the Sage Code fields
         if self.products[self.current_index].sage_code:
-          sage_codes = json.loads(self.products[self.current_index].sage_code)
+            sage_codes = json.loads(self.products[self.current_index].sage_code)
+            for sage_code in sage_codes:
+                self.add_sage_code_input(sage_code)
         else:
-          sage_codes = []
-        for sage_code_input, sage_code in zip(self.sage_code_inputs, sage_codes):
-            sage_code_input.setText(sage_code)
-        
+            # Remove any existing sage code inputs and delete buttons
+            for sage_code_input, delete_button in zip(self.sage_code_inputs, self.delete_buttons):
+                self.sage_code_layout.removeWidget(sage_code_input)
+                self.sage_code_layout.removeWidget(delete_button)
+                sage_code_input.deleteLater()
+                delete_button.deleteLater()
+
+            self.sage_code_inputs.clear()
+            self.delete_buttons.clear()
+
         self.supplier_edit.setText(product.supplier)
         self.sold_as_edit.setText(product.sold_as)
