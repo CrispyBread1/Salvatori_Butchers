@@ -20,9 +20,6 @@ class StockTakeWindow(QMainWindow):
 
     # Main content layout
     self.content_layout = QVBoxLayout()
-    self.label = QLabel("Welcome to the Main Window!", self)
-    self.content_layout.addWidget(self.label)
-    
 
     # Set up the main window content inside the stacked widget
     main_content = QWidget()
@@ -36,32 +33,40 @@ class StockTakeWindow(QMainWindow):
     self.stacked_widget.addWidget(self.stock_take_view_window)
 
     # Side navigation layout (the nav bar remains static)
-
     self.stock_take_menu_button1 = QPushButton("New", self)
-    self.stock_take_menu_button1.clicked.connect(lambda: self.open_stock_take_new_window())
-    
+    self.stock_take_menu_button2 = QPushButton("Back", self)
+    self.stock_take_menu_button1.clicked.connect(self.open_stock_take_new_window)
+    self.stock_take_menu_button2.clicked.connect(self.return_back_to_main_window_view)
 
     # Use QHBoxLayout for a horizontal menu
-    self.stock_menu_layout = QHBoxLayout()
-    self.stock_menu_layout.addWidget(self.stock_take_menu_button1)
+    self.stock_take_menu_layout = QHBoxLayout()
+    self.stock_take_menu_layout.addWidget(self.stock_take_menu_button1)
+    self.stock_take_menu_layout.addWidget(self.stock_take_menu_button2)
 
     # Create a frame to hold the button layout
-    top_menu = QFrame(self.central_widget)
-
+    self.top_menu = QFrame(self.central_widget)
+    self.top_menu.setLayout(self.stock_take_menu_layout)
+    self.stock_take_menu_button2.hide()
 
     # Set up the main layout (main window and sidebar)
-    main_layout = QHBoxLayout(self.central_widget)
-    main_layout.addWidget(self.stacked_widget)
+    self.main_layout = QVBoxLayout(self.central_widget)  # Change to QVBoxLayout
+    self.main_layout.addWidget(self.top_menu)  # Add the button menu at the top
+    self.main_layout.addWidget(self.stacked_widget)  # Add the stacked widget
+    self.central_widget.setLayout(self.main_layout)  # Set layout
 
-    # Set window geometry
-    self.setGeometry(100, 100, 1400, 800)
+    # Set the default view
+    self.stacked_widget.setCurrentWidget(self.stock_take_view_window)
+    
         
 
   def open_stock_take_new_window(self):
       self.stacked_widget.setCurrentWidget(self.stock_take_new_window)
+      self.stock_take_menu_button1.hide()
+      self.stock_take_menu_button2.show()
 
-  def open_stock_take_window(self):
-      # self.stacked_widget.setCurrentWidget(self.stock_take_window)
-      return
+  def return_back_to_main_window_view(self):
+      self.stacked_widget.setCurrentWidget(self.stock_take_view_window)
+      self.stock_take_menu_button1.show()
+      self.stock_take_menu_button2.hide()
 
 
