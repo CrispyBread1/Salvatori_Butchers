@@ -88,10 +88,9 @@ def fetch_most_recent_stock_take(categories):
     connection.close()
     return results
   
-def fetch_stock_takes_in_date_range(category, start_date, end_date):
+def fetch_stock_takes_in_date_range_with_category(category, start_date, end_date):
     connection = connect_db()
     results = {}
-
     if connection:
       cursor = connection.cursor()
       cursor.execute(
@@ -108,7 +107,28 @@ def fetch_stock_takes_in_date_range(category, start_date, end_date):
       cursor.close()
       connection.close()
 
-    return results  # Returns a dictionary of category -> list of StockTake objects
+    return results  
+  
+def fetch_stock_takes_in_date_range(start_date, end_date):
+    connection = connect_db()
+    results = {}
+    if connection:
+      cursor = connection.cursor()
+      cursor.execute(
+          "SELECT * FROM stock_takes WHERE date BETWEEN %s AND %s ",
+          (start_date, end_date)
+      )
+      fetched_data = cursor.fetchall()  # Fetch all matching rows
+
+      if fetched_data:
+        results = [StockTake(*row) for row in fetched_data]
+      else:
+        results = []  # Store empty list if no stock takes found
+
+      cursor.close()
+      connection.close()
+
+    return results  
 
   
 def convert_to_stock_take_objects(stock_takes):

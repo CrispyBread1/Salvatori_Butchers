@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from datetime import datetime, timedelta
 
 from database.products import fetch_products
-from database.stock_takes import fetch_stock_takes_in_date_range
+from database.stock_takes import fetch_stock_takes_in_date_range, fetch_stock_takes_in_date_range_with_category
 
 
 class StockTakeViewWindow(QMainWindow):
@@ -52,7 +52,7 @@ class StockTakeViewWindow(QMainWindow):
         self.update_week_dates()
 
         # Load default data (All products)
-        self.load_data("All")
+        self.load_data("all")
 
     def create_navigation_buttons(self):
         """Create buttons to navigate between weeks."""
@@ -86,7 +86,7 @@ class StockTakeViewWindow(QMainWindow):
         self.end_date = friday
 
         # Reload the table data with the new date range
-        self.load_data("All")
+        self.load_data("all")
 
     def go_to_previous_week(self):
         """Move the date range one week back."""
@@ -139,16 +139,20 @@ class StockTakeViewWindow(QMainWindow):
 
     def load_data(self, category):
         """Load stock take data into the table based on selected category."""
-        products_results = fetch_products()
-        stock_take_results = fetch_stock_takes_in_date_range(category, self.start_date, self.end_date)
+        self.data = {}
 
-        self.data = {}  # Reset data before reloading
-        print(stock_take_results)
-        # Filter and categorize products
-        for product in products_results:
+        products_results = fetch_products()
+        if category == 'all':
+          stock_take_results = fetch_stock_takes_in_date_range(self.start_date, self.end_date)
+          self.data = products_results
+        else:
+          stock_take_results = fetch_stock_takes_in_date_range_with_category(category, self.start_date, self.end_date)
+          for product in products_results:
             if product.stock_category not in self.data:
                 self.data[product.stock_category] = []
             self.data[product.stock_category].append(product)
+
+        
 
         # Clear existing table rows
         self.table.setRowCount(0)
