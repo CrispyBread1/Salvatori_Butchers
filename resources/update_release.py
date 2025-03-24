@@ -4,7 +4,7 @@ import os
 import sys
 
 GITHUB_REPO = "CrispyBread1/Salvatori_Butchers"
-
+# https://github.com/CrispyBread1/Salvatori_Butchers/releases/tag/v1.0.2
 CURRENT_VERSION = "v1.0.0"  # Update this with the current version of the app
 
 def update():

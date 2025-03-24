@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.stacked_widget)
 
         # Set window geometry
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 1400, 800)
         
 
     def open_product_value_window(self):
