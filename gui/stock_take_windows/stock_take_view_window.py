@@ -142,15 +142,19 @@ class StockTakeViewWindow(QMainWindow):
         self.data = {}
 
         products_results = fetch_products()
+        self.products = []
+
         if category == 'all':
           stock_take_results = fetch_stock_takes_in_date_range(self.start_date, self.end_date)
           self.data = products_results
+          self.products = products_results
         else:
           stock_take_results = fetch_stock_takes_in_date_range_with_category(category, self.start_date, self.end_date)
           for product in products_results:
             if product.stock_category not in self.data:
                 self.data[product.stock_category] = []
             self.data[product.stock_category].append(product)
+          self.products = self.data.get(category, [])
 
         
 
@@ -158,10 +162,10 @@ class StockTakeViewWindow(QMainWindow):
         self.table.setRowCount(0)
 
         # Load new data
-        products = self.data.get(category, [])
-        self.table.setRowCount(len(products))
+       
+        self.table.setRowCount(len(self.products))
 
-        for row_idx, product in enumerate(products):
+        for row_idx, product in enumerate(self.products):
             stock_values = [""] * 5  # Empty values for each day of the week
 
             # If stock take data exists, fill in values
