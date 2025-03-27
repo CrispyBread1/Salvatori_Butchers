@@ -9,7 +9,7 @@ class LoginController:
         username = self.ui.username_input.text()
         password = self.ui.password_input.text()
         user = User(username, password)
-        
+
         if user.validate_credentials():
             self.ui.display_message("Login successful!")
         else:

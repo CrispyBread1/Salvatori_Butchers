@@ -1,0 +1,7 @@
+[MASTER]
+# List of directories or files to skip (relative to the directory where pylint is run)
+ignore=dist, utils, build, controllers
+
+[MESSAGES CONTROL]
+# Disable the C0114 (missing module docstring) warning
+disable=C0114, E0611, E0401, R0902

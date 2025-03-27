@@ -9,6 +9,7 @@ from gui.product_detail_window import ProductDetailWindow
 from datetime import datetime
 
 class EditProductWindow(QMainWindow):
+    """Window for Editing products"""
     def __init__(self):
         super().__init__()
 
@@ -31,7 +32,7 @@ class EditProductWindow(QMainWindow):
 
         # Reload Button (Above the Table)
         self.table_button = QPushButton("Reload Products", self)
-        self.table_button.clicked.connect(lambda: self.reload_product_list())
+        self.table_button.clicked.connect(self.reload_product_list())
         self.layout.addWidget(self.table_button)
 
         # Product Table
@@ -41,14 +42,11 @@ class EditProductWindow(QMainWindow):
         # Load Data
         self.load_product_table()
 
-        # self.table_button = QPushButton("Save", self)
-        # self.table_button.clicked.connect(self.reload_list)
-        # self.layout.addWidget(self.table_button)
 
     def load_product_table(self):
         """Load product data into the table (Hardcoded Columns)."""
         self.products = fetch_products()
-        self.products.sort(key=lambda product: (product.stock_category, product.name))  
+        self.products.sort(key=lambda product: (product.stock_category, product.name))
 
         if not self.products:
             self.label.setText("No data found.")
@@ -56,20 +54,24 @@ class EditProductWindow(QMainWindow):
 
         # Clear existing table contents before reloading data
         self.table.clearContents()
-        
+
         try:
-          self.table.cellDoubleClicked.disconnect()
+            self.table.cellDoubleClicked.disconnect()
         except:
             pass
 
         self.table.setRowCount(len(self.products))
 
         # Set headers manually (matching database fields)
-        headers = ["Name", "Stock Cost £", "Stock Count", "Selling Price £", "Stock Category", "Product Category", "Sage Code", "Supplier", "Sold As"]
+        headers = [
+            "Name", "Stock Cost £", "Stock Count", "Selling Price £", "Stock Category",
+            "Product Category", "Sage Code", "Supplier", "Sold As"
+        ]
+
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
 
-        self.table.setUpdatesEnabled(False)  
+        self.table.setUpdatesEnabled(False)
         # Populate Table (No Looping for Field Mapping)
         for row_idx, product in enumerate(self.products):
             name_item = QTableWidgetItem(str(product.name))
@@ -77,16 +79,16 @@ class EditProductWindow(QMainWindow):
             name_item.setTextAlignment(Qt.AlignCenter)
             name_item.setForeground(Qt.blue)  # Blue text
             font = QFont()
-            font.setUnderline(True)  # Underline the text
+            font.setUnderline(True) # Underline the text
             name_item.setFont(font)
             self.table.setItem(row_idx, 0, name_item)
-            
+
             self.table.setItem(row_idx, 1, QTableWidgetItem(str(product.cost)))
             # Stock Count should be read-only
             stock_count_item = QTableWidgetItem(str(product.stock_count))
             stock_count_item.setFlags(stock_count_item.flags() & ~Qt.ItemIsEditable)
             self.table.setItem(row_idx, 2, stock_count_item)
-            
+
             self.table.setItem(row_idx, 3, QTableWidgetItem(str(product.product_value)))
             self.table.setItem(row_idx, 4, QTableWidgetItem(str(product.stock_category)))
             self.table.setItem(row_idx, 5, QTableWidgetItem(str(product.product_category)))
@@ -96,37 +98,37 @@ class EditProductWindow(QMainWindow):
 
         self.table.setUpdatesEnabled(True)
         self.table.itemChanged.connect(self.cell_edited)
-         
+
         self.table.cellDoubleClicked.connect(self.open_product_detail)
         self.table.resizeColumnsToContents()
 
     def reload_product_list(self):
         self.reloading = True  # Set the flag to True before reloading.
         self.load_product_table()  # Reload the table data.
-        self.reloading = False 
+        self.reloading = False
 
     def cell_edited(self, item):
-      """Show Save button at the bottom after editing a cell."""
-      if self.reloading:  # Skip the logic if a reload is in progress.
-        return
+        """Show Save button at the bottom after editing a cell."""
+        if self.reloading:  # Skip the logic if a reload is in progress.
+            return
 
-      row_idx = item.row()
-      col_idx = item.column()
+        row_idx = item.row()
+        col_idx = item.column()
 
-      if col_idx == 2:  # Stock Count should not be editable
-          return
+        if col_idx == 2:  # Stock Count should not be editable
+            return
 
       # Remove previous Save button if it exists
-      if hasattr(self, 'save_button'):
-          self.save_button.deleteLater()
+        if hasattr(self, 'save_button'):
+            self.save_button.deleteLater()
 
       # Create and show Save button at the bottom of the layout
-      self.save_button = QPushButton("Save", self)
-      self.save_button.clicked.connect(lambda: self.save_product(row_idx))
+        self.save_button = QPushButton("Save", self)
+        self.save_button.clicked.connect(lambda: self.save_product(row_idx))
 
       # Add the Save button at the bottom of the layout (below the current widgets)
-      self.layout.addWidget(self.save_button)
-      self.save_button.show()
+        self.layout.addWidget(self.save_button)
+        self.save_button.show()
 
 
     def save_product(self, row_idx):
@@ -143,9 +145,11 @@ class EditProductWindow(QMainWindow):
         product.supplier = self.table.item(row_idx, 7).text()
         product.sold_as = self.table.item(row_idx, 8).text()
 
-        update_product(product.id, name=product.name, cost=product.cost, 
-                       product_value=product.product_value, stock_category=product.stock_category, product_category=product.product_category, 
-                       sage_code=product.sage_code, supplier=product.supplier, sold_as=product.sold_as)  # Save changes to DB
+        update_product(product.id, name=product.name, cost=product.cost,
+            product_value=product.product_value, stock_category=product.stock_category,
+            product_category=product.product_category,
+            sage_code=product.sage_code, supplier=product.supplier,
+            sold_as=product.sold_as)  # Save changes to DB
 
         QMessageBox.information(self, "Success", "Product updated successfully!")
         self.save_button.deleteLater()
@@ -156,7 +160,3 @@ class EditProductWindow(QMainWindow):
         if col_idx == 0:
             self.product_detail_window = ProductDetailWindow(self.products, row_idx, self)
             self.product_detail_window.show()
-
-    # def sort_products(self, fetched_products):
-    #     """Sort products by category & name."""
-    #     return sorted(fetched_products, key=lambda product: (product.stock_category, product.name))
