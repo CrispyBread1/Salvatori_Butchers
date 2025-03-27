@@ -79,7 +79,7 @@ def fetch_most_recent_stock_take(categories):
     for category in categories:
       # cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
       cursor.execute(
-        "SELECT * FROM stock_takes WHERE product_category = %s ORDER BY date DESC LIMIT 1",
+        "SELECT * FROM stock_takes WHERE product_category = %s ORDER BY date_added DESC LIMIT 1",
         (category,)
       )
       # print(cursor.fetchone())
@@ -94,7 +94,7 @@ def fetch_stock_takes_in_date_range_with_category(category, start_date, end_date
     if connection:
       cursor = connection.cursor()
       cursor.execute(
-          "SELECT * FROM stock_takes WHERE product_category = %s AND date BETWEEN %s AND %s ",
+          "SELECT * FROM stock_takes WHERE product_category = %s AND date BETWEEN %s AND %s",
           (category, start_date, end_date)
       )
       fetched_data = cursor.fetchall()  # Fetch all matching rows
@@ -115,7 +115,7 @@ def fetch_stock_takes_in_date_range(start_date, end_date):
     if connection:
       cursor = connection.cursor()
       cursor.execute(
-          "SELECT * FROM stock_takes WHERE date BETWEEN %s AND %s ",
+          "SELECT * FROM stock_takes WHERE date BETWEEN %s AND %s",
           (start_date, end_date)
       )
       fetched_data = cursor.fetchall()  # Fetch all matching rows

@@ -1,10 +1,11 @@
+from collections import defaultdict
 from PyQt5.QtWidgets import (
     QWidget, QTableWidget, QVBoxLayout, QLabel, QTableWidgetItem, QMainWindow,
     QPushButton, QHBoxLayout
 )
 from PyQt5.QtCore import Qt
 from datetime import datetime, timedelta
-
+import json
 from database.products import fetch_products
 from database.stock_takes import fetch_stock_takes_in_date_range, fetch_stock_takes_in_date_range_with_category
 
@@ -123,59 +124,96 @@ class StockTakeViewWindow(QMainWindow):
         self.main_layout.addLayout(self.button_layout)
 
     def setup_table(self):
-        """Initialize table with weekdays as headers (excluding weekends)."""
-        weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      """Initialize table with weekdays as headers (excluding weekends)."""
+      headers = ["Product", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-        # Set table dimensions
-        self.table.setColumnCount(len(weekdays))
-        self.table.setHorizontalHeaderLabels(weekdays)
+      # Set table dimensions
+      self.table.setColumnCount(len(headers))
+      self.table.setHorizontalHeaderLabels(headers)
 
-        # Allow the table to stretch fully within the window
-        self.table.setSizeAdjustPolicy(QTableWidget.AdjustToContents)
+      # Allow the table to stretch fully within the window
+      self.table.setSizeAdjustPolicy(QTableWidget.AdjustToContents)
 
-        # Resize table to fit contents properly
-        self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.horizontalHeader().setSectionResizeMode(1)  # Stretch columns
+      # Resize table to fit contents properly
+      self.table.horizontalHeader().setStretchLastSection(True)
+      self.table.horizontalHeader().setSectionResizeMode(1)  # Stretch columns
 
     def load_data(self, category):
         """Load stock take data into the table based on selected category."""
-        self.data = {}
 
         products_results = fetch_products()
-        self.products = []
 
         if category == 'all':
-          stock_take_results = fetch_stock_takes_in_date_range(self.start_date, self.end_date)
-          self.data = products_results
-          self.products = products_results
+            stock_take_results = self.process_stock_takes(fetch_stock_takes_in_date_range(self.start_date, self.end_date))
+            self.render_table_all(products_results, stock_take_results)
         else:
-          stock_take_results = fetch_stock_takes_in_date_range_with_category(category, self.start_date, self.end_date)
-          for product in products_results:
-            if product.stock_category not in self.data:
-                self.data[product.stock_category] = []
-            self.data[product.stock_category].append(product)
-          self.products = self.data.get(category, [])
+            stock_take_results = self.process_stock_takes(fetch_stock_takes_in_date_range_with_category(category, self.start_date, self.end_date))
+            self.render_table_category(products_results, category, stock_take_results)
 
+    def render_table_all(self, products, stock_takes):
+      """Populate the table with stock take data for all categories."""
+      
+      # Clear existing table rows
+      self.table.setRowCount(0)
+      
+      # Define weekdays mapping for table columns
+      weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      date_to_column = {
+          (self.start_date + timedelta(days=i)).strftime('%Y-%m-%d'): i + 1  # Offset by 1 because column 0 is 'Product'
+          for i in range(5)
+      }
+
+      # Set number of rows based on product count
+      self.table.setRowCount(len(products))
+      
+      # Populate table with stock values
+      for row_idx, product in enumerate(products):
+          stock_values = [""] * 5  # Initialize empty values for Monday-Friday
+
+          # Find stock take data for this product
+          product_id = str(product.id)  # Convert product ID to string (since stock_take uses string keys)
+          
+          for stock_date, stock_take in stock_takes.items():  # Convert datetime to string
+              
+              if stock_date in date_to_column:
+                  col_idx = date_to_column[stock_date]  # Get corresponding column index
+                  
+                  # ✅ Ensure JSON Decoding is only done if needed
+                  stock_data = stock_take.take if isinstance(stock_take.take, dict) else json.loads(stock_take.take)
+
+                  # ✅ Get stock value using product ID
+                  stock_values[col_idx - 1] = str(stock_data.get(product_id, ""))
+
+          # Set product name in first column
+          self.table.setItem(row_idx, 0, QTableWidgetItem(product.name))
+
+          # Populate table row with stock values
+          for col_idx, stock_value in enumerate(stock_values, start=1):  # Start from column 1
+              self.table.setItem(row_idx, col_idx, QTableWidgetItem(stock_value))
+
+
+    def render_table_category(self, products, category, stock_takes):
+        """Render table for a specific product category."""
+        filtered_products = [p for p in products if p.stock_category == category]
+        self.render_table_all(filtered_products, stock_takes)
+
+    def process_stock_takes(self, stock_takes):
+        """Process stock takes: group by date and select the most recent entries."""
         
+        if not stock_takes:
+            return {}
 
-        # Clear existing table rows
-        self.table.setRowCount(0)
+        grouped_stock_takes = defaultdict(list)
 
-        # Load new data
-       
-        self.table.setRowCount(len(self.products))
+        # Group by date
+        for stock_take in stock_takes:
+            stock_date_str = stock_take.date.strftime('%Y-%m-%d')  # Convert datetime to string
+            grouped_stock_takes[stock_date_str].append(stock_take)
 
-        for row_idx, product in enumerate(self.products):
-            stock_values = [""] * 5  # Empty values for each day of the week
+        # Sort by date_added (newest first) and pick the latest entry
+        newest_stock_takes = {
+            stock_date: sorted(takes, key=lambda x: x.created_at, reverse=True)[0]
+            for stock_date, takes in grouped_stock_takes.items()
+        }
 
-            # If stock take data exists, fill in values
-            if category in stock_take_results:
-                for stock_take in stock_take_results[category]:
-                    # Assume stock_take.take contains a dictionary of stock values per date
-                    for i, day_offset in enumerate(range(5)):  # Monday-Friday
-                        date_str = (self.start_date + timedelta(days=day_offset)).strftime('%Y-%m-%d')
-                        stock_values[i] = stock_take.take.get(date_str, "")
-
-            # Populate table cells
-            for col_idx, stock_value in enumerate(stock_values):
-                self.table.setItem(row_idx, col_idx, QTableWidgetItem(stock_value))
+        return newest_stock_takes
