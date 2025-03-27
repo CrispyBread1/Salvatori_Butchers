@@ -79,7 +79,7 @@ def fetch_most_recent_stock_take(categories):
     for category in categories:
       # cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
       cursor.execute(
-        "SELECT * FROM stock_takes WHERE product_category = %s ORDER BY date DESC LIMIT 1",
+        "SELECT * FROM stock_takes WHERE product_category = %s ORDER BY date_added DESC LIMIT 1",
         (category,)
       )
       # print(cursor.fetchone())
@@ -87,6 +87,49 @@ def fetch_most_recent_stock_take(categories):
     cursor.close()
     connection.close()
     return results
+  
+def fetch_stock_takes_in_date_range_with_category(category, start_date, end_date):
+    connection = connect_db()
+    results = {}
+    if connection:
+      cursor = connection.cursor()
+      cursor.execute(
+          "SELECT * FROM stock_takes WHERE product_category = %s AND date BETWEEN %s AND %s",
+          (category, start_date, end_date)
+      )
+      fetched_data = cursor.fetchall()  # Fetch all matching rows
+
+      if fetched_data:
+        results = [StockTake(*row) for row in fetched_data]
+      else:
+        results = []  # Store empty list if no stock takes found
+
+      cursor.close()
+      connection.close()
+
+    return results  
+  
+def fetch_stock_takes_in_date_range(start_date, end_date):
+    connection = connect_db()
+    results = {}
+    if connection:
+      cursor = connection.cursor()
+      cursor.execute(
+          "SELECT * FROM stock_takes WHERE date BETWEEN %s AND %s AND product_category != 'all'",
+          (start_date, end_date)
+      )
+      fetched_data = cursor.fetchall()  # Fetch all matching rows
+
+      if fetched_data:
+        results = [StockTake(*row) for row in fetched_data]
+      else:
+        results = []  # Store empty list if no stock takes found
+
+      cursor.close()
+      connection.close()
+
+    return results  
+
   
 def convert_to_stock_take_objects(stock_takes):
   return [StockTake(*stock_take) for stock_take in stock_takes]
