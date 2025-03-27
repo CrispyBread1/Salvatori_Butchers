@@ -115,7 +115,7 @@ def fetch_stock_takes_in_date_range(start_date, end_date):
     if connection:
       cursor = connection.cursor()
       cursor.execute(
-          "SELECT * FROM stock_takes WHERE date BETWEEN %s AND %s",
+          "SELECT * FROM stock_takes WHERE date BETWEEN %s AND %s AND product_category != 'all'",
           (start_date, end_date)
       )
       fetched_data = cursor.fetchall()  # Fetch all matching rows

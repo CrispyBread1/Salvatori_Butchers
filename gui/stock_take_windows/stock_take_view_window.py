@@ -71,13 +71,13 @@ class StockTakeViewWindow(QMainWindow):
 
     def get_current_monday(self):
         """Get the Monday of the current week."""
-        today = datetime.today()
+        today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
         return today - timedelta(days=today.weekday())  # Start of the week (Monday)
 
     def update_week_dates(self):
         """Update the displayed week range and fetch data."""
         monday = self.current_monday
-        friday = monday + timedelta(days=4)
+        friday = monday.replace(hour=23, minute=59, second=59, microsecond=9999) + timedelta(days=4)
 
         # Update header title
         self.header_label.setText(f"{monday.strftime('%A %d %b')} - {friday.strftime('%A %d %b')}")
@@ -160,15 +160,14 @@ class StockTakeViewWindow(QMainWindow):
       weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
       date_to_column = {
           (self.start_date + timedelta(days=i)).strftime('%Y-%m-%d'): i + 1  # Offset by 1 because column 0 is 'Product'
-          for i in range(5)
+          for i in range(6)
       }
-
+      
       # Set number of rows based on product count
       self.table.setRowCount(len(products))
-      
       # Populate table with stock values
       for row_idx, product in enumerate(products):
-          stock_values = [""] * 5  # Initialize empty values for Monday-Friday
+          stock_values = [""] * 6  # Initialize empty values for Monday-Friday
 
           # Find stock take data for this product
           product_id = str(product.id)  # Convert product ID to string (since stock_take uses string keys)
@@ -199,7 +198,7 @@ class StockTakeViewWindow(QMainWindow):
 
     def process_stock_takes(self, stock_takes):
         """Process stock takes: group by date and select the most recent entries."""
-        
+
         if not stock_takes:
             return {}
 
