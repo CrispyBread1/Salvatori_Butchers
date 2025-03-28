@@ -11,6 +11,9 @@ from database.stock_takes import fetch_stock_takes_in_date_range, fetch_stock_ta
 
 
 class StockTakeViewWindow(QMainWindow):
+    category = ''
+    current_week_monday = ''
+
     def __init__(self):
         super().__init__()
 
@@ -50,10 +53,10 @@ class StockTakeViewWindow(QMainWindow):
 
         # Initialize default week (current week)
         self.current_monday = self.get_current_monday()
+        self.current_week_monday = self.get_current_monday()
         self.update_week_dates()
 
         # Load default data (All products)
-        self.load_data("all")
 
     def create_navigation_buttons(self):
         """Create buttons to navigate between weeks."""
@@ -61,12 +64,17 @@ class StockTakeViewWindow(QMainWindow):
         self.main_layout.addLayout(self.nav_layout)
 
         self.previous_week_button = QPushButton("Previous Week")
+        self.current_week_button = QPushButton("Current Week")
         self.next_week_button = QPushButton("Next Week")
 
         self.previous_week_button.clicked.connect(self.go_to_previous_week)
+        self.current_week_button.clicked.connect(self.go_to_current_week)
         self.next_week_button.clicked.connect(self.go_to_next_week)
 
+        self.current_week_button.hide()
+
         self.nav_layout.addWidget(self.previous_week_button)
+        self.nav_layout.addWidget(self.current_week_button)
         self.nav_layout.addWidget(self.next_week_button)
 
     def get_current_monday(self):
@@ -87,16 +95,23 @@ class StockTakeViewWindow(QMainWindow):
         self.end_date = friday
 
         # Reload the table data with the new date range
-        self.load_data("all")
+        self.load_data(self.category)
 
     def go_to_previous_week(self):
         """Move the date range one week back."""
+        self.current_week_button.show()
         self.current_monday -= timedelta(weeks=1)
         self.update_week_dates()
 
     def go_to_next_week(self):
         """Move the date range one week forward."""
+        self.current_week_button.show()
         self.current_monday += timedelta(weeks=1)
+        self.update_week_dates()
+
+    def go_to_current_week(self):
+        self.current_week_button.hide()
+        self.current_monday = self.current_week_monday
         self.update_week_dates()
 
     def create_filter_buttons(self):
@@ -106,19 +121,17 @@ class StockTakeViewWindow(QMainWindow):
         self.fresh_button = QPushButton("Fresh")
         self.dry_button = QPushButton("Dry")
         self.frozen_button = QPushButton("Frozen")
-        self.all_button = QPushButton("All")
+
 
         # Connect buttons to filter function
         self.fresh_button.clicked.connect(lambda: self.load_data("fresh"))
         self.dry_button.clicked.connect(lambda: self.load_data("dry"))
         self.frozen_button.clicked.connect(lambda: self.load_data("frozen"))
-        self.all_button.clicked.connect(lambda: self.load_data("all"))
 
         # Add buttons to layout
         self.button_layout.addWidget(self.fresh_button)
         self.button_layout.addWidget(self.dry_button)
         self.button_layout.addWidget(self.frozen_button)
-        self.button_layout.addWidget(self.all_button)
 
         # Add button layout to main layout
         self.main_layout.addLayout(self.button_layout)
@@ -140,15 +153,11 @@ class StockTakeViewWindow(QMainWindow):
 
     def load_data(self, category):
         """Load stock take data into the table based on selected category."""
-
+        self.category = category
         products_results = fetch_products()
 
-        if category == 'all':
-            stock_take_results = self.process_stock_takes(fetch_stock_takes_in_date_range(self.start_date, self.end_date))
-            self.render_table_all(products_results, stock_take_results)
-        else:
-            stock_take_results = self.process_stock_takes(fetch_stock_takes_in_date_range_with_category(category, self.start_date, self.end_date))
-            self.render_table_category(products_results, category, stock_take_results)
+        stock_take_results = self.process_stock_takes(fetch_stock_takes_in_date_range_with_category(category, self.start_date, self.end_date))
+        self.render_table_category(products_results, category, stock_take_results)
 
     def render_table_all(self, products, stock_takes):
       """Populate the table with stock take data for all categories."""

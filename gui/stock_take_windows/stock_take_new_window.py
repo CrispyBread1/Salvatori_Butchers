@@ -35,15 +35,12 @@ class StockTakeNewWindow(QMainWindow):
     self.stock_button2.clicked.connect(lambda: self.load_specific_data('dry'))
     self.stock_button3 = QPushButton("Frozen", self)
     self.stock_button3.clicked.connect(lambda: self.load_specific_data('frozen'))
-    self.stock_button4 = QPushButton("All", self)
-    self.stock_button4.clicked.connect(lambda: self.load_all_data())
 
     # Use QHBoxLayout for a horizontal menu
     self.stock_menu_layout = QHBoxLayout()
     self.stock_menu_layout.addWidget(self.stock_button1)
     self.stock_menu_layout.addWidget(self.stock_button2)
     self.stock_menu_layout.addWidget(self.stock_button3)
-    self.stock_menu_layout.addWidget(self.stock_button4)
 
     # Create a frame to hold the button layout
     top_menu = QFrame(self.central_widget)
