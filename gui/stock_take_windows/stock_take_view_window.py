@@ -208,7 +208,7 @@ class StockTakeViewWindow(QMainWindow):
                     if current_stock_value is not None:
                         # Determine difference from previous day
                         if previous_stock_value is not None:
-                            diff = current_stock_value - previous_stock_value
+                            diff = round(current_stock_value - previous_stock_value, 3)
                             if diff > 0:
                                 stock_display = f"{current_stock_value} 🔼 +{diff}"
                                 color = QColor(0, 128, 0)  # Green for increase
