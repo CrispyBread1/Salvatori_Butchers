@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from datetime import datetime, timedelta
 import json
+from PyQt5.QtGui import QColor
 from database.products import fetch_products
 from database.stock_takes import fetch_stock_takes_in_date_range, fetch_stock_takes_in_date_range_with_category
 
@@ -157,53 +158,87 @@ class StockTakeViewWindow(QMainWindow):
         products_results = fetch_products()
 
         stock_take_results = self.process_stock_takes(fetch_stock_takes_in_date_range_with_category(category, self.start_date, self.end_date))
-        self.render_table_category(products_results, category, stock_take_results)
-
-    def render_table_all(self, products, stock_takes):
-      """Populate the table with stock take data for all categories."""
-      
-      # Clear existing table rows
-      self.table.setRowCount(0)
-      
-      # Define weekdays mapping for table columns
-      weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-      date_to_column = {
-          (self.start_date + timedelta(days=i)).strftime('%Y-%m-%d'): i + 1  # Offset by 1 because column 0 is 'Product'
-          for i in range(6)
-      }
-      
-      # Set number of rows based on product count
-      self.table.setRowCount(len(products))
-      # Populate table with stock values
-      for row_idx, product in enumerate(products):
-          stock_values = [""] * 6  # Initialize empty values for Monday-Friday
-
-          # Find stock take data for this product
-          product_id = str(product.id)  # Convert product ID to string (since stock_take uses string keys)
-          
-          for stock_date, stock_take in stock_takes.items():  # Convert datetime to string
-              
-              if stock_date in date_to_column:
-                  col_idx = date_to_column[stock_date]  # Get corresponding column index
-                  
-                  # ✅ Ensure JSON Decoding is only done if needed
-                  stock_data = stock_take.take if isinstance(stock_take.take, dict) else json.loads(stock_take.take)
-
-                  # ✅ Get stock value using product ID
-                  stock_values[col_idx - 1] = str(stock_data.get(product_id, ""))
-
-          # Set product name in first column
-          self.table.setItem(row_idx, 0, QTableWidgetItem(product.name))
-
-          # Populate table row with stock values
-          for col_idx, stock_value in enumerate(stock_values, start=1):  # Start from column 1
-              self.table.setItem(row_idx, col_idx, QTableWidgetItem(stock_value))
+        previous_friday = self.end_date - timedelta(weeks=1)
+        previous_friday_start = previous_friday.replace(hour=0, minute=0, second=0, microsecond=0)
+        previous_friday_end = previous_friday.replace(hour=23, minute=59, second=59, microsecond=9999)
+        stock_take_previous_friday_results = self.process_stock_takes(fetch_stock_takes_in_date_range_with_category(category, previous_friday_start, previous_friday_end))
+        self.render_table_category(products_results, category, stock_take_results, stock_take_previous_friday_results)
 
 
-    def render_table_category(self, products, category, stock_takes):
+    def render_table_all(self, products, stock_takes, stock_take_previous_friday):
+        """Populate the table with stock take data for all categories, including stock difference indicators."""
+        
+        # Clear existing table rows
+        self.table.setRowCount(0)
+        
+        # Define weekdays mapping for table columns
+        date_to_column = {
+            (self.start_date + timedelta(days=i)).strftime('%Y-%m-%d'): i + 1  # Offset by 1 because column 0 is 'Product'
+            for i in range(6)
+        }
+        
+        # Set number of rows based on product count
+        self.table.setRowCount(len(products))
+
+        for row_idx, product in enumerate(products):
+            stock_values = [""] * 6  # Initialize empty values for Monday-Friday
+            product_id = str(product.id)  # Convert product ID to string
+            
+            # Track previous day's stock value
+            previous_stock_value = None  
+
+            for stock_date, stock_take in sorted(stock_takes.items()):  # Sort by date
+                 # Ensure date is in string format
+                
+ 
+                if stock_date == self.start_date.strftime('%Y-%m-%d'):
+                    for previous_stock_date, previous_stock_take in stock_take_previous_friday.items():
+                      previous_stock_data = previous_stock_take.take if isinstance(stock_take.take, dict) else json.loads(stock_take.take)
+                      previous_stock_value = previous_stock_data.get(product_id, None)
+
+                if stock_date in date_to_column:
+                    col_idx = date_to_column[stock_date]  # Get corresponding column index
+                    
+                    # Decode stock data (JSON to dict)
+                    stock_data = stock_take.take if isinstance(stock_take.take, dict) else json.loads(stock_take.take)
+
+                    # Get stock value for this product
+                    current_stock_value = stock_data.get(product_id, None)
+
+                    if current_stock_value is not None:
+                        # Determine difference from previous day
+                        if previous_stock_value is not None:
+                            diff = current_stock_value - previous_stock_value
+                            if diff > 0:
+                                stock_display = f"{current_stock_value} 🔼 +{diff}"
+                                color = QColor(0, 128, 0)  # Green for increase
+                            elif diff < 0:
+                                stock_display = f"{current_stock_value} 🔽 {diff}"
+                                color = QColor(255, 0, 0)  # Red for decrease
+                            else:
+                                stock_display = str(current_stock_value)
+                                color = QColor(0, 0, 0)  # Default black for no change
+                        else:
+                            stock_display = str(current_stock_value)
+                            color = QColor(0, 0, 0)  # Default black
+
+                        # Store current stock as previous for the next iteration
+                        previous_stock_value = current_stock_value
+
+                        # Create table item and apply color
+                        item = QTableWidgetItem(stock_display)
+                        item.setForeground(color)
+                        self.table.setItem(row_idx, col_idx, item)
+
+            # Set product name in the first column
+            self.table.setItem(row_idx, 0, QTableWidgetItem(product.name))
+
+
+
+    def render_table_category(self, products, category, stock_takes, stock_take_previous_friday):
         """Render table for a specific product category."""
         filtered_products = [p for p in products if p.stock_category == category]
-        self.render_table_all(filtered_products, stock_takes)
+        self.render_table_all(filtered_products, stock_takes, stock_take_previous_friday)
 
     def process_stock_takes(self, stock_takes):
         """Process stock takes: group by date and select the most recent entries."""
