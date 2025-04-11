@@ -1,7 +1,9 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from gui.main_window import MainWindow
+from resources.degub_utils import check_env_variables
 from resources.update_release import update
+from PyQt5.QtWidgets import QMessageBox
 
 
 
@@ -12,8 +14,8 @@ def main():
     sys.exit(app.exec_())
 
 
+
 if __name__ == "__main__":
-    # update()
     main()
     
 

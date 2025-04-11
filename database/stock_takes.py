@@ -98,7 +98,6 @@ def fetch_stock_takes_in_date_range_with_category(category, start_date, end_date
           (category, start_date, end_date)
       )
       fetched_data = cursor.fetchall()  # Fetch all matching rows
-
       if fetched_data:
         results = [StockTake(*row) for row in fetched_data]
       else:
@@ -106,7 +105,6 @@ def fetch_stock_takes_in_date_range_with_category(category, start_date, end_date
 
       cursor.close()
       connection.close()
-
     return results  
   
 def fetch_stock_takes_in_date_range(start_date, end_date):
