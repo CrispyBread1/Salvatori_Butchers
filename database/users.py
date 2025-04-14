@@ -73,8 +73,9 @@ def fetch_user(id):
       (id,)
     )
     # print(cursor.fetchone())
-    result = User(*cursor.fetchone())
-    print(result)
+    result = cursor.fetchone()
+    if result:
+      result = User(*result)
     cursor.close()
     connection.close()
     return result

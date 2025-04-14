@@ -124,5 +124,41 @@ class AuthService:
             return True
     
     def is_authenticated(self):
-        """Check if the user is authenticated."""
-        return self.current_session is not None and self.current_user is not None
+        """Check if the current user is logged in and exists in the local database."""
+        if not self.current_session:
+            return False
+
+        supabase_user = self.get_user()
+        if not supabase_user:
+            return False
+
+        user_id = supabase_user.get('id')
+        if not user_id:
+            return False
+
+        local_user = fetch_user(user_id)
+        return local_user is not None
+
+    
+    def sign_up_user(self, email, password):
+        """Registers a new user with Supabase using REST API."""
+        if not self.supabase_url or not self.supabase_anon_key:
+            return False, "Supabase config is missing."
+
+        endpoint = f"{self.supabase_url}/auth/v1/signup"
+        payload = {"email": email, "password": password}
+        headers = {
+            'apikey': self.supabase_anon_key,
+            'Content-Type': 'application/json'
+        }
+
+        try:
+            response = requests.post(endpoint, json=payload, headers=headers)
+            if response.status_code != 200:
+                return False, response.json().get("msg", "Signup failed.")
+
+            return True, response.json()
+        except Exception as e:
+            return False, str(e)
+
+

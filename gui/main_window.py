@@ -2,8 +2,9 @@ from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButt
 from gui.product_value_window import ProductWindow   
 from gui.stock_take_window import StockTakeWindow 
 from gui.edit_product_window import EditProductWindow
-from auth.userAuthentication import AuthService  # Import the new AuthService
-from gui.components.loginComponent import LoginComponent  # Import the updated LoginComponent
+from auth.userAuthentication import AuthService  
+from gui.components.loginComponent import LoginComponent  
+from gui.components.signUpComponent import SignUpComponent
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -22,10 +23,8 @@ class MainWindow(QMainWindow):
 
         # Main content layout for welcome screen
         self.content_layout = QVBoxLayout()
-        self.welcome_label = QLabel("Welcome to the Inventory Management System!", self)
-        self.content_layout.addWidget(self.welcome_label)
         
-        self.user_label = QLabel("Please log in to continue", self)
+        self.user_label = QLabel("Please log in, or Sign up to continue", self)
         self.content_layout.addWidget(self.user_label)
         
         # Set up the main window content inside the stacked widget
@@ -36,6 +35,9 @@ class MainWindow(QMainWindow):
         self.login_button = QPushButton("Log In", self)
         self.login_button.clicked.connect(self.show_login)
         self.content_layout.addWidget(self.login_button)
+        self.sign_up_button = QPushButton("Sign Up", self)
+        self.sign_up_button.clicked.connect(self.show_sign_up)
+        self.content_layout.addWidget(self.sign_up_button)
 
         # Create the login component with auth service
         self.login_component = LoginComponent(self.auth_service)
@@ -43,6 +45,12 @@ class MainWindow(QMainWindow):
         self.login_component.login_failed.connect(self.on_login_failed)
         self.login_component.back_button.clicked.connect(self.show_home)
         self.stacked_widget.addWidget(self.login_component)
+
+        self.sign_up_component = SignUpComponent(self.auth_service)
+        self.sign_up_component.sign_up_successful.connect(self.on_sign_up_successful)
+        self.sign_up_component.sign_up_failed.connect(lambda msg: None)  # you can add logging if you want
+        self.sign_up_component.back_button.clicked.connect(self.show_home)
+        self.stacked_widget.addWidget(self.sign_up_component)
 
         # Create the product windows
         self.product_window = ProductWindow()
@@ -110,10 +118,13 @@ class MainWindow(QMainWindow):
             self.welcome_label.setText(f"Welcome, {user.name}!")
             self.user_label.setText("You are logged in.")
         else:
-            self.welcome_label.setText("Welcome to the Inventory Management System!")
-            self.user_label.setText("Please log in to continue")
-            
-            # If not authenticated, go back to home
+            print(self.auth_service.current_session)
+            if self.auth_service.current_session:
+                self.user_label.setText("Thank you for Signin up, an Admin is checking your Profile")
+            else:
+                self.user_label.setText("Please log in, or Sign up to continue")
+                
+                # If not authenticated, go back to home
             self.show_home()
 
     def on_login_successful(self, user_data):
@@ -126,6 +137,11 @@ class MainWindow(QMainWindow):
         """Handle failed login"""
         # Error message is displayed by the login component
         pass
+  
+    def on_sign_up_successful(self, user_data):
+        self.user_label.setText("Thank you for Signin up, an Admin is checking your Profile")
+        self.show_home()
+        
 
     def handle_logout(self):
         """Handle logout button click"""
@@ -184,3 +200,7 @@ class MainWindow(QMainWindow):
     def show_login(self):
         """Switch to login page"""
         self.stacked_widget.setCurrentWidget(self.login_component)
+
+    def show_sign_up(self):
+        """Switch to sign up page"""
+        self.stacked_widget.setCurrentWidget(self.sign_up_component)
