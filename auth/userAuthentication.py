@@ -160,5 +160,131 @@ class AuthService:
             return True, response.json()
         except Exception as e:
             return False, str(e)
+        
+    def get_pending_users(self):
+        """
+        Get users who exist in Supabase auth but not in the local database.
+        These are users who have signed up but haven't been approved yet.
+        
+        Returns:
+            list: List of user objects pending approval, or empty list if error
+        """
+        # Use service_role key for admin-level API access
+        service_role_key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+        
+        if not service_role_key or not self.supabase_url:
+            print("Missing SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL")
+            return []
+
+        # Supabase admin endpoint to fetch all auth users
+        admin_users_endpoint = f"{self.supabase_url}/auth/v1/admin/users"
+        
+        headers = {
+            'apikey': service_role_key,
+            'Authorization': f"Bearer {service_role_key}"
+        }
+
+        try:
+            # Fetch all users from Supabase auth
+            response = requests.get(admin_users_endpoint, headers=headers)
+            
+            if response.status_code != 200:
+                print(f"Failed to fetch users from Supabase: {response.text}")
+                return []
+            
+            all_users = response.json().get('users', [])  # note: Supabase wraps list in "users" key
+            pending_users = []
+
+            for user in all_users:
+                user_id = user.get('id')
+                if user_id:
+                    local_user = fetch_user(user_id)
+                    
+                    # If local_user is None or empty, they're pending approval
+                    if not local_user:
+                        pending_users.append({
+                            'id': user_id,
+                            'email': user.get('email'),
+                            'created_at': user.get('created_at'),
+                            'name': user.get('user_metadata', {}).get('name', 'N/A')
+                        })
+
+            return pending_users
+
+        except Exception as e:
+            print(f"Error fetching pending users: {str(e)}")
+            return []
+
+    
+    def get_pending_users_count(self):
+        """Get the count of pending users"""
+        return len(self.get_pending_users())
+    
+    def approve_user(self, user_id):
+        """
+        Approve a user by adding them to the users table
+        
+        Args:
+            user_id: The ID of the user in the auth table
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            # This would be your actual approval logic
+            # Example:
+            # 
+            # # Get user data from auth
+            # user = self.supabase.table("auth.users")
+            #     .select("*")
+            #     .eq("id", user_id)
+            #     .single()
+            #     .execute()
+            # 
+            # # Add user to your application's users table
+            # self.supabase.table("users")
+            #     .insert({
+            #         "auth_id": user_id,
+            #         "email": user.data["email"],
+            #         "name": user.data["user_metadata"].get("name", ""),
+            #         "role": "user",
+            #         "status": "active"
+            #     })
+            #     .execute()
+            
+            print(f"Approving user: {user_id}")
+            return True
+        except Exception as e:
+            print(f"Error approving user: {e}")
+            return False
+    
+    def reject_user(self, user_id):
+        """
+        Reject a user by deactivating them in the auth table
+        
+        Args:
+            user_id: The ID of the user in the auth table
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            # This would be your actual rejection logic
+            # Example:
+            # 
+            # # Deactivate user in auth table
+            # self.supabase.auth.admin.update_user_by_id(
+            #     user_id,
+            #     {"user_metadata": {"status": "rejected"}}
+            # )
+            # 
+            # # Alternatively, delete the user if that's appropriate
+            # # self.supabase.auth.admin.delete_user(user_id)
+            
+            print(f"Rejecting user: {user_id}")
+            return True
+        except Exception as e:
+            print(f"Error rejecting user: {e}")
+            return False
 
 

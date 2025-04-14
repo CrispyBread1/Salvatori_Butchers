@@ -5,6 +5,7 @@ from gui.edit_product_window import EditProductWindow
 from auth.userAuthentication import AuthService  
 from gui.components.loginComponent import LoginComponent  
 from gui.components.signUpComponent import SignUpComponent
+from gui.settings_window import SettingsWindow
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -56,9 +57,11 @@ class MainWindow(QMainWindow):
         self.product_window = ProductWindow()
         self.stock_take_window = StockTakeWindow()
         self.edit_product_window = EditProductWindow()
+        self.settings_window = SettingsWindow(self.auth_service)
         self.stacked_widget.addWidget(self.product_window)
         self.stacked_widget.addWidget(self.stock_take_window)
         self.stacked_widget.addWidget(self.edit_product_window)
+        self.stacked_widget.addWidget(self.settings_window)
 
         # Side navigation layout (the nav bar remains static)
         self.nav_layout = QVBoxLayout()
@@ -130,6 +133,8 @@ class MainWindow(QMainWindow):
 
     def on_login_successful(self, user_data):
         """Handle successful login"""
+      
+
         QMessageBox.information(self, "Success", "Login successful!")
         self.update_auth_state()
         self.show_home()
@@ -188,15 +193,7 @@ class MainWindow(QMainWindow):
 
     def show_settings(self):
         """Switch to settings page"""
-        # Check authentication before allowing access
-        if not self.auth_service.is_authenticated():
-            QMessageBox.warning(self, "Authentication Required", 
-                               "Please log in to access this feature.")
-            self.show_login()
-            return
-            
-        # Add functionality for settings page if needed
-        pass
+        self.stacked_widget.setCurrentWidget(self.settings_window)
 
     def show_login(self):
         """Switch to login page"""
