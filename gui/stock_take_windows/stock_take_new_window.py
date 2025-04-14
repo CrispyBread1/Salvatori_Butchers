@@ -212,7 +212,6 @@ class StockTakeNewWindow(QMainWindow):
     json_data = json.dumps(updated_data)
 
     # Insert stock take with selected date
-    print(date)
     insert_stock_take(json_data, str(self.category), date)
 
     # Reset the form after saving
@@ -253,7 +252,6 @@ class StockTakeNewWindow(QMainWindow):
 
   def load_most_recent_stock_take(self):
      self.categories.append('all')
-     print(self.categories)
      self.most_recent_stock_take = fetch_most_recent_stock_take(self.categories)
      self.categories.pop()
 

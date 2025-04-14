@@ -1,8 +1,10 @@
 class User:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, id, created_at, name, department, permissions, email):
+        self.id = id
+        self.created_at = created_at
+        self.name = name
+        self.email = email
+        self.department = department
+        self.permissions = permissions
 
-    def validate_credentials(self):
-        # Placeholder for actual validation logic
-        return self.username == "admin" and self.password == "password"
+  

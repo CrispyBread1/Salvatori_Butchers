@@ -4,8 +4,8 @@ from PyQt5.QtCore import pyqtSignal
 
 class LoginComponent(QWidget):
     # Define signals for login events
-    login_successful = pyqtSignal(dict)  # Emits user data on successful login
-    login_failed = pyqtSignal(str)      # Emits error message on failed login
+    login_successful = pyqtSignal(object)  # Emits user data on successful login (could be dict or User object)
+    login_failed = pyqtSignal(str)         # Emits error message on failed login
     
     def __init__(self, auth_service):
         super().__init__()
@@ -53,12 +53,25 @@ class LoginComponent(QWidget):
         # Add some spacing and stretching for better layout
         main_layout.addStretch()
         
+        # Connect enter key to login
+        self.email_input.returnPressed.connect(self.handle_login)
+        self.password_input.returnPressed.connect(self.handle_login)
+        
     def handle_login(self):
         email = self.email_input.text().strip()
         password = self.password_input.text()
         
         if not email or not password:
             QMessageBox.warning(self, "Login Error", "Please enter both email and password.")
+            return
+        
+        # Check if authentication service is properly configured
+        if not self.auth_service.supabase_url or not self.auth_service.supabase_anon_key:
+            QMessageBox.critical(
+                self, 
+                "Configuration Error", 
+                "Authentication service is not properly configured. Please check your environment variables."
+            )
             return
         
         # Show loading indication
@@ -77,9 +90,41 @@ class LoginComponent(QWidget):
             self.email_input.clear()
             self.password_input.clear()
             
+            # Show success message with username if available
+            user_display = self._get_user_display_name(result)
+            QMessageBox.information(
+                self, 
+                "Login Successful", 
+                f"Welcome, {user_display}!"
+            )
+            
             # Emit the success signal with user data
             self.login_successful.emit(result)
         else:
             # Emit the failure signal with error message
             self.login_failed.emit(result)
             QMessageBox.critical(self, "Login Failed", f"Error: {result}")
+    
+    def _get_user_display_name(self, user):
+        """Extract a display name from the user object (could be dict or User model)"""
+        # Handle User model from database
+        if hasattr(user, 'name'):
+            return user.name
+        elif hasattr(user, 'username'):
+            return user.username
+        elif hasattr(user, 'email'):
+            return user.email.split('@')[0]  # Use part before @ as name
+            
+        # Handle dict from Supabase
+        if isinstance(user, dict):
+            if 'user_metadata' in user and 'name' in user['user_metadata']:
+                return user['user_metadata']['name']
+            elif 'name' in user:
+                return user['name']
+            elif 'username' in user:
+                return user['username']
+            elif 'email' in user:
+                return user['email'].split('@')[0]
+        
+        # Default
+        return "User"

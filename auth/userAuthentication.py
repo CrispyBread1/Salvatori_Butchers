@@ -1,25 +1,36 @@
 import os
 import requests
 from dotenv import load_dotenv
+from database.users import fetch_user
 
 # Load environment variables from .env file
 load_dotenv()
-
-# Access the variables
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
 
 class AuthService:
     def __init__(self):
         self.current_session = None
         self.current_user = None
         
+        # Get URLs directly from environment
+        self.supabase_url = os.environ.get('SUPABASE_URL')
+        self.supabase_anon_key = os.environ.get('SUPABASE_ANON_KEY')
+        
+        # Check if environment variables are properly set
+        if not self.supabase_url or not self.supabase_anon_key:
+            print("ERROR: Environment variables not properly loaded in AuthService!")
+            print(f"SUPABASE_URL: {self.supabase_url}")
+            print(f"SUPABASE_ANON_KEY: {'Set' if self.supabase_anon_key else 'Not set'}")
+        
     def login_user(self, email, password):
         """Authenticate a user with email and password."""
-        auth_endpoint = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
+        # Check if environment variables are set
+        if not self.supabase_url or not self.supabase_anon_key:
+            return False, "Supabase configuration is missing. Please check your .env file."
+            
+        auth_endpoint = f"{self.supabase_url}/auth/v1/token?grant_type=password"
         
         headers = {
-            'apikey': SUPABASE_ANON_KEY,
+            'apikey': self.supabase_anon_key,
             'Content-Type': 'application/json'
         }
         
@@ -33,8 +44,29 @@ class AuthService:
             
             if response.status_code == 200:
                 self.current_session = response.json()
-                # Get user details after successful login
-                self.current_user = self.get_user()
+                
+                # Get user details from Supabase
+                supabase_user = self.get_user()
+                if not supabase_user:
+                    return False, "Failed to retrieve user details from Supabase"
+                
+                # Now fetch additional user data from your local database
+                user_id = supabase_user.get('id')
+                if user_id:
+                    # Use the fetch_user function from database controller
+                    local_user_data = fetch_user(user_id)
+                    
+                    if local_user_data:
+                        # Combine the Supabase user with your local user data
+                        # or just use your local user data if it contains everything you need
+                        self.current_user = local_user_data
+                    else:
+                        # If user doesn't exist in local DB, use Supabase user data
+                        self.current_user = supabase_user
+                        print("Warning: User found in Supabase but not in local database")
+                else:
+                    self.current_user = supabase_user
+                
                 return True, self.current_user
             else:
                 error_msg = response.json().get('error_description', 'Login failed')
@@ -47,10 +79,10 @@ class AuthService:
         if not self.current_session:
             return None
         
-        user_endpoint = f"{SUPABASE_URL}/auth/v1/user"
+        user_endpoint = f"{self.supabase_url}/auth/v1/user"
         
         headers = {
-            'apikey': SUPABASE_ANON_KEY,
+            'apikey': self.supabase_anon_key,
             'Authorization': f"Bearer {self.current_session.get('access_token')}"
         }
         
@@ -61,30 +93,8 @@ class AuthService:
                 return response.json()
             else:
                 return None
-        except Exception:
-            return None
-    
-    def fetch_user_data(self, user_id):
-        """Fetch additional user data from your users table if needed."""
-        if not self.current_session:
-            return None
-            
-        users_endpoint = f"{SUPABASE_URL}/rest/v1/users?id=eq.{user_id}"
-        
-        headers = {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': f"Bearer {self.current_session.get('access_token')}",
-            'Content-Type': 'application/json'
-        }
-        
-        try:
-            response = requests.get(users_endpoint, headers=headers)
-            
-            if response.status_code == 200 and response.json():
-                return response.json()[0]  # Return the first user
-            else:
-                return None
-        except Exception:
+        except Exception as e:
+            print(f"Error getting user from Supabase: {str(e)}")
             return None
     
     def logout_user(self):
@@ -92,10 +102,10 @@ class AuthService:
         if not self.current_session:
             return True
             
-        logout_endpoint = f"{SUPABASE_URL}/auth/v1/logout"
+        logout_endpoint = f"{self.supabase_url}/auth/v1/logout"
         
         headers = {
-            'apikey': SUPABASE_ANON_KEY,
+            'apikey': self.supabase_anon_key,
             'Authorization': f"Bearer {self.current_session.get('access_token')}"
         }
         
