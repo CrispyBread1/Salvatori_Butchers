@@ -23,56 +23,47 @@ class AuthService:
         
     def login_user(self, email, password):
         """Authenticate a user with email and password."""
-        # Check if environment variables are set
         if not self.supabase_url or not self.supabase_anon_key:
             return False, "Supabase configuration is missing. Please check your .env file."
             
         auth_endpoint = f"{self.supabase_url}/auth/v1/token?grant_type=password"
-        
         headers = {
             'apikey': self.supabase_anon_key,
             'Content-Type': 'application/json'
         }
-        
         payload = {
             'email': email,
             'password': password
         }
-        
+
         try:
             response = requests.post(auth_endpoint, json=payload, headers=headers)
-            
-            if response.status_code == 200:
-                self.current_session = response.json()
-                
-                # Get user details from Supabase
-                supabase_user = self.get_user()
-                if not supabase_user:
-                    return False, "Failed to retrieve user details from Supabase"
-                
-                # Now fetch additional user data from your local database
-                user_id = supabase_user.get('id')
-                if user_id:
-                    # Use the fetch_user function from database controller
-                    local_user_data = fetch_user(user_id)
-                    
-                    if local_user_data:
-                        # Combine the Supabase user with your local user data
-                        # or just use your local user data if it contains everything you need
-                        self.current_user = local_user_data
-                    else:
-                        # If user doesn't exist in local DB, use Supabase user data
-                        self.current_user = supabase_user
-                        print("Warning: User found in Supabase but not in local database")
-                else:
-                    self.current_user = supabase_user
-                
-                return True, self.current_user
-            else:
+            if response.status_code != 200:
                 error_msg = response.json().get('error_description', 'Login failed')
                 return False, error_msg
+
+            self.current_session = response.json()
+
+            # Get user details from Supabase
+            supabase_user = self.get_user()
+            if not supabase_user:
+                return False, "Failed to retrieve user details from Supabase"
+
+            user_id = supabase_user.get('id')
+            if user_id:
+                local_user_data = fetch_user(user_id)
+                self.current_user = local_user_data if local_user_data else supabase_user
+                self.current_user['approved'] = bool(local_user_data)
+            else:
+                self.current_user = supabase_user
+                self.current_user['approved'] = False
+
+
+            return True, self.current_user
+
         except Exception as e:
             return False, str(e)
+
     
     def get_user(self):
         """Get the current logged-in user from Supabase."""
@@ -123,23 +114,17 @@ class AuthService:
             self.current_user = None
             return True
     
-    def is_authenticated(self):
-        """Check if the current user is logged in and exists in the local database."""
+    def is_logged_in(self):
+        """Check if the current user is logged in."""
         if not self.current_session:
             return False
 
         supabase_user = self.get_user()
-        if not supabase_user:
-            return False
+        return supabase_user is not None
 
-        user_id = supabase_user.get('id')
-        if not user_id:
-            return False
+    def is_authenticated(self):
+        return self.current_user is not None and self.current_user.get('approved', False)
 
-        local_user = fetch_user(user_id)
-        return local_user is not None
-
-    
     def sign_up_user(self, email, password):
         """Registers a new user with Supabase using REST API."""
         if not self.supabase_url or not self.supabase_anon_key:

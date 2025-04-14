@@ -105,31 +105,33 @@ class MainWindow(QMainWindow):
 
     def update_auth_state(self):
         """Update the UI based on authentication state"""
-        is_authenticated = self.auth_service.is_authenticated()
-        
-        # Enable/disable navigation buttons based on auth state
+        is_logged_in = self.auth_service.is_logged_in()
+        user = self.auth_service.current_user
+        is_approved = user.get('approved') if user else False
+
+        # Enable navigation only for approved users
         for btn in [self.nav_button_2, self.nav_button_3, 
-                   self.nav_button_4, self.nav_button_5, 
-                   self.logout_button]:
-            btn.setVisible(is_authenticated)
-        
-        # Show/hide login button on home screen
-        for btn_off in [self.login_button, self.sign_up_button
-                        ]:
-            btn_off.setVisible(not is_authenticated)
-        
-        # Update welcome label
-        if is_authenticated:
-            user = self.auth_service.current_user
-            self.user_label.setText("You are logged in.")
-        else:
-            if self.auth_service.current_session:
-                self.user_label.setText("Thank you for Signin up, an Admin is checking your Profile")
+                    self.nav_button_4, self.nav_button_5]:
+            btn.setVisible(is_logged_in and is_approved)
+
+        # Always show logout if user is logged in
+        self.logout_button.setVisible(is_logged_in)
+
+        # Hide login/signup if logged in
+        self.login_button.setVisible(not is_logged_in)
+        self.sign_up_button.setVisible(not is_logged_in)
+
+        # Update welcome message
+        if is_logged_in:
+            if is_approved:
+                self.user_label.setText("Welcome! You are logged in.")
             else:
-                self.user_label.setText("Please log in, or Sign up to continue")
-                
-                # If not authenticated, go back to home
-            self.show_home()
+                self.user_label.setText("Thanks for signing in. An admin is reviewing your profile.")
+        else:
+            self.user_label.setText("Please log in or sign up to continue.")
+
+        self.show_home()
+
 
     def on_login_successful(self, user_data):
         """Handle successful login"""
