@@ -2,8 +2,8 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
-from gui.stock_take_windows.stock_take_new_window import StockTakeNewWindow
-from gui.stock_take_windows.stock_take_view_window import StockTakeViewWindow
+from gui.components.stock_take_windows.stock_take_new_window import StockTakeNewWindow
+from gui.components.stock_take_windows.stock_take_view_window import StockTakeViewWindow
 
 
 class StockTakeWindow(QMainWindow):

@@ -106,19 +106,20 @@ class MainWindow(QMainWindow):
         
         # Enable/disable navigation buttons based on auth state
         for btn in [self.nav_button_2, self.nav_button_3, 
-                   self.nav_button_4, self.nav_button_5, self.logout_button]:
+                   self.nav_button_4, self.nav_button_5, 
+                   self.logout_button]:
             btn.setVisible(is_authenticated)
         
         # Show/hide login button on home screen
-        self.login_button.setVisible(not is_authenticated)
+        for btn_off in [self.login_button, self.sign_up_button
+                        ]:
+            btn_off.setVisible(not is_authenticated)
         
         # Update welcome label
         if is_authenticated:
             user = self.auth_service.current_user
-            self.welcome_label.setText(f"Welcome, {user.name}!")
             self.user_label.setText("You are logged in.")
         else:
-            print(self.auth_service.current_session)
             if self.auth_service.current_session:
                 self.user_label.setText("Thank you for Signin up, an Admin is checking your Profile")
             else:
