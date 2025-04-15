@@ -10,6 +10,7 @@ class AuthService:
     def __init__(self):
         self.current_session = None
         self.current_user = None
+        self.approved_user = None
         
         # Get URLs directly from environment
         self.supabase_url = os.environ.get('SUPABASE_URL')
@@ -51,13 +52,9 @@ class AuthService:
 
             user_id = supabase_user.get('id')
             if user_id:
-                local_user_data = fetch_user(user_id)
-                self.current_user = local_user_data if local_user_data else supabase_user
-                self.current_user['approved'] = bool(local_user_data)
-            else:
-                self.current_user = supabase_user
-                self.current_user['approved'] = False
-
+                self.approved_user = fetch_user(user_id)
+                self.current_user = self.approved_user if self.approved_user else supabase_user
+                # If it's a User object, set attribute. If dict, use item assignment
 
             return True, self.current_user
 
@@ -123,7 +120,10 @@ class AuthService:
         return supabase_user is not None
 
     def is_authenticated(self):
-        return self.current_user is not None and self.current_user.get('approved', False)
+        if self.approved_user:
+            return True
+        else:
+          return False
 
     def sign_up_user(self, email, password):
         """Registers a new user with Supabase using REST API."""
