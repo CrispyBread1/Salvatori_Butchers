@@ -148,6 +148,9 @@ class MainWindow(QMainWindow):
   
     def on_sign_up_successful(self, user_data):
         self.user_label.setText("Thank you for Signin up, an Admin is checking your Profile")
+        self.logout_button.setVisible(True)
+        self.login_button.setVisible(False)
+        self.sign_up_button.setVisible(False)
         self.show_home()
         
 
