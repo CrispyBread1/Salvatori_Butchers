@@ -3,8 +3,8 @@ from gui.product_value_window import ProductWindow
 from gui.stock_take_window import StockTakeWindow 
 from gui.edit_product_window import EditProductWindow
 from auth.userAuthentication import AuthService  
-from gui.components.loginComponent import LoginComponent  
-from gui.components.signUpComponent import SignUpComponent
+from gui.components.user_accounts.loginComponent import LoginComponent  
+from gui.components.user_accounts.signUpComponent import SignUpComponent
 from gui.settings_window import SettingsWindow
 
 class MainWindow(QMainWindow):
