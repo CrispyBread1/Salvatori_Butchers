@@ -12,7 +12,7 @@ from gui.settings_window import SettingsWindow
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Inventory Management System')
+        self.setWindowTitle('Salvatori Admin')
         
         # Initialize auth service
         self.auth_service = AuthService()
