@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame, QMessageBox, QSizePolicy
 from database.users import get_pending_users
 from gui.components.buttons.notifications import NotificationButton
 from gui.product_value_window import ProductWindow   
@@ -14,10 +14,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Salvatori Admin')
-        
+
         # Initialize auth service
         self.auth_service = AuthService()
-        
+
         # Set up the central widget layout
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
@@ -31,7 +31,6 @@ class MainWindow(QMainWindow):
         self.user_label = QLabel("Please log in, or Sign up to continue", self)
         self.content_layout.addWidget(self.user_label)
         
-        # Set up the main window content inside the stacked widget
         main_content = QWidget()
         main_content.setLayout(self.content_layout)
         self.stacked_widget.addWidget(main_content)
@@ -39,11 +38,12 @@ class MainWindow(QMainWindow):
         self.login_button = QPushButton("Log In", self)
         self.login_button.clicked.connect(self.show_login)
         self.content_layout.addWidget(self.login_button)
+
         self.sign_up_button = QPushButton("Sign Up", self)
         self.sign_up_button.clicked.connect(self.show_sign_up)
         self.content_layout.addWidget(self.sign_up_button)
 
-        # Create the login component with auth service
+        # Auth components
         self.login_component = LoginComponent(self.auth_service)
         self.login_component.login_successful.connect(self.on_login_successful)
         self.login_component.login_failed.connect(self.on_login_failed)
@@ -52,64 +52,98 @@ class MainWindow(QMainWindow):
 
         self.sign_up_component = SignUpComponent(self.auth_service)
         self.sign_up_component.sign_up_successful.connect(self.on_sign_up_successful)
-        self.sign_up_component.sign_up_failed.connect(lambda msg: None)  # you can add logging if you want
+        self.sign_up_component.sign_up_failed.connect(lambda msg: None)
         self.sign_up_component.back_button.clicked.connect(self.show_home)
         self.stacked_widget.addWidget(self.sign_up_component)
 
-        # Create the product windows
-        # self.product_window = ProductWindow()
+        # Other windows
         self.scheduled_tasks_window = ScheduledTasks()
         self.stock_take_window = StockTakeWindow()
         self.edit_product_window = EditProductWindow()
         self.settings_window = SettingsWindow()
-        # self.stacked_widget.addWidget(self.product_window)
         self.stacked_widget.addWidget(self.scheduled_tasks_window)
         self.stacked_widget.addWidget(self.stock_take_window)
         self.stacked_widget.addWidget(self.edit_product_window)
         self.stacked_widget.addWidget(self.settings_window)
 
-        # Side navigation layout (the nav bar remains static)
-        self.nav_layout = QVBoxLayout()
-
-        # Navigation buttons
+        # Nav buttons
         self.nav_button_1 = QPushButton("Home", self)
         self.nav_button_1.clicked.connect(self.show_home)
+
         self.nav_button_2 = NotificationButton("Settings", self)
         self.nav_button_2.clicked.connect(self.show_settings)
-        # self.nav_button_3 = QPushButton("Product Value", self)
-        # self.nav_button_3.clicked.connect(self.open_product_value_window)
+
         self.nav_button_3 = QPushButton("Scheduled Tasks", self)
         self.nav_button_3.clicked.connect(self.open_scheduled_tasks_window)
+
         self.nav_button_4 = QPushButton("Edit Products", self)
         self.nav_button_4.clicked.connect(self.open_edit_product_window)
+
         self.nav_button_5 = QPushButton("Stock Take", self)
         self.nav_button_5.clicked.connect(self.open_stock_take_window)
+
         self.logout_button = QPushButton("Log Out", self)
         self.logout_button.clicked.connect(self.handle_logout)
 
-        self.nav_layout.addWidget(self.nav_button_1)
-        self.nav_layout.addWidget(self.nav_button_2)
-        self.nav_layout.addWidget(self.nav_button_3)
-        self.nav_layout.addWidget(self.nav_button_4)
-        self.nav_layout.addWidget(self.nav_button_5)
-        self.nav_layout.addWidget(self.logout_button)
+        # Create top navigation bar layout
+        self.nav_bar = QHBoxLayout()
+        self.nav_bar.setContentsMargins(10, 10, 10, 10)
+        self.nav_bar.setSpacing(20)
 
-        # Create the navigation bar as a sidebar (frame)
-        self.side_bar = QFrame(self.central_widget)
-        self.side_bar.setLayout(self.nav_layout)
-        self.side_bar.setFixedWidth(150)
+        # Left side - Home
+        self.nav_button_1.setFixedSize(80, 40)
+        self.nav_button_1.setStyleSheet("font-weight: bold;")
+        left_nav = QHBoxLayout()
+        left_nav.addWidget(self.nav_button_1)
+        left_nav.addStretch()
 
-        # Set up the main layout (main window and sidebar)
-        main_layout = QHBoxLayout(self.central_widget)
-        main_layout.addWidget(self.side_bar)
+        # Right side - other buttons
+        right_nav = QHBoxLayout()
+        for btn in [self.nav_button_2, self.nav_button_3, self.nav_button_4, self.nav_button_5, self.logout_button]:
+            btn.setFixedHeight(40)
+            btn.setMinimumWidth(100)
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            btn.setStyleSheet("padding: 5px 15px;")
+            right_nav.addWidget(btn)
+
+
+        right_nav.addStretch()
+
+        # Combine both sides into the nav bar
+        self.nav_bar.addLayout(left_nav, stretch=1)
+        self.nav_bar.addLayout(right_nav, stretch=5)
+
+        # Create the top nav bar as a frame
+        self.top_bar = QFrame(self.central_widget)
+        self.top_bar.setLayout(self.nav_bar)
+        self.top_bar.setFixedHeight(60)
+        self.top_bar.setStyleSheet("""
+            QFrame {
+                background-color: #f5f5f5;
+                border-bottom: 1px solid #ccc;
+            }
+            QPushButton {
+                background-color: #ffffff;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #e6e6e6;
+            }
+        """)
+
+        # Main layout with top nav and stacked content
+        main_layout = QVBoxLayout(self.central_widget)
+        main_layout.addWidget(self.top_bar)
         main_layout.addWidget(self.stacked_widget)
 
         # Set window geometry
         self.setGeometry(100, 100, 1400, 800)
-        
+
         # Set initial auth state
         self.update_auth_state()
         self.update_pending_users_notification()
+
 
     def update_auth_state(self):
         """Update the UI based on authentication state"""
