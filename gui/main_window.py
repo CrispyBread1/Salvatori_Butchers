@@ -87,12 +87,11 @@ class MainWindow(QMainWindow):
 
         # Create top navigation bar layout
         self.nav_bar = QHBoxLayout()
-        self.nav_bar.setContentsMargins(10, 10, 10, 10)
+        self.nav_bar.setContentsMargins(10, 6, 10, 10)
         self.nav_bar.setSpacing(20)
 
         # Left side - Home
-        self.nav_button_1.setFixedSize(80, 40)
-        self.nav_button_1.setStyleSheet("font-weight: bold;")
+        self.nav_button_1.setFixedSize(80, 28)
         left_nav = QHBoxLayout()
         left_nav.addWidget(self.nav_button_1)
         left_nav.addStretch()
@@ -100,7 +99,7 @@ class MainWindow(QMainWindow):
         # Right side - other buttons
         right_nav = QHBoxLayout()
         for btn in [self.nav_button_2, self.nav_button_3, self.nav_button_4, self.nav_button_5, self.logout_button]:
-            btn.setFixedHeight(40)
+            btn.setFixedHeight(28)
             btn.setMinimumWidth(100)
             btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
             btn.setStyleSheet("padding: 5px 15px;")
@@ -116,16 +115,17 @@ class MainWindow(QMainWindow):
         # Create the top nav bar as a frame
         self.top_bar = QFrame(self.central_widget)
         self.top_bar.setLayout(self.nav_bar)
-        self.top_bar.setFixedHeight(60)
+        self.top_bar.setFixedHeight(40)
         self.top_bar.setStyleSheet("""
             QFrame {
-                background-color: #f5f5f5;
+                background-color: #07035f;
                 border-bottom: 1px solid #ccc;
+                border-radius: 3px;
             }
             QPushButton {
-                background-color: #ffffff;
+                background-color: #f8f7ff;
                 border: 1px solid #ccc;
-                border-radius: 6px;
+                border-radius: 5px;
             }
             QPushButton:hover {
                 background-color: #e6e6e6;
