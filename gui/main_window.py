@@ -1,4 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame, QMessageBox
+from database.users import get_pending_users
+from gui.components.buttons.notifications import NotificationButton
 from gui.product_value_window import ProductWindow   
 from gui.stock_take_window import StockTakeWindow 
 from gui.edit_product_window import EditProductWindow
@@ -69,7 +71,7 @@ class MainWindow(QMainWindow):
         # Navigation buttons
         self.nav_button_1 = QPushButton("Home", self)
         self.nav_button_1.clicked.connect(self.show_home)
-        self.nav_button_2 = QPushButton("Settings", self)
+        self.nav_button_2 = NotificationButton("New Users", self)
         self.nav_button_2.clicked.connect(self.show_settings)
         self.nav_button_3 = QPushButton("Product Value", self)
         self.nav_button_3.clicked.connect(self.open_product_value_window)
@@ -102,6 +104,7 @@ class MainWindow(QMainWindow):
         
         # Set initial auth state
         self.update_auth_state()
+        self.update_pending_users_notification()
 
     def update_auth_state(self):
         """Update the UI based on authentication state"""
@@ -160,7 +163,8 @@ class MainWindow(QMainWindow):
 
     def open_product_value_window(self):
         # Check authentication before allowing access
-        if not self.auth_service.is_authenticated():
+        user = self.auth_service.current_user
+        if not user.approved:
             QMessageBox.warning(self, "Authentication Required", 
                                "Please log in to access this feature.")
             self.show_login()
@@ -170,7 +174,8 @@ class MainWindow(QMainWindow):
 
     def open_stock_take_window(self):
         # Check authentication before allowing access
-        if not self.auth_service.is_authenticated():
+        user = self.auth_service.current_user
+        if not user.approved:
             QMessageBox.warning(self, "Authentication Required", 
                                "Please log in to access this feature.")
             self.show_login()
@@ -180,7 +185,8 @@ class MainWindow(QMainWindow):
 
     def open_edit_product_window(self):
         # Check authentication before allowing access
-        if not self.auth_service.is_authenticated():
+        user = self.auth_service.current_user
+        if not user.approved:
             QMessageBox.warning(self, "Authentication Required", 
                                "Please log in to access this feature.")
             self.show_login()
@@ -203,3 +209,8 @@ class MainWindow(QMainWindow):
     def show_sign_up(self):
         """Switch to sign up page"""
         self.stacked_widget.setCurrentWidget(self.sign_up_component)
+
+    def update_pending_users_notification(self):
+        """Update the notification count on the New Users button"""
+        count = len(get_pending_users())
+        self.nav_button_2.set_notification_count(count)

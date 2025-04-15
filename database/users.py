@@ -32,37 +32,6 @@ def connect_db():
 
 def create_users_table():
    pass
-  # connection = connect_db()
-  # if connection:
-  #     cursor = connection.cursor()
-  #     cursor.execute("""
-  #         CREATE TABLE IF NOT EXISTS stock_takes (
-  #           id SERIAL PRIMARY KEY,
-  #           date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  #           take JSONB NOT NULL,
-  #           product_category TEXT NOT NULL
-  #         );
-  #     """)
-  #     connection.commit()
-  #     print("Table 'stock_take' created successfully.")
-  #     cursor.close()
-  #     connection.close()
-
-# def insert_stock_take(take, product_categories, date):
-#   connection = connect_db()
-#   category = ""
-#   for product_category in product_categories:
-#      category += product_category
-#   if connection:
-#       cursor = connection.cursor()
-#       cursor.execute("""
-#           INSERT INTO stock_takes (date, take, product_category) 
-#           VALUES (%s, %s, %s)
-#       """, (date, take, category))
-#       connection.commit()
-#       print(f"Stock take {category} added successfully!")
-#       cursor.close()
-#       connection.close()
 
 def fetch_user(id):
   connection = connect_db()
@@ -94,6 +63,48 @@ def insert_user(id, name, email):
       cursor.close()
       connection.close()
 
+def get_pending_users():
+    approved = False
+    connection = connect_db()
+    results = {}
+    if connection:
+      cursor = connection.cursor()
+      cursor.execute(
+          "SELECT * FROM users WHERE approved = %s",
+          (approved,)
+      )
+      fetched_data = cursor.fetchall()  # Fetch all matching rows
+      if fetched_data:
+        results = [User(*row) for row in fetched_data]
+      else:
+        results = []  # Store empty list if no stock takes found
+
+      cursor.close()
+      connection.close()
+    return results  
+
+def approve_user(user_id):
+    """Update the details of an existing product in the database."""
+    connection = connect_db()
+    if connection:
+        cursor = connection.cursor()
+        
+        # Prepare the SQL statement
+        update_query = sql.SQL(""" UPDATE users SET approved = %s WHERE id = %s """)
+        
+        # Execute the query with parameters
+        cursor.execute(update_query, (True, user_id,))
+        connection.commit()  # Commit the changes
+
+        cursor.close()
+        connection.close()
+        return True
+    else:
+        print("Failed to connect to the database, user not updated.")
+        return False
+
+def reject_user(user_id):
+   return False
   
 
   

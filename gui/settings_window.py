@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow,
 )
 from PyQt5.QtCore import Qt
+from database.users import get_pending_users
 from gui.components.buttons.notifications import NotificationButton
 from gui.components.setting_windows.general_settings_component import GeneralSettingsComponent
 from gui.components.setting_windows.user_approval_component import UserApprovalComponent
@@ -31,7 +32,7 @@ class SettingsWindow(QMainWindow):
         self.stacked_widget.addWidget(main_content)
         
         # Create the settings components
-        self.user_approval_component = UserApprovalComponent(self.auth_service)
+        self.user_approval_component = UserApprovalComponent()
         self.general_settings_component = GeneralSettingsComponent()
         self.stacked_widget.addWidget(self.user_approval_component)
         self.stacked_widget.addWidget(self.general_settings_component)
@@ -80,5 +81,5 @@ class SettingsWindow(QMainWindow):
     
     def update_pending_users_notification(self):
         """Update the notification count on the New Users button"""
-        count = self.auth_service.get_pending_users_count()
+        count = len(get_pending_users())
         self.new_users_button.set_notification_count(count)

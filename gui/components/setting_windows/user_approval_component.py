@@ -5,12 +5,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
+from database.users import *
 
 class UserApprovalComponent(QWidget):
     """Component for approving new users"""
-    def __init__(self, auth_service):
+    def __init__(self):
         super().__init__()
-        self.auth_service = auth_service
         self.setup_ui()
         self.load_pending_users()
         
@@ -42,7 +42,7 @@ class UserApprovalComponent(QWidget):
     def load_pending_users(self):
         """Load pending users from auth service"""
         # Get pending users from auth service
-        pending_users = self.auth_service.get_pending_users()
+        pending_users = get_pending_users()
         
         # Clear existing table data
         self.users_table.setRowCount(0)
@@ -53,12 +53,12 @@ class UserApprovalComponent(QWidget):
             self.users_table.insertRow(row_position)
             
             # Set email
-            email_item = QTableWidgetItem(user.get('email', 'N/A'))
+            email_item = QTableWidgetItem(user.email)
             email_item.setFlags(email_item.flags() & ~Qt.ItemIsEditable)  # Make read-only
             self.users_table.setItem(row_position, 0, email_item)
             
             # Set name
-            name_item = QTableWidgetItem(user.get('name', 'N/A'))
+            name_item = QTableWidgetItem(user.name)
             name_item.setFlags(name_item.flags() & ~Qt.ItemIsEditable)  # Make read-only
             self.users_table.setItem(row_position, 1, name_item)
             
@@ -96,25 +96,25 @@ class UserApprovalComponent(QWidget):
     def approve_user(self, user):
         """Approve a user - add to users table"""
         try:
-            success = self.auth_service.approve_user(user['id'])
+            success = approve_user(user.id)
             if success:
-                print(f"User approved: {user['email']}")
+                print(f"User approved: {user.email}")
                 # After approval, refresh the list
                 self.load_pending_users()
             else:
-                print(f"Failed to approve user: {user['email']}")
+                print(f"Failed to approve user: {user.email}")
         except Exception as e:
             print(f"Error approving user: {e}")
     
     def reject_user(self, user):
         """Reject a user - deactivate in auth table"""
         try:
-            success = self.auth_service.reject_user(user['id'])
+            success = reject_user(user.id)
             if success:
-                print(f"User rejected: {user['email']}")
+                print(f"User rejected: {user.email}")
                 # After rejection, refresh the list
                 self.load_pending_users()
             else:
-                print(f"Failed to reject user: {user['email']}")
+                print(f"Failed to reject user: {user.email}")
         except Exception as e:
             print(f"Error rejecting user: {e}")
