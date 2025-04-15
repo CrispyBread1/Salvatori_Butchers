@@ -10,9 +10,8 @@ from gui.components.setting_windows.user_approval_component import UserApprovalC
 
 class SettingsWindow(QMainWindow):
     """Main settings window with multiple components"""
-    def __init__(self, auth_service):
+    def __init__(self):
         super().__init__()
-        self.auth_service = auth_service
         self.setup_ui()
         
     def setup_ui(self):

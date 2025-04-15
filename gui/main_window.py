@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButt
 from database.users import get_pending_users
 from gui.components.buttons.notifications import NotificationButton
 from gui.product_value_window import ProductWindow   
+from gui.scheduled_tasks import ScheduledTasks
 from gui.stock_take_window import StockTakeWindow 
 from gui.edit_product_window import EditProductWindow
 from auth.userAuthentication import AuthService  
@@ -56,11 +57,13 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.sign_up_component)
 
         # Create the product windows
-        self.product_window = ProductWindow()
+        # self.product_window = ProductWindow()
+        self.scheduled_tasks_window = ScheduledTasks()
         self.stock_take_window = StockTakeWindow()
         self.edit_product_window = EditProductWindow()
-        self.settings_window = SettingsWindow(self.auth_service)
-        self.stacked_widget.addWidget(self.product_window)
+        self.settings_window = SettingsWindow()
+        # self.stacked_widget.addWidget(self.product_window)
+        self.stacked_widget.addWidget(self.scheduled_tasks_window)
         self.stacked_widget.addWidget(self.stock_take_window)
         self.stacked_widget.addWidget(self.edit_product_window)
         self.stacked_widget.addWidget(self.settings_window)
@@ -73,8 +76,10 @@ class MainWindow(QMainWindow):
         self.nav_button_1.clicked.connect(self.show_home)
         self.nav_button_2 = NotificationButton("New Users", self)
         self.nav_button_2.clicked.connect(self.show_settings)
-        self.nav_button_3 = QPushButton("Product Value", self)
-        self.nav_button_3.clicked.connect(self.open_product_value_window)
+        # self.nav_button_3 = QPushButton("Product Value", self)
+        # self.nav_button_3.clicked.connect(self.open_product_value_window)
+        self.nav_button_3 = QPushButton("Scheduled Tasks", self)
+        self.nav_button_3.clicked.connect(self.open_scheduled_tasks_window)
         self.nav_button_4 = QPushButton("Edit Products", self)
         self.nav_button_4.clicked.connect(self.open_edit_product_window)
         self.nav_button_5 = QPushButton("Stock Take", self)
@@ -161,7 +166,7 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Error", "There was a problem logging out.")
 
-    def open_product_value_window(self):
+    def open_scheduled_tasks_window(self):
         # Check authentication before allowing access
         user = self.auth_service.current_user
         if not user.approved:
@@ -170,7 +175,7 @@ class MainWindow(QMainWindow):
             self.show_login()
             return
             
-        self.stacked_widget.setCurrentWidget(self.product_window)
+        self.stacked_widget.setCurrentWidget(self.scheduled_tasks_window)
 
     def open_stock_take_window(self):
         # Check authentication before allowing access
