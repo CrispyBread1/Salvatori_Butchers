@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         # Navigation buttons
         self.nav_button_1 = QPushButton("Home", self)
         self.nav_button_1.clicked.connect(self.show_home)
-        self.nav_button_2 = NotificationButton("New Users", self)
+        self.nav_button_2 = NotificationButton("Settings", self)
         self.nav_button_2.clicked.connect(self.show_settings)
         # self.nav_button_3 = QPushButton("Product Value", self)
         # self.nav_button_3.clicked.connect(self.open_product_value_window)
