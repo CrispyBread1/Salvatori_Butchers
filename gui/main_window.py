@@ -106,12 +106,12 @@ class MainWindow(QMainWindow):
     def update_auth_state(self):
         """Update the UI based on authentication state"""
         is_logged_in = self.auth_service.is_logged_in()
-        is_authenticated = self.auth_service.is_authenticated()
+        user = self.auth_service.current_user
 
         # Enable navigation only for approved users
         for btn in [self.nav_button_2, self.nav_button_3, 
                     self.nav_button_4, self.nav_button_5]:
-            btn.setVisible(is_logged_in and is_authenticated)
+            btn.setVisible(is_logged_in and user.approved)
 
         # Always show logout if user is logged in
         self.logout_button.setVisible(is_logged_in)
@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
 
         # Update welcome message
         if is_logged_in:
-            if is_authenticated:
+            if user.approved:
                 self.user_label.setText("Welcome! You are logged in.")
             else:
                 self.user_label.setText("Thanks for signing in. An admin is reviewing your profile.")
@@ -134,9 +134,6 @@ class MainWindow(QMainWindow):
 
     def on_login_successful(self, user_data):
         """Handle successful login"""
-      
-
-        QMessageBox.information(self, "Success", "Login successful!")
         self.update_auth_state()
         self.show_home()
 

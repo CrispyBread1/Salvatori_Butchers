@@ -83,6 +83,14 @@ class SignUpComponent(QWidget):
         self.confirm_email_input.setMinimumWidth(250)
         self.confirm_email_input.setMaximumWidth(350)
         self.confirm_email_input.setStyleSheet(self.email_input.styleSheet())
+
+        # Name field
+        name_label = QLabel("Name:")
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("Enter your name")
+        self.name_input.setMinimumWidth(250)
+        self.name_input.setMaximumWidth(350)
+        self.name_input.setStyleSheet(self.email_input.styleSheet())
         
         # Password fields
         password_label = QLabel("Password:")
@@ -103,14 +111,16 @@ class SignUpComponent(QWidget):
         self.confirm_password_input.setStyleSheet(self.email_input.styleSheet())
         
         # Add fields to form layout
-        form_layout.addWidget(email_label, 1, 0)
-        form_layout.addWidget(self.email_input, 1, 1)
-        form_layout.addWidget(confirm_email_label, 2, 0)
-        form_layout.addWidget(self.confirm_email_input, 2, 1)
-        form_layout.addWidget(password_label, 3, 0)
-        form_layout.addWidget(self.password_input, 3, 1)
-        form_layout.addWidget(confirm_password_label, 4, 0)
-        form_layout.addWidget(self.confirm_password_input, 4, 1)
+        form_layout.addWidget(name_label, 1, 0)
+        form_layout.addWidget(self.name_input, 1, 1)
+        form_layout.addWidget(email_label, 2, 0)
+        form_layout.addWidget(self.email_input, 2, 1)
+        form_layout.addWidget(confirm_email_label, 3, 0)
+        form_layout.addWidget(self.confirm_email_input, 3, 1)
+        form_layout.addWidget(password_label, 4, 0)
+        form_layout.addWidget(self.password_input, 4, 1)
+        form_layout.addWidget(confirm_password_label, 5, 0)
+        form_layout.addWidget(self.confirm_password_input, 5, 1)
         
         # Buttons
         button_layout = QHBoxLayout()
@@ -160,7 +170,7 @@ class SignUpComponent(QWidget):
         button_layout.addStretch()
         button_layout.addWidget(self.back_button)
         button_layout.addWidget(self.sign_up_button)
-        form_layout.addLayout(button_layout, 5, 0, 1, 2)
+        form_layout.addLayout(button_layout, 6, 0, 1, 2)
         
         # Set alignment
         form_layout.setAlignment(Qt.AlignTop)
@@ -189,11 +199,12 @@ class SignUpComponent(QWidget):
     def handle_sign_up(self):
         email = self.email_input.text().strip()
         confirm_email = self.confirm_email_input.text().strip()
+        name = self.name_input.text().strip()
         password = self.password_input.text().strip()
         confirm_password = self.confirm_password_input.text().strip()
 
         # Check for empty fields
-        if not email or not password or not confirm_email or not confirm_password:
+        if not email or not password or not confirm_email or not confirm_password or not name:
             QMessageBox.warning(self, "Missing Fields", "Please fill in all fields.")
             return
             
@@ -208,7 +219,14 @@ class SignUpComponent(QWidget):
             return
 
         # Perform sign up
-        success, result = self.auth_service.sign_up_user(email, password)
+        success, result = self.auth_service.sign_up_user(email, password, name)
+
+        if success:
+          user_id = result
+          print("Signup and metadata update successful.")
+        else:
+            print("Signup failed:", result)
+
 
         if success:
             QMessageBox.information(self, "Account Created",

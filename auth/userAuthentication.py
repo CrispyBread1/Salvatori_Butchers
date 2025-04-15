@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from database.users import fetch_user
+from database.users import *
 
 # Load environment variables from .env file
 load_dotenv()
@@ -10,7 +10,6 @@ class AuthService:
     def __init__(self):
         self.current_session = None
         self.current_user = None
-        self.approved_user = None
         
         # Get URLs directly from environment
         self.supabase_url = os.environ.get('SUPABASE_URL')
@@ -53,7 +52,7 @@ class AuthService:
             user_id = supabase_user.get('id')
             if user_id:
                 self.approved_user = fetch_user(user_id)
-                self.current_user = self.approved_user if self.approved_user else supabase_user
+                self.current_user = self.approved_user
                 # If it's a User object, set attribute. If dict, use item assignment
 
             return True, self.current_user
@@ -119,32 +118,52 @@ class AuthService:
         supabase_user = self.get_user()
         return supabase_user is not None
 
-    def is_authenticated(self):
-        if self.approved_user:
-            return True
-        else:
-          return False
-
-    def sign_up_user(self, email, password):
+    def sign_up_user(self, email, password, name):
         """Registers a new user with Supabase using REST API."""
         if not self.supabase_url or not self.supabase_anon_key:
             return False, "Supabase config is missing."
 
         endpoint = f"{self.supabase_url}/auth/v1/signup"
-        payload = {"email": email, "password": password}
+        payload = {
+            "email": email,
+            "password": password
+        }
         headers = {
-            'apikey': self.supabase_anon_key,
-            'Content-Type': 'application/json'
+            "apikey": self.supabase_anon_key,
+            "Content-Type": "application/json"
         }
 
         try:
             response = requests.post(endpoint, json=payload, headers=headers)
-            if response.status_code != 200:
-                return False, response.json().get("msg", "Signup failed.")
+            data = response.json()
 
-            return True, response.json()
+            if response.status_code != 200:
+                return False, data.get("msg", "Signup failed.")
+
+            user_id = data["user"]["id"]
+            insert_user(user_id, name, email) # Add user to database not approved
+            return True, user_id  # Return user ID to patch metadata
         except Exception as e:
             return False, str(e)
+        
+    def update_user_metadata(self, user_id, display_name):
+        """Updates user metadata using the Admin API."""
+        endpoint = f"{self.supabase_url}/auth/v1/admin/users/{user_id}"
+        headers = {
+            'apikey': self.supabase_service_role_key,
+            'Authorization': f'Bearer {self.supabase_service_role_key}',
+            'Content-Type': 'application/json'
+        }
+        payload = {
+            "user_metadata": {
+                "display_name": display_name
+            }
+        }
+
+        response = requests.patch(endpoint, json=payload, headers=headers)
+        return response.status_code == 200, response.json()
+
+
         
     def get_pending_users(self):
         """

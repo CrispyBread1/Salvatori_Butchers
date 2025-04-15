@@ -74,11 +74,26 @@ def fetch_user(id):
     )
     # print(cursor.fetchone())
     result = cursor.fetchone()
+    print(result)
     if result:
       result = User(*result)
     cursor.close()
     connection.close()
     return result
+  
+def insert_user(id, name, email):
+  connection = connect_db()
+  if connection:
+      cursor = connection.cursor()
+      cursor.execute("""
+          INSERT INTO users (id, name, email) 
+          VALUES (%s, %s, %s)
+      """, (id, name, email))
+      connection.commit()
+      print(f"User {name} added successfully!")
+      cursor.close()
+      connection.close()
+
   
 
   
