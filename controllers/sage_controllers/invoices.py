@@ -4,6 +4,8 @@ import requests
 from datetime import date
 from dotenv import load_dotenv
 
+from database.butchers_lists import fetch_butchers_list_by_date
+
 # Load environment variables from .env
 load_dotenv()
 
@@ -13,13 +15,16 @@ API_TOKEN = os.getenv("SAGE_API_TOKEN")
 def get_invoice_products(date):
     invoices = []
     invoice_list = get_todays_invoices(date)
+    butchers_list = fetch_butchers_list_by_date(date)
 
     for invoice in invoice_list['results']:
         if 'invoiceNumber' in invoice:
             current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
             invoices.append(current_invoice)
 
-    return invoices
+    processed_invoices = process_invoices_products(invoice_list, butchers_list)
+    
+    return processed_invoices
 
 
 

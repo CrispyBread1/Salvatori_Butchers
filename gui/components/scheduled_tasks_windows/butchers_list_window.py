@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 from database.butchers_lists import fetch_butchers_list_by_date
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
-from sage_controllers.invoices import *
+from controllers.sage_controllers.invoices import *
 
 
 class ButchersListWindow(QWidget):
@@ -15,7 +15,7 @@ class ButchersListWindow(QWidget):
         super().__init__()
         self.loading_manager = LoadingManager(self)
         self.date = (date.today() + timedelta(days=1)).isoformat()
-        
+        # self.butchers_list = fetch_butchers_list_by_date(self.date)
         # Create main layout once
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
@@ -85,7 +85,7 @@ class ButchersListWindow(QWidget):
         self.status_label.setText(f"Error fetching invoices: {error_message}")
     
     def process_invoices(self, invoices):
-        butchers_list = fetch_butchers_list_by_date()
+        
         # Further processing logic here
         pass
     
@@ -94,5 +94,6 @@ class ButchersListWindow(QWidget):
         dialog = DateInputDialog(self)
         if dialog.exec_():  # If user clicks OK
             self.date = dialog.get_just_date()
+            # self.butchers_list = fetch_butchers_list_by_date(self.date)
             # Update the UI with the new date
             self.update_ui()
