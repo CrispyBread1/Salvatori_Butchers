@@ -28,6 +28,13 @@ class MainWindow(QMainWindow):
 
         # Create stacked widget to switch between views
         self.stacked_widget = QStackedWidget(self.central_widget)
+        self.stacked_widget.setStyleSheet("""
+            QStackedWidget {
+                background-color: #ffffff;
+                border-radius: 8px;
+                border: 1px solid #07035f;
+            }
+        """)
 
         # Main content layout for welcome screen
         self.content_layout = QVBoxLayout()
@@ -169,7 +176,7 @@ class MainWindow(QMainWindow):
         
         # Additional global application styling
         self.setStyleSheet("""
-            QMainWindow, QWidget {
+            QMainWindow {
                 background-color: #fafaff;
             }
             QLabel {
