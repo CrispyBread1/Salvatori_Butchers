@@ -29,7 +29,7 @@ class LoadingManager:
         self.progress_dialog = None
         self.worker_thread = None
     
-    def run_with_loading(self, task_function, on_complete=None, on_error=None, loading_text="Loading...", title="Please Wait"):
+    def run_with_loading(self, task_function, on_complete=None, on_error=None, loading_text="Loading...", title="Please Wait", task_args=(), task_kwargs={}):
         """
         Runs a function with a loading animation
         
@@ -50,7 +50,7 @@ class LoadingManager:
         self.progress_dialog.show()
         
         # Create and start worker thread
-        self.worker_thread = GenericWorkerThread(task_function)
+        self.worker_thread = GenericWorkerThread(task_function, *task_args, **task_kwargs)
         
         if on_complete:
             self.worker_thread.finished.connect(lambda result: self._handle_completion(result, on_complete))

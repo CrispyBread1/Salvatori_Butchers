@@ -1,7 +1,9 @@
+from datetime import timedelta
 from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
+from database.butchers_lists import fetch_butchers_list_by_date
 from gui.components.reusable.animations.loading_component import LoadingManager
 from sage_controllers.invoices import *
 
@@ -13,6 +15,7 @@ class ButchersListWindow(QWidget):
         super().__init__()
         self.loading_manager = LoadingManager(self)
         self.setup_ui()
+        self.date = (date.today() + timedelta(days=1)).isoformat()
           
     def setup_ui(self):
         layout = QVBoxLayout()
@@ -46,7 +49,8 @@ class ButchersListWindow(QWidget):
             on_complete=self.on_fetch_complete,
             on_error=self.on_fetch_error,
             loading_text="Fetching invoice data...",
-            title="Loading Invoices"
+            title="Loading Invoices",
+            task_args=(self.date,)
         )
     
     def on_fetch_complete(self, invoices):
@@ -70,7 +74,7 @@ class ButchersListWindow(QWidget):
         self.status_label.setText(f"Error fetching invoices: {error_message}")
     
     def process_invoices(self, invoices):
-        # Implement your processing logic here
-        # For example, display the invoices in a table or list view
+        butchers_list = fetch_butchers_list_by_date()
+        
         pass
 

@@ -10,9 +10,9 @@ load_dotenv()
 API_URL = os.getenv("SAGE_API_URL")
 API_TOKEN = os.getenv("SAGE_API_TOKEN")
 
-def get_invoice_products():
+def get_invoice_products(date):
     invoices = []
-    invoice_list = get_todays_invoices()
+    invoice_list = get_todays_invoices(date)
 
     for invoice in invoice_list['results']:
         if 'invoiceNumber' in invoice:
@@ -23,14 +23,14 @@ def get_invoice_products():
 
 
 
-def get_todays_invoices():
+def get_todays_invoices(date):
     # Load API credentials from environment
 
     if not API_URL or not API_TOKEN:
         raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
 
     # Get today's date in ISO format (YYYY-MM-DD)
-    today = date.today().isoformat()
+   
 
     # Set up request headers and URL
 
@@ -40,7 +40,7 @@ def get_todays_invoices():
       {
         "field": "INVOICE_DATE",
         "type": "eq",
-        "value": today
+        "value": date
       }
     ])
     headers = {
@@ -85,5 +85,5 @@ def get_invoice_by_id(invoice_id):
         print(f"Error fetching invoice: {e}")
         return None
 
-def process_invoices_products(invoices):
-    
+def process_invoices_products(invoices, butchers_list):
+    pass

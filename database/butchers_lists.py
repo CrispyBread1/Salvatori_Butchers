@@ -27,3 +27,17 @@ def connect_db():
   except Exception as e:
       print(f"Failed to connect to database: {e}")
       return None
+
+def fetch_butchers_list_by_date(date):
+  connection = connect_db()
+  if connection:
+    cursor = connection.cursor()
+    cursor.execute(
+      "SELECT * FROM butchers_lists WHERE date = %s",
+      (date,)
+    )
+    # print(cursor.fetchone())
+    result = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return result
