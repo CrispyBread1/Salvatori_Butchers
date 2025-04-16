@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from database.users import get_pending_users
-from gui.components.buttons.notifications import NotificationButton
+from gui.components.reusable.buttons.notifications import NotificationButton
 from gui.components.setting_windows.general_settings_component import GeneralSettingsComponent
 from gui.components.setting_windows.user_approval_component import UserApprovalComponent
 

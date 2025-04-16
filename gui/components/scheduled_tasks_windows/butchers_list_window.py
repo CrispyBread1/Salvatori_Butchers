@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
-from gui.components.animations.loading_component import LoadingManager
+from gui.components.reusable.animations.loading_component import LoadingManager
 from sage_controllers.invoices import *
 
 

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame, QMessageBox, QSizePolicy
 from PyQt5.QtGui import QPalette, QColor
 from database.users import get_pending_users
-from gui.components.buttons.notifications import NotificationButton
+from gui.components.reusable.buttons.notifications import NotificationButton
 from gui.product_value_window import ProductWindow   
 from gui.scheduled_tasks import ScheduledTasks
 from gui.stock_take_window import StockTakeWindow 
@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
                 border-radius: 3px;
             }
             QPushButton {
-                background-color: #f8f7ff;
+                background-color: #ffffff;
                 border: 1px solid #ccc;
                 border-radius: 5px;
             }
