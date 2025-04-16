@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame, QMessageBox, QSizePolicy
+from PyQt5.QtGui import QPalette, QColor
 from database.users import get_pending_users
 from gui.components.buttons.notifications import NotificationButton
 from gui.product_value_window import ProductWindow   
@@ -14,6 +15,9 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Salvatori Admin')
+
+        # Set application background color
+        self.set_application_style()
 
         # Initialize auth service
         self.auth_service = AuthService()
@@ -105,7 +109,6 @@ class MainWindow(QMainWindow):
             btn.setStyleSheet("padding: 5px 15px;")
             right_nav.addWidget(btn)
 
-
         right_nav.addStretch()
 
         # Combine both sides into the nav bar
@@ -144,6 +147,49 @@ class MainWindow(QMainWindow):
         self.update_auth_state()
         self.update_pending_users_notification()
 
+    def set_application_style(self):
+        """Set global application style and colors"""
+        # Create a palette with the desired background color
+        palette = self.palette()
+        
+        # Set a light blue background (you can change this to your preferred color)
+        # Example: #fafaff - light blue, #f5f5f5 - light gray, #f0fff0 - honeydew (light green)
+        background_color = QColor("#fafaff")
+        
+        # Apply the background color to all color roles that affect the background
+        palette.setColor(QPalette.Window, background_color)
+        palette.setColor(QPalette.Base, QColor("#ffffff"))  # Keep input fields white
+        
+        # Set text colors
+        palette.setColor(QPalette.WindowText, QColor("#222222"))
+        palette.setColor(QPalette.Text, QColor("#222222"))
+        
+        # Apply the palette to the application
+        self.setPalette(palette)
+        
+        # Additional global application styling
+        self.setStyleSheet("""
+            QMainWindow, QWidget {
+                background-color: #fafaff;
+            }
+            QLabel {
+                color: #222222;
+                font-size: 12px;
+            }
+            QPushButton {
+                background-color: #f5f5f5;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px 15px;
+                color: #222222;
+            }
+            QPushButton:hover {
+                background-color: #e6e6e6;
+            }
+            QStackedWidget {
+                background-color: #fafaff;
+            }
+        """)
 
     def update_auth_state(self):
         """Update the UI based on authentication state"""
@@ -173,7 +219,6 @@ class MainWindow(QMainWindow):
 
         self.show_home()
 
-
     def on_login_successful(self, user_data):
         """Handle successful login"""
         self.update_auth_state()
@@ -191,7 +236,6 @@ class MainWindow(QMainWindow):
         self.sign_up_button.setVisible(False)
         self.show_home()
         
-
     def handle_logout(self):
         """Handle logout button click"""
         if self.auth_service.logout_user():
