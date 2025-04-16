@@ -1,13 +1,17 @@
+import os
 import psycopg2
 from psycopg2 import sql
 from models.stock_take import StockTake
-import datetime
+from dotenv import load_dotenv
 
-DB_HOST='aws-0-eu-west-2.pooler.supabase.com'
-DB_PORT='6543'
-DB_NAME='postgres'
-DB_USER='postgres.qebranyoffuyctlpemxx'
-DB_PASSWORD='KQz9Q0PP8vjCpaDR'
+# Load environment variables from .env file
+load_dotenv()
+
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
 
 def connect_db():
   try:

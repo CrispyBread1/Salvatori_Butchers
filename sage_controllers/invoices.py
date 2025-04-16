@@ -21,8 +21,6 @@ def get_invoice_products():
 
     return invoices
 
-    
-
 
 
 def get_todays_invoices():
@@ -87,17 +85,5 @@ def get_invoice_by_id(invoice_id):
         print(f"Error fetching invoice: {e}")
         return None
 
-
-
-
+def process_invoices_products(invoices):
     
-def test_api_connection():
-    API_URL = os.getenv("SAGE_API_URL")
-    API_TOKEN = os.getenv("SAGE_API_TOKEN")
-
-    headers = {
-        'AuthToken': f'Bearer {API_TOKEN}'
-    }
-
-    response = requests.get(f"{API_URL}/api/company", headers=headers)
-    print(response.status_code, response.text)
