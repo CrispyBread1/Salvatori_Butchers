@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 from database.products import fetch_products_stock_take, update_product, fetch_products
 from resources.pdf_exporter import export_to_pdf 
 from database.stock_takes import insert_stock_take, fetch_most_recent_stock_take
-from resources.date_input_dialog import DateInputDialog
+from gui.components.reusable.date_input_dialog import DateInputDialog
 import json
 from datetime import datetime
 

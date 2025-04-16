@@ -29,3 +29,9 @@ class DateInputDialog(QDialog):
       date = self.date_edit.date()
       date_time = QDateTime(date, time)
       return date_time.toString('yyyy-MM-dd HH:mm:ss')
+    
+    def get_just_date(self):
+      time = QTime.currentTime()
+      date = self.date_edit.date()
+      date_time = QDateTime(date, time)
+      return date_time.toString('yyyy-MM-dd')
