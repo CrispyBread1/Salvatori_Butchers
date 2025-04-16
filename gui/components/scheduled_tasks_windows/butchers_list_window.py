@@ -2,9 +2,8 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
-from PyQt5.QtCore import Qt, QTimer
+from gui.components.animations.loading_component import LoadingManager
 from sage_controllers.invoices import *
-import threading
 
 
 
@@ -12,7 +11,7 @@ class ButchersListWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-
+        self.loading_manager = LoadingManager(self)
         self.setup_ui()
           
     def setup_ui(self):
@@ -23,44 +22,55 @@ class ButchersListWindow(QWidget):
         title.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 15px;")
         layout.addWidget(title)
       
-        self.setLayout(layout)
-
         self.settings_menu_layout = QHBoxLayout()
 
         self.general_settings_button = QPushButton("Pull Orders", self)
         self.general_settings_button.clicked.connect(self.pull_butcher_data)
-        # self.test_connection_button = QPushButton("Test Connection", self)
-        # self.general_settings_button.clicked.connect(self.test_connection)
         
         self.settings_menu_layout.addWidget(self.general_settings_button)
-        # self.settings_menu_layout.addWidget(self.test_connection_button)
-
-
-
+        
+        # Status label to show results
+        self.status_label = QLabel("", self)
+        layout.addLayout(self.settings_menu_layout)
+        layout.addWidget(self.status_label)
+        
+        self.setLayout(layout)
 
     def pull_butcher_data(self):
-        # Add a "Loading..." label to your UI if it doesn't exist
-        if not hasattr(self, 'loading_label'):
-            self.loading_label = QLabel("Loading butcher data...", self)
-            self.loading_label.setAlignment(Qt.AlignCenter)
-            self.layout().addWidget(self.loading_label)  # Adjust to correct layout
-        self.loading_label.show()
-
-        # Background fetch
-        def fetch():
-            todays_invoices = get_todays_invoices()
-
-            def update_ui():
-                self.loading_label.hide()
-                if todays_invoices:
-                    print(f"Found {len(todays_invoices['results'])} invoices for today.")
-                    print(todays_invoices['results'])
-                else:
-                    print("No invoices or error occurred.")
-
-            # Update the UI on the main thread
-            QTimer.singleShot(0, update_ui)
-
-        # Run fetch in a separate thread so UI doesn’t freeze
-        threading.Thread(target=fetch, daemon=True).start()
+        # Disable the button to prevent multiple clicks
+        self.general_settings_button.setEnabled(False)
+        
+        # Use the loading manager to run the get_invoice_products function with a loading animation
+        self.loading_manager.run_with_loading(
+            task_function=get_invoice_products,  # Direct call to your function
+            on_complete=self.on_fetch_complete,
+            on_error=self.on_fetch_error,
+            loading_text="Fetching invoice data...",
+            title="Loading Invoices"
+        )
+    
+    def on_fetch_complete(self, invoices):
+        # Re-enable button
+        self.general_settings_button.setEnabled(True)
+        
+        # Update status with results
+        if invoices:
+            print(invoices)
+            self.status_label.setText(f"Successfully fetched {len(invoices)} invoices.")
+            # Process invoices further as needed
+            self.process_invoices(invoices)
+        else:
+            self.status_label.setText("No invoices found for today.")
+    
+    def on_fetch_error(self, error_message):
+        # Re-enable button
+        self.general_settings_button.setEnabled(True)
+        
+        # Show error message
+        self.status_label.setText(f"Error fetching invoices: {error_message}")
+    
+    def process_invoices(self, invoices):
+        # Implement your processing logic here
+        # For example, display the invoices in a table or list view
+        pass
 
