@@ -1,0 +1,58 @@
+import json
+import os
+import requests
+from datetime import date
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
+def get_todays_invoices():
+    # Load API credentials from environment
+    API_URL = os.getenv("SAGE_API_URL")
+    API_TOKEN = os.getenv("SAGE_API_TOKEN")
+
+    if not API_URL or not API_TOKEN:
+        raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
+
+    # Get today's date in ISO format (YYYY-MM-DD)
+    today = date.today().isoformat()
+
+    # Set up request headers and URL
+
+    url = f"{API_URL}/api/searchInvoice"
+
+    payload = json.dumps([
+      {
+        "field": "INVOICE_DATE",
+        "type": "eq",
+        "value": today
+      }
+    ])
+    headers = {
+      'Content-Type': 'application/json',
+      'AuthToken': API_TOKEN
+    }
+
+    try:
+        response = requests.request("POST", url, headers=headers, data=payload)
+        response.raise_for_status()  # Raise an error for non-2xx responses
+
+        invoices = response.json()
+        print(f"Fetch in controller completed successfully: {len(invoices)}")
+        return invoices
+
+    except requests.RequestException as e:
+        print(f"Error fetching invoices: {e}")
+        return None
+    
+def test_api_connection():
+    API_URL = os.getenv("SAGE_API_URL")
+    API_TOKEN = os.getenv("SAGE_API_TOKEN")
+
+    headers = {
+        'AuthToken': f'Bearer {API_TOKEN}'
+    }
+
+    response = requests.get(f"{API_URL}/api/company", headers=headers)
+    print(response.status_code, response.text)

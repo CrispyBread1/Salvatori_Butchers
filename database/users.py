@@ -43,7 +43,6 @@ def fetch_user(id):
     )
     # print(cursor.fetchone())
     result = cursor.fetchone()
-    print(result)
     if result:
       result = User(*result)
     cursor.close()
