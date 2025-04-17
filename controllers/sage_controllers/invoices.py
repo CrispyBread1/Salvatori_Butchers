@@ -19,17 +19,14 @@ def get_invoice_products(date):
     invoices = []
     fresh_products_codes = fetch_products_stock_code_fresh()
     invoice_list = get_todays_invoices(date)
-    # print(f"Invoice fetch: {invoice_list}")
     butchers_list = fetch_butchers_list_by_date(date)
     
     for invoice in invoice_list['results']:
-        # print(invoice)
         if 'invoiceNumber' in invoice:
             current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
             invoices.append(current_invoice)
 
-    # print(f"Invoices: {invoices}")
-    processed_invoices = process_invoices_products(invoices, butchers_list, fresh_products_codes)
+    processed_invoices = process_invoices_products(invoices, butchers_list, fresh_products_codes, invoice_list['results'])
     
     return processed_invoices
 
@@ -99,7 +96,7 @@ def get_invoice_by_id(invoice_id):
 
 
 
-def process_invoices_products(invoices, butchers_list=None, fresh_products_codes=[]):
+def process_invoices_products(invoices, butchers_list=None, fresh_products_codes=[], invoice_list=[]):
     if butchers_list is None:
         butchers_list = []
     
@@ -122,8 +119,13 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
     for invoice_data in invoices:
         invoice = invoice_data.get("response", {})
         customer_act_ref = invoice.get("customerAccountRef", "").strip()
-        customer_name = invoice.get("contactName", "").strip()
+        contact_name = invoice.get("contactName", "").strip()
         invoice_id = invoice.get("invoiceNumber")
+        
+        # Get company name from the invoice_list if available
+        company_name = get_company_name_from_invoice_list(customer_act_ref, invoice_list)
+        # Use company name as customer name if available, otherwise use contact name
+        customer_name = company_name if company_name else contact_name
 
         key = customer_act_ref or customer_name or "Unknown Customer"
         has_fresh_products = False
@@ -179,9 +181,19 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
 
     return butchers_list
 
+def get_company_name_from_invoice_list(customer_act_ref, invoice_list):
+    """
+    Find the company name for a customer account reference in the invoice list.
+    Returns the company name if found, otherwise an empty string.
+    """
+    for invoice in invoice_list:
+        if invoice.get("accountRef", "").strip() == customer_act_ref:
+            return invoice.get("name", "").strip()
+    return ""
+
+
+
 def check_product_is_fresh(stock_code, fresh_products_codes):
-    # print(f'Check product code:{stock_code}')
-    # print(f'Check product is fresh: {stock_code in fresh_products_codes}')
     flat_codes = list(chain.from_iterable(
         [item] if not isinstance(item, list) else item for item in fresh_products_codes
     ))
