@@ -3,6 +3,7 @@ import os
 import requests
 from datetime import date
 from dotenv import load_dotenv
+from collections import defaultdict
 
 from database.butchers_lists import fetch_butchers_list_by_date
 
@@ -90,5 +91,68 @@ def get_invoice_by_id(invoice_id):
         print(f"Error fetching invoice: {e}")
         return None
 
-def process_invoices_products(invoices, butchers_list):
-    pass
+
+
+def process_invoices_products(invoices, butchers_list=None):
+    if butchers_list is None:
+        butchers_list = []
+
+    # Step 1: Build a lookup for existing customers
+    customer_lookup = {}
+
+    for customer in butchers_list:
+        customer_key = customer.get("customer_act_ref") or customer.get("customer_name")
+        customer_lookup[customer_key.strip()] = customer
+
+        # Create a quick-access product map for merging
+        customer["product_dict"] = {
+            (prod["sage_code"], prod["product_name"]): float(prod["quantity"])
+            for prod in customer.get("products", [])
+        }
+
+    # Step 2: Process new invoices
+    for invoice_data in invoices:
+        invoice = invoice_data.get("response", {})
+        customer_act_ref = invoice.get("customerAccountRef", "").strip()
+        customer_name = invoice.get("contactName", "").strip()
+        invoice_id = invoice.get("invoiceNumber")
+
+        key = customer_act_ref or customer_name or "Unknown Customer"
+
+        if key in customer_lookup:
+            customer_entry = customer_lookup[key]
+            customer_entry["invoice_ids"].append(str(invoice_id))
+        else:
+            customer_entry = {
+                "customer_name": customer_name,
+                "customer_act_ref": customer_act_ref,
+                "invoice_ids": [str(invoice_id)],
+                "products": [],
+                "product_dict": defaultdict(float)
+            }
+            customer_lookup[key] = customer_entry
+            butchers_list.append(customer_entry)
+
+        # Add/update products
+        for item in invoice.get("invoiceItems", []):
+            code = item.get("stockCode", "").strip()
+            name = item.get("description", "").strip()
+            qty = float(item.get("quantity", 0))
+
+            product_key = (code, name)
+            customer_entry["product_dict"][product_key] += qty
+
+    # Step 3: Reconstruct the product list
+    for customer in butchers_list:
+        customer["products"] = [
+            {
+                "sage_code": code,
+                "product_name": name,
+                "quantity": round(qty, 2)
+            }
+            for (code, name), qty in customer.get("product_dict", {}).items()
+        ]
+        customer.pop("product_dict", None)
+
+    return butchers_list
+
