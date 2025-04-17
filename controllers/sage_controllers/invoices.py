@@ -102,13 +102,9 @@ def get_invoice_by_id(invoice_id):
 def process_invoices_products(invoices, butchers_list=None, fresh_products_codes=[]):
     if butchers_list is None:
         butchers_list = []
-    # print(f"Invoices: {invoices}")
-    # print(f"Butchers list: {butchers_list}")
-    # print(f"fresh_products_codes: {fresh_products_codes}")
+    
     # Step 1: Build a lookup for existing customers
     customer_lookup = {}
-    # print("Customer.get")
-    # print({butchers_list[0].get("customer_act_ref")})
     for customer in butchers_list:
         customer_key = customer.get("customer_act_ref") or customer.get("customer_name")
         customer_lookup[customer_key.strip()] = customer
@@ -119,10 +115,10 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
             for prod in customer.get("products", [])
         }
 
-    # Step 2: Process new invoices
-    # print("invoice_data.get")
-    # invoice_test = invoices[0].get("response", {})
-    # print(invoice_test.get("customerAccountRef", "").strip())
+    # Step 2: Process new invoices with tracking of customers with fresh products
+    customers_with_fresh_products = set()
+    new_customers = []
+    
     for invoice_data in invoices:
         invoice = invoice_data.get("response", {})
         customer_act_ref = invoice.get("customerAccountRef", "").strip()
@@ -130,6 +126,7 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
         invoice_id = invoice.get("invoiceNumber")
 
         key = customer_act_ref or customer_name or "Unknown Customer"
+        has_fresh_products = False
 
         if key in customer_lookup:
             customer_entry = customer_lookup[key]
@@ -143,23 +140,30 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
                 "product_dict": defaultdict(float)
             }
             customer_lookup[key] = customer_entry
-            # print(f"customer entry: {customer_entry}") 
-            butchers_list.append(customer_entry)
+            new_customers.append(customer_entry)
 
         # Add/update products
-        # print("Product.get")
-        # product_test = invoice.get("invoiceItems", [])[0]
-        # print(product_test.get("stockCode", "").strip())
         for item in invoice.get("invoiceItems", []):
             code = item.get("stockCode", "").strip()
             if check_product_is_fresh(code, fresh_products_codes):
+                has_fresh_products = True
                 name = item.get("description", "").strip()
                 qty = float(item.get("quantity", 0))
 
                 product_key = (code, name)
                 customer_entry["product_dict"][product_key] += qty
-                count = customer_entry["product_dict"][product_key]
-                # print(f"Customer product count: {count}")
+        
+        # Track customers who have fresh products
+        if has_fresh_products:
+            customers_with_fresh_products.add(key)
+
+    # Only add new customers who have fresh products
+    for customer in new_customers:
+        customer_key = customer.get("customer_act_ref") or customer.get("customer_name")
+        key = customer_key.strip()
+        
+        if key in customers_with_fresh_products:
+            butchers_list.append(customer)
 
     # Step 3: Reconstruct the product list
     for customer in butchers_list:
