@@ -74,7 +74,6 @@ class ButchersListWindow(QWidget):
         
         # Update status with results
         if invoices:
-            print(invoices)
             self.status_label.setText(f"Successfully created {self.date} butchers list.")
             # Process invoices further as needed
             insert_butchers_list(self.date, invoices)
@@ -94,10 +93,8 @@ class ButchersListWindow(QWidget):
         dialog = DateInputDialog(self)
         if dialog.exec_():  # If user clicks OK
             self.date = dialog.get_just_date()
-            # self.butchers_list = fetch_butchers_list_by_date(self.date)
             # Update the UI with the new date
             self.update_ui()
 
     def invoice_pull_test(self):
-        invoices = get_todays_invoices(self.date)
-        # print(invoices)
+        get_todays_invoices(self.date)
