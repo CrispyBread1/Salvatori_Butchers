@@ -1,3 +1,4 @@
+from itertools import chain
 import json
 import os
 import requests
@@ -16,16 +17,19 @@ API_TOKEN = os.getenv("SAGE_API_TOKEN")
 
 def get_invoice_products(date):
     invoices = []
-    invoice_list = get_todays_invoices(date)
-    butchers_list = fetch_butchers_list_by_date(date)
     fresh_products_codes = fetch_products_stock_code_fresh()
-
+    invoice_list = get_todays_invoices(date)
+    # print(f"Invoice fetch: {invoice_list}")
+    butchers_list = fetch_butchers_list_by_date(date)
+    
     for invoice in invoice_list['results']:
+        # print(invoice)
         if 'invoiceNumber' in invoice:
             current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
             invoices.append(current_invoice)
 
-    processed_invoices = process_invoices_products(invoice_list, butchers_list, fresh_products_codes)
+    # print(f"Invoices: {invoices}")
+    processed_invoices = process_invoices_products(invoices, butchers_list, fresh_products_codes)
     
     return processed_invoices
 
@@ -98,10 +102,13 @@ def get_invoice_by_id(invoice_id):
 def process_invoices_products(invoices, butchers_list=None, fresh_products_codes=[]):
     if butchers_list is None:
         butchers_list = []
-
+    # print(f"Invoices: {invoices}")
+    # print(f"Butchers list: {butchers_list}")
+    # print(f"fresh_products_codes: {fresh_products_codes}")
     # Step 1: Build a lookup for existing customers
     customer_lookup = {}
-
+    # print("Customer.get")
+    # print({butchers_list[0].get("customer_act_ref")})
     for customer in butchers_list:
         customer_key = customer.get("customer_act_ref") or customer.get("customer_name")
         customer_lookup[customer_key.strip()] = customer
@@ -113,6 +120,9 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
         }
 
     # Step 2: Process new invoices
+    # print("invoice_data.get")
+    # invoice_test = invoices[0].get("response", {})
+    # print(invoice_test.get("customerAccountRef", "").strip())
     for invoice_data in invoices:
         invoice = invoice_data.get("response", {})
         customer_act_ref = invoice.get("customerAccountRef", "").strip()
@@ -133,9 +143,13 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
                 "product_dict": defaultdict(float)
             }
             customer_lookup[key] = customer_entry
+            # print(f"customer entry: {customer_entry}") 
             butchers_list.append(customer_entry)
 
         # Add/update products
+        # print("Product.get")
+        # product_test = invoice.get("invoiceItems", [])[0]
+        # print(product_test.get("stockCode", "").strip())
         for item in invoice.get("invoiceItems", []):
             code = item.get("stockCode", "").strip()
             if check_product_is_fresh(code, fresh_products_codes):
@@ -144,6 +158,8 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
 
                 product_key = (code, name)
                 customer_entry["product_dict"][product_key] += qty
+                count = customer_entry["product_dict"][product_key]
+                # print(f"Customer product count: {count}")
 
     # Step 3: Reconstruct the product list
     for customer in butchers_list:
@@ -160,4 +176,9 @@ def process_invoices_products(invoices, butchers_list=None, fresh_products_codes
     return butchers_list
 
 def check_product_is_fresh(stock_code, fresh_products_codes):
-    return stock_code in fresh_products_codes
+    # print(f'Check product code:{stock_code}')
+    # print(f'Check product is fresh: {stock_code in fresh_products_codes}')
+    flat_codes = list(chain.from_iterable(
+        [item] if not isinstance(item, list) else item for item in fresh_products_codes
+    ))
+    return stock_code in flat_codes

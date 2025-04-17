@@ -1,3 +1,4 @@
+import json
 import os
 import psycopg2
 from psycopg2 import sql
@@ -41,3 +42,46 @@ def fetch_butchers_list_by_date(date):
     cursor.close()
     connection.close()
     return result
+
+def insert_butchers_list(date, data):
+    connection = None
+    try:
+        # Attempt to connect to the database
+        connection = connect_db()
+        
+        if connection:
+            cursor = connection.cursor()
+            
+            try:
+                # Attempt to execute the insert query
+                cursor.execute("""
+                    INSERT INTO butchers_lists (date, data) 
+                    VALUES (%s, %s)
+                """, (date, json.dumps(data)))
+                
+                # Commit the transaction
+                connection.commit()
+                print(f"Butchers list {date} added successfully!")
+                return True
+                
+            except Exception as e:
+                # Roll back any changes if there was an error with the query
+                connection.rollback()
+                print(f"Error inserting Butchers list: {e}")
+                return False
+                
+            finally:
+                # Close cursor regardless of success or failure
+                cursor.close()
+        else:
+            print("Failed to connect to database")
+            return False
+            
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return False
+        
+    finally:
+        # Ensure connection is closed even if an exception occurs
+        if connection:
+            connection.close()

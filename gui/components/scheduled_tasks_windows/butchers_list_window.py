@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
-from database.butchers_lists import fetch_butchers_list_by_date
+from database.butchers_lists import fetch_butchers_list_by_date, insert_butchers_list
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from controllers.sage_controllers.invoices import *
@@ -14,7 +14,7 @@ class ButchersListWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.loading_manager = LoadingManager(self)
-        self.date = (date.today() + timedelta(days=1)).isoformat()
+        self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
         # self.butchers_list = fetch_butchers_list_by_date(self.date)
         # Create main layout once
         self.main_layout = QVBoxLayout()
@@ -34,8 +34,12 @@ class ButchersListWindow(QWidget):
         self.change_date_button = QPushButton("Change Date", self)
         self.change_date_button.clicked.connect(self.change_date)
         
+        self.invoice_pull_test_button = QPushButton("invoice_pull_test_button", self)
+        self.invoice_pull_test_button.clicked.connect(self.invoice_pull_test)
+        
         button_layout.addWidget(self.pull_orders_button)
         button_layout.addWidget(self.change_date_button)
+        button_layout.addWidget(self.invoice_pull_test_button)
         self.main_layout.addLayout(button_layout)
         
         # Status label to show results
@@ -71,9 +75,9 @@ class ButchersListWindow(QWidget):
         # Update status with results
         if invoices:
             print(invoices)
-            self.status_label.setText(f"Successfully fetched {len(invoices)} invoices.")
+            self.status_label.setText(f"Successfully created {self.date} butchers list.")
             # Process invoices further as needed
-            self.process_invoices(invoices)
+            insert_butchers_list(self.date, invoices)
         else:
             self.status_label.setText("No invoices found for the selected date.")
     
@@ -82,12 +86,8 @@ class ButchersListWindow(QWidget):
         self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
         
         # Show error message
+        print(error_message)
         self.status_label.setText(f"Error fetching invoices: {error_message}")
-    
-    def process_invoices(self, invoices):
-        
-        # Further processing logic here
-        pass
     
     def change_date(self):
         # Open date input dialog
@@ -97,3 +97,7 @@ class ButchersListWindow(QWidget):
             # self.butchers_list = fetch_butchers_list_by_date(self.date)
             # Update the UI with the new date
             self.update_ui()
+
+    def invoice_pull_test(self):
+        invoices = get_todays_invoices(self.date)
+        # print(invoices)

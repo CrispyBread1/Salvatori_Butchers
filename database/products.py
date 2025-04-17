@@ -124,7 +124,7 @@ def fetch_products_stock_code_fresh():
   results = {}
   if connection:
     cursor = connection.cursor()
-    cursor.execute("SELECT stock_code FROM products WHERE category = 'fresh'")
+    cursor.execute("SELECT sage_code FROM products WHERE stock_category = 'fresh'")
     results = {row[0] for row in cursor.fetchall()} 
 
     cursor.close()
