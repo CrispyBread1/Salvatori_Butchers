@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from collections import defaultdict
 
 from database.butchers_lists import fetch_butchers_list_by_date
+from database.products import fetch_products_stock_code_fresh
 
 # Load environment variables from .env
 load_dotenv()
@@ -17,13 +18,14 @@ def get_invoice_products(date):
     invoices = []
     invoice_list = get_todays_invoices(date)
     butchers_list = fetch_butchers_list_by_date(date)
+    fresh_products_codes = fetch_products_stock_code_fresh()
 
     for invoice in invoice_list['results']:
         if 'invoiceNumber' in invoice:
             current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
             invoices.append(current_invoice)
 
-    processed_invoices = process_invoices_products(invoice_list, butchers_list)
+    processed_invoices = process_invoices_products(invoice_list, butchers_list, fresh_products_codes)
     
     return processed_invoices
 
@@ -93,7 +95,7 @@ def get_invoice_by_id(invoice_id):
 
 
 
-def process_invoices_products(invoices, butchers_list=None):
+def process_invoices_products(invoices, butchers_list=None, fresh_products_codes=[]):
     if butchers_list is None:
         butchers_list = []
 
@@ -136,11 +138,12 @@ def process_invoices_products(invoices, butchers_list=None):
         # Add/update products
         for item in invoice.get("invoiceItems", []):
             code = item.get("stockCode", "").strip()
-            name = item.get("description", "").strip()
-            qty = float(item.get("quantity", 0))
+            if check_product_is_fresh(code, fresh_products_codes):
+                name = item.get("description", "").strip()
+                qty = float(item.get("quantity", 0))
 
-            product_key = (code, name)
-            customer_entry["product_dict"][product_key] += qty
+                product_key = (code, name)
+                customer_entry["product_dict"][product_key] += qty
 
     # Step 3: Reconstruct the product list
     for customer in butchers_list:
@@ -156,3 +159,5 @@ def process_invoices_products(invoices, butchers_list=None):
 
     return butchers_list
 
+def check_product_is_fresh(stock_code, fresh_products_codes):
+    return stock_code in fresh_products_codes

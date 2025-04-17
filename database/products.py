@@ -118,6 +118,18 @@ def fetch_products_stock_take(category):
     cursor.close()
     connection.close()
     return results
+  
+def fetch_products_stock_code_fresh():
+  connection = connect_db()
+  results = {}
+  if connection:
+    cursor = connection.cursor()
+    cursor.execute("SELECT stock_code FROM products WHERE category = 'fresh'")
+    results = {row[0] for row in cursor.fetchall()} 
+
+    cursor.close()
+    connection.close()
+    return results
       
 def convert_to_product_objects(products):
   return [Product(*product) for product in products]
