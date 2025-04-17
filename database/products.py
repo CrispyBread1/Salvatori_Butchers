@@ -54,17 +54,47 @@ def create_product_table():
       connection.close()
 
 def insert_product(name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as):
-  connection = connect_db()
-  if connection:
-      cursor = connection.cursor()
-      cursor.execute("""
-          INSERT INTO products (name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as) 
-          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-      """, (name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as))
-      connection.commit()
-      print(f"Product {name} added successfully!")
-      cursor.close()
-      connection.close()
+    connection = None
+    try:
+        # Attempt to connect to the database
+        connection = connect_db()
+        
+        if connection:
+            cursor = connection.cursor()
+            
+            try:
+                # Attempt to execute the insert query
+                cursor.execute("""
+                    INSERT INTO products (name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as))
+                
+                # Commit the transaction
+                connection.commit()
+                print(f"Product {name} added successfully!")
+                return True
+                
+            except Exception as e:
+                # Roll back any changes if there was an error with the query
+                connection.rollback()
+                print(f"Error inserting product: {e}")
+                return False
+                
+            finally:
+                # Close cursor regardless of success or failure
+                cursor.close()
+        else:
+            print("Failed to connect to database")
+            return False
+            
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return False
+        
+    finally:
+        # Ensure connection is closed even if an exception occurs
+        if connection:
+            connection.close()
 
 def fetch_products():
   connection = connect_db()
