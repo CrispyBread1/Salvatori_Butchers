@@ -4,6 +4,8 @@ import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
 
+from models.butchers_list import ButchersList
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -38,7 +40,7 @@ def fetch_butchers_list_by_date(date):
       (date,)
     )
     # print(cursor.fetchone())
-    result = cursor.fetchone()
+    result = convert_to_butchers_list_objects(cursor.fetchone())
     cursor.close()
     connection.close()
     return result
@@ -85,3 +87,7 @@ def insert_butchers_list(date, data, updated_at):
         # Ensure connection is closed even if an exception occurs
         if connection:
             connection.close()
+
+def convert_to_butchers_list_objects(butchers_list):
+  if butchers_list:
+    return ButchersList(*butchers_list)

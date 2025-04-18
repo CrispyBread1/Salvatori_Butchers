@@ -2,7 +2,7 @@ from itertools import chain
 import json
 import os
 import requests
-from datetime import date
+from datetime import date, datetime
 from dotenv import load_dotenv
 from collections import defaultdict
 
@@ -18,27 +18,53 @@ API_TOKEN = os.getenv("SAGE_API_TOKEN")
 def get_invoice_products(date):
     """
     Main function to retrieve and process invoice products for a specific date.
+    Uses sequential keys directly at the top level of the dictionary.
     """
     invoices = []
     invoice_list = []
     fresh_products_codes = fetch_products_stock_code_fresh()
     butchers_list = fetch_butchers_list_by_date(date)
+    
+    # Get appropriate invoices based on whether we have an existing list
     if butchers_list:
-        invoice_list = get_todays_new_invoices(date, butchers_list['updated_at'])
+        previous_fetch = butchers_list.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+        invoice_list = get_todays_new_invoices(date, previous_fetch)
     else:
         invoice_list = get_todays_invoices(date)
-    if invoice_list['results']:
-      
-      
-      for invoice in invoice_list['results']:
-          if 'invoiceNumber' in invoice:
-              current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
-              invoices.append(current_invoice)
-
-      processed_invoices = process_invoices_products(invoices, butchers_list, fresh_products_codes, invoice_list['results'])
-      
-      return processed_invoices
+    
+    if invoice_list and 'results' in invoice_list and invoice_list['results']:
+        for invoice in invoice_list['results']:
+            if 'invoiceNumber' in invoice:
+                current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
+                invoices.append(current_invoice)
+        
+        # Initialize or update the butchers list with sequential keys
+        if not butchers_list:
+            # Create new butchers list with key '1'
+            processed_invoices = process_invoices_products(invoices, [], fresh_products_codes, invoice_list['results'])
+            butchers_list = {
+                '1': processed_invoices,
+                'updated_at': None  # This will be set by the caller
+            }
+        else:
+            # Find the next sequential key
+            existing_keys = [k for k in butchers_list.keys() if k != 'updated_at']
+            numeric_keys = [int(k) for k in existing_keys if k.isdigit()]
+            next_key = str(max(numeric_keys) + 1) if numeric_keys else '1'
+            
+            # Process the new invoices with existing data from all keys
+            all_existing_customers = []
+            for key in existing_keys:
+                all_existing_customers.extend(butchers_list[key])
+            
+            processed_invoices = process_invoices_products(invoices, all_existing_customers, fresh_products_codes, invoice_list['results'])
+            
+            # Add the new processed data with the next key
+            butchers_list[next_key] = processed_invoices
+        
+        return butchers_list
     else:
+        # If no new invoices, return existing list or create empty one with flattened structure
         pass
 
 def get_todays_invoices(date):

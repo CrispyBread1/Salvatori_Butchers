@@ -104,8 +104,8 @@ class ButchersListWindow(QWidget):
             self.update_ui()
 
     def invoice_pull_test(self):
-        invoice = get_todays_invoices(self.date)
-        print(invoice)
+        butchers_list = fetch_butchers_list_by_date(self.date)
+        print(butchers_list)
 
     def export_to_xl(self):
         if self.butchers_list:
