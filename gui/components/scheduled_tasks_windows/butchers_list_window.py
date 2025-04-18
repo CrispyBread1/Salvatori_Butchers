@@ -82,6 +82,7 @@ class ButchersListWindow(QWidget):
             self.status_label.setText(f"Successfully created {self.date} butchers list.")
             # Process invoices further as needed
             insert_butchers_list(self.date, invoices)
+            self.butchers_list = fetch_butchers_list_by_date(self.date)
         else:
             self.status_label.setText("No invoices found for the selected date.")
     
