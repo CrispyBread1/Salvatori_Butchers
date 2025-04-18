@@ -1,4 +1,5 @@
 # File: loading_components.py
+from datetime import datetime
 from PyQt5.QtWidgets import QProgressDialog
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer
 
@@ -13,6 +14,8 @@ class GenericWorkerThread(QThread):
         self.task_function = task_function
         self.args = args
         self.kwargs = kwargs
+        
+        
     
     def run(self):
         try:
@@ -30,6 +33,7 @@ class LoadingManager:
         self.worker_thread = None
         self.timer = None
         self.elapsed_seconds = 0
+        self.fetched_at = datetime.now().strftime('%Y-%m-%d, %H:%M:%S')
     
     def run_with_loading(self, task_function, on_complete=None, on_error=None,
                          loading_text="Loading...", title="Please Wait",
@@ -72,7 +76,7 @@ class LoadingManager:
 
     def _handle_completion(self, result, callback):
         self._close_dialog()
-        callback(result)
+        callback(result, self.fetched_at)
 
     def _handle_error(self, error, callback):
         self._close_dialog()

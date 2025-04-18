@@ -73,7 +73,7 @@ class ButchersListWindow(QWidget):
             task_args=(self.date,)
         )
     
-    def on_fetch_complete(self, invoices):
+    def on_fetch_complete(self, invoices, updated_at):
         # Re-enable button
         self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
         
@@ -81,7 +81,7 @@ class ButchersListWindow(QWidget):
         if invoices:
             self.status_label.setText(f"Successfully created {self.date} butchers list.")
             # Process invoices further as needed
-            insert_butchers_list(self.date, invoices)
+            insert_butchers_list(self.date, invoices, updated_at)
             self.butchers_list = fetch_butchers_list_by_date(self.date)
         else:
             self.status_label.setText("No invoices found for the selected date.")

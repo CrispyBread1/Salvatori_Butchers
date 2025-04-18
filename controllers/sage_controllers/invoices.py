@@ -20,10 +20,15 @@ def get_invoice_products(date):
     Main function to retrieve and process invoice products for a specific date.
     """
     invoices = []
+    invoice_list = []
     fresh_products_codes = fetch_products_stock_code_fresh()
-    invoice_list = get_todays_invoices(date)
+    butchers_list = fetch_butchers_list_by_date(date)
+    if butchers_list:
+        invoice_list = get_todays_new_invoices(date, butchers_list['updated_at'])
+    else:
+        invoice_list = get_todays_invoices(date)
     if invoice_list['results']:
-      butchers_list = fetch_butchers_list_by_date(date)
+      
       
       for invoice in invoice_list['results']:
           if 'invoiceNumber' in invoice:
@@ -50,6 +55,44 @@ def get_todays_invoices(date):
         "field": "INVOICE_DATE",
         "type": "eq",
         "value": date
+      }
+    ])
+    headers = {
+      'Content-Type': 'application/json',
+      'AuthToken': API_TOKEN
+    }
+
+    try:
+        response = requests.request("POST", url, headers=headers, data=payload)
+        response.raise_for_status()  # Raise an error for non-2xx responses
+
+        invoices = response.json()
+        print(f"Fetch in controller completed successfully: {len(invoices['results'])}")
+        return invoices
+
+    except requests.RequestException as e:
+        print(f"Error fetching invoices: {e}")
+        return None
+    
+def get_todays_new_invoices(date, previous_fetch):
+    """
+    Fetch all invoices for a specific date from the Sage API.
+    """
+    if not API_URL or not API_TOKEN:
+        raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
+
+    url = f"{API_URL}/api/searchInvoice"
+
+    payload = json.dumps([
+      {
+        "field": "INVOICE_DATE",
+        "type": "eq",
+        "value": date
+      },
+      {
+        "field": "RECORD_CREATE_DATE",
+        "type": "gt",
+        "value": previous_fetch
       }
     ])
     headers = {

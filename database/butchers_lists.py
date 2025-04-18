@@ -43,7 +43,7 @@ def fetch_butchers_list_by_date(date):
     connection.close()
     return result
 
-def insert_butchers_list(date, data):
+def insert_butchers_list(date, data, updated_at):
     connection = None
     try:
         # Attempt to connect to the database
@@ -55,9 +55,9 @@ def insert_butchers_list(date, data):
             try:
                 # Attempt to execute the insert query
                 cursor.execute("""
-                    INSERT INTO butchers_lists (date, data) 
-                    VALUES (%s, %s)
-                """, (date, json.dumps(data)))
+                    INSERT INTO butchers_lists (date, data, updated_at) 
+                    VALUES (%s, %s, %s)
+                """, (date, json.dumps(data), updated_at))
                 
                 # Commit the transaction
                 connection.commit()
