@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 from database.butchers_lists import fetch_all_butchers_lists_by_date, insert_butchers_list
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
+from gui.components.scheduled_tasks_windows.butchers_list.butcher_list_picker_dialogue import ButcherListPicker
 from controllers.sage_controllers.invoices import *
 from resources.excel_exporter import ExcelExporter
 
@@ -109,9 +110,18 @@ class ButchersListWindow(QWidget):
         print(self.butchers_lists)
 
     def export_to_xl(self):
-        if self.butchers_lists:
+        butchers_list_count = len(self.butchers_lists)
+        selected_butchers_list = 0
+
+        if butchers_list_count > 1:
+            dialog = ButcherListPicker(max_number=len(self.butchers_lists))
+            if dialog.exec_():
+                selected_butchers_list = dialog.get_selected_number()
+                print(f"User selected number: {selected_butchers_list}")
+            
+
             # print(self.butchers_lists)
-            flattened_data = self.flatten_order_data(self.butchers_lists.data)
+            flattened_data = self.flatten_order_data(self.butchers_lists[selected_butchers_list].data)
 
             exporter = ExcelExporter(parent=self)  # `self` = your PyQt window/widget
             exporter.export(
