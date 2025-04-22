@@ -76,7 +76,6 @@ class ButchersListWindow(QWidget):
     def on_fetch_complete(self, invoices, updated_at):
         # Re-enable button
         self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
-        
         # Update status with results
         if invoices:
             self.status_label.setText(f"Successfully created {self.date} butchers list.")
@@ -85,6 +84,8 @@ class ButchersListWindow(QWidget):
             self.butchers_list = fetch_butchers_list_by_date(self.date)
         else:
             self.status_label.setText("No invoices found for the selected date.")
+
+        self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
     
     def on_fetch_error(self, error_message):
         # Re-enable button
@@ -105,12 +106,12 @@ class ButchersListWindow(QWidget):
 
     def invoice_pull_test(self):
         butchers_list = fetch_butchers_list_by_date(self.date)
-        print(butchers_list)
+        print(self.date)
 
     def export_to_xl(self):
         if self.butchers_list:
             # print(self.butchers_list)
-            flattened_data = self.flatten_order_data(self.butchers_list)
+            flattened_data = self.flatten_order_data(self.butchers_list.data)
 
             exporter = ExcelExporter(parent=self)  # `self` = your PyQt window/widget
             exporter.export(
@@ -124,10 +125,11 @@ class ButchersListWindow(QWidget):
         """
         Takes the fetched tuple and returns flattened data for Excel export.
         """
-        raw_data = fetched_data[-1]  # This is the list of customer dicts
+        
+         # This is the list of customer dicts
         flattened = []
 
-        for customer in raw_data:
+        for customer in fetched_data:
             for product in customer.get("products", []):
                 flattened.append({
                     "customer_name": customer["customer_name"],
