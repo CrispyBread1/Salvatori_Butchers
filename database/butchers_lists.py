@@ -44,6 +44,20 @@ def fetch_butchers_list_by_date(date):
     cursor.close()
     connection.close()
     return result
+  
+def fetch_all_butchers_lists_by_date(date):
+  connection = connect_db()
+  if connection:
+    cursor = connection.cursor()
+    cursor.execute(
+      "SELECT * FROM butchers_lists WHERE date = %s ORDER BY updated_at DESC",
+      (date,)
+    )
+    # print(cursor.fetchone())
+    result = convert_to_butchers_list_objects(cursor.fetchall())
+    cursor.close()
+    connection.close()
+    return result
 
 def insert_butchers_list(date, data, updated_at):
     connection = None
@@ -88,6 +102,6 @@ def insert_butchers_list(date, data, updated_at):
         if connection:
             connection.close()
 
-def convert_to_butchers_list_objects(butchers_list):
-  if butchers_list:
-    return ButchersList(*butchers_list)
+def convert_to_butchers_list_objects(butchers_lists):
+  if butchers_lists:
+    return [ButchersList(*butchers_list) for butchers_list in butchers_lists]

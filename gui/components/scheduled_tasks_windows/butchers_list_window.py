@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
-from database.butchers_lists import fetch_butchers_list_by_date, insert_butchers_list
+from database.butchers_lists import fetch_all_butchers_lists_by_date, insert_butchers_list
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from controllers.sage_controllers.invoices import *
@@ -16,7 +16,7 @@ class ButchersListWindow(QWidget):
         super().__init__()
         self.loading_manager = LoadingManager(self)
         self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
-        self.butchers_list = fetch_butchers_list_by_date(self.date)
+        self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
         # Create main layout once
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
@@ -81,7 +81,7 @@ class ButchersListWindow(QWidget):
             self.status_label.setText(f"Successfully created {self.date} butchers list.")
             # Process invoices further as needed            
             insert_butchers_list(self.date, invoices, updated_at)
-            self.butchers_list = fetch_butchers_list_by_date(self.date)
+            self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
         else:
             self.status_label.setText("No invoices found for the selected date.")
 
@@ -100,18 +100,18 @@ class ButchersListWindow(QWidget):
         dialog = DateInputDialog(self)
         if dialog.exec_():  # If user clicks OK
             self.date = dialog.get_just_date()
-            self.butchers_list = fetch_butchers_list_by_date(self.date)
+            self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
             # Update the UI with the new date
             self.update_ui()
 
     def invoice_pull_test(self):
-        butchers_list = fetch_butchers_list_by_date(self.date)
-        print(self.date)
+        butchers_lists = fetch_all_butchers_lists_by_date(self.date)
+        print(self.butchers_lists)
 
     def export_to_xl(self):
-        if self.butchers_list:
-            # print(self.butchers_list)
-            flattened_data = self.flatten_order_data(self.butchers_list.data)
+        if self.butchers_lists:
+            # print(self.butchers_lists)
+            flattened_data = self.flatten_order_data(self.butchers_lists.data)
 
             exporter = ExcelExporter(parent=self)  # `self` = your PyQt window/widget
             exporter.export(
