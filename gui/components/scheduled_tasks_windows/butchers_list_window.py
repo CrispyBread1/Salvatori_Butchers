@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
+from auth.userAuthentication import AuthService
 from database.butchers_lists import fetch_all_butchers_lists_by_date, insert_butchers_list
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
@@ -16,6 +17,10 @@ class ButchersListWindow(QWidget):
 
     def __init__(self):
         super().__init__()
+
+        self.auth_service = AuthService()
+        user = self.auth_service.current_user
+
         self.loading_manager = LoadingManager(self)
         self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
         self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
@@ -40,12 +45,16 @@ class ButchersListWindow(QWidget):
         self.export_xl_button = QPushButton("Export to XL", self)
         self.export_xl_button.clicked.connect(self.export_to_xl)
         
-        self.invoice_pull_test_button = QPushButton("invoice_pull_test_button", self)
-        self.invoice_pull_test_button.clicked.connect(self.invoice_pull_test)
+        
         
         button_layout.addWidget(self.pull_orders_button)
         button_layout.addWidget(self.change_date_button)
-        button_layout.addWidget(self.invoice_pull_test_button)
+
+        if user and user.department == 'admin':
+            self.invoice_pull_test_button = QPushButton("invoice_pull_test_button", self)
+            self.invoice_pull_test_button.clicked.connect(self.invoice_pull_test)
+            button_layout.addWidget(self.invoice_pull_test_button)
+
         button_layout.addWidget(self.export_xl_button)
         self.main_layout.addLayout(button_layout)
         
