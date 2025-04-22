@@ -80,7 +80,7 @@ class ButchersListWindow(QWidget):
         # Update status with results
         if invoices:
             self.status_label.setText(f"Successfully created {self.date} butchers list.")
-            # Process invoices further as needed
+            # Process invoices further as needed            
             insert_butchers_list(self.date, invoices, updated_at)
             self.butchers_list = fetch_butchers_list_by_date(self.date)
         else:

@@ -8,6 +8,7 @@ from collections import defaultdict
 
 from database.butchers_lists import fetch_butchers_list_by_date
 from database.products import fetch_products_stock_code_fresh
+from models.butchers_list import ButchersList
 
 # Load environment variables from .env
 load_dotenv()
@@ -18,16 +19,17 @@ API_TOKEN = os.getenv("SAGE_API_TOKEN")
 def get_invoice_products(date):
     """
     Main function to retrieve and process invoice products for a specific date.
-    Uses sequential keys directly at the top level of the dictionary.
+    Creates a new butchers list row in the database instead of updating a JSON blob.
     """
     invoices = []
     invoice_list = []
     fresh_products_codes = fetch_products_stock_code_fresh()
-    butchers_list = fetch_butchers_list_by_date(date)
+    existing_butchers_list = fetch_butchers_list_by_date(date)
+    processed_data = []
     
     # Get appropriate invoices based on whether we have an existing list
-    if butchers_list:
-        previous_fetch = butchers_list.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+    if existing_butchers_list:
+        previous_fetch = existing_butchers_list.updated_at.strftime("%Y-%m-%d %H:%M:%S")
         invoice_list = get_todays_new_invoices(date, previous_fetch)
     else:
         invoice_list = get_todays_invoices(date)
@@ -38,34 +40,23 @@ def get_invoice_products(date):
                 current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
                 invoices.append(current_invoice)
         
-        # Initialize or update the butchers list with sequential keys
-        if not butchers_list:
-            # Create new butchers list with key '1'
-            processed_invoices = process_invoices_products(invoices, [], fresh_products_codes, invoice_list['results'])
-            butchers_list = {
-                '1': processed_invoices,
-                'updated_at': None  # This will be set by the caller
-            }
+        # Process invoices and create new butchers list
+        if not existing_butchers_list:
+            # No existing list, create brand new one
+            processed_data = process_invoices_products(invoices, [], fresh_products_codes, invoice_list['results'])
+            
+            # Here you would create a new ButchersList row in your database
+            # Return the newly created butchers list
+   
         else:
-            # Find the next sequential key
-            existing_keys = [k for k in butchers_list.keys() if k != 'updated_at']
-            numeric_keys = [int(k) for k in existing_keys if k.isdigit()]
-            next_key = str(max(numeric_keys) + 1) if numeric_keys else '1'
+            # Existing list, process new invoices with existing data
+            existing_data = existing_butchers_list.data if existing_butchers_list.data else []
+            processed_data = process_invoices_products(invoices, existing_data, fresh_products_codes, invoice_list['results'])
             
-            # Process the new invoices with existing data from all keys
-            all_existing_customers = []
-            for key in existing_keys:
-                all_existing_customers.extend(butchers_list[key])
-            
-            processed_invoices = process_invoices_products(invoices, all_existing_customers, fresh_products_codes, invoice_list['results'])
-            
-            # Add the new processed data with the next key
-            butchers_list[next_key] = processed_invoices
-        
-        return butchers_list
-    else:
-        # If no new invoices, return existing list or create empty one with flattened structure
-        pass
+            # Here you would create a new ButchersList row in your database
+            # Return the newly created butchers list
+
+    return processed_data
 
 def get_todays_invoices(date):
     """
@@ -242,7 +233,7 @@ def process_invoice_items(invoice, customer_entry, fresh_products_codes):
                 customer_entry["products"].append({
                     "sage_code": code,
                     "product_name": name,
-                    "quantity": round(qty, 2)
+                    "quantity": qty  # No rounding applied
                 })
             else:
                 # For regular accounts, aggregate quantities of the same product
@@ -263,7 +254,7 @@ def finalize_customer_products(butchers_list):
                 {
                     "sage_code": code,
                     "product_name": name,
-                    "quantity": round(qty, 2)
+                    "quantity": qty  # No rounding applied
                 }
                 for (code, name), qty in customer.get("product_dict", {}).items()
             ]

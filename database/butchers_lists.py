@@ -36,7 +36,7 @@ def fetch_butchers_list_by_date(date):
   if connection:
     cursor = connection.cursor()
     cursor.execute(
-      "SELECT * FROM butchers_lists WHERE date = %s",
+      "SELECT * FROM butchers_lists WHERE date = %s ORDER BY updated_at DESC LIMIT 1",
       (date,)
     )
     # print(cursor.fetchone())
