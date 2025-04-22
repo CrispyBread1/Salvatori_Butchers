@@ -8,6 +8,7 @@ from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.scheduled_tasks_windows.butchers_list.butcher_list_picker_dialogue import ButcherListPicker
 from controllers.sage_controllers.invoices import *
+from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_table import ButchersListTable
 from resources.excel_exporter import ExcelExporter
 
 
@@ -51,6 +52,9 @@ class ButchersListWindow(QWidget):
         # Status label to show results
         self.status_label = QLabel("", self)
         self.main_layout.addWidget(self.status_label)
+
+        self.butchers_table = ButchersListTable(self)
+        self.main_layout.addWidget(self.butchers_table)
         
         # Update UI with current date
         self.update_ui()
@@ -59,6 +63,9 @@ class ButchersListWindow(QWidget):
         """Update UI elements without recreating the layout"""
         self.title_label.setText(f"Butchers List - {self.date}")
         self.status_label.setText("")  # Clear previous status
+
+        if hasattr(self, 'butchers_lists') and self.butchers_lists:
+          self.butchers_table.load_butchers_lists(self.butchers_lists)
 
     def pull_butcher_data(self):
         # Disable the button to prevent multiple clicks
@@ -83,6 +90,7 @@ class ButchersListWindow(QWidget):
             # Process invoices further as needed            
             insert_butchers_list(self.date, invoices, updated_at)
             self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
+            self.update_ui()
         else:
             self.status_label.setText("No invoices found for the selected date.")
 
@@ -148,4 +156,11 @@ class ButchersListWindow(QWidget):
                 })
         
         return flattened
+    
+    def create_table(self):
+        headers = ["Customer", "Age", "City"]
+        data = []
+        self.table.populate(headers, data)
+
+        pass
  

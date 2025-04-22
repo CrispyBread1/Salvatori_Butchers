@@ -32,7 +32,4 @@ class DynamicTableWidget(QTableWidget):
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
 
-# def color_stock(item, row, col, value):
-#     if isinstance(value, (int, float)) and value < 10:
-#         item.setForeground(QColor("red"))
-#     return item
+
