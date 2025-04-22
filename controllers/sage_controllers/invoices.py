@@ -41,20 +41,7 @@ def get_invoice_products(date):
                 invoices.append(current_invoice)
         
         # Process invoices and create new butchers list
-        if not existing_butchers_list:
-            # No existing list, create brand new one
-            processed_data = process_invoices_products(invoices, [], fresh_products_codes, invoice_list['results'])
-            
-            # Here you would create a new ButchersList row in your database
-            # Return the newly created butchers list
-   
-        else:
-            # Existing list, process new invoices with existing data
-            existing_data = existing_butchers_list.data if existing_butchers_list.data else []
-            processed_data = process_invoices_products(invoices, existing_data, fresh_products_codes, invoice_list['results'])
-            
-            # Here you would create a new ButchersList row in your database
-            # Return the newly created butchers list
+        processed_data = process_invoices_products(invoices, fresh_products_codes, invoice_list['results'])
 
     return processed_data
 
@@ -262,13 +249,13 @@ def finalize_customer_products(butchers_list):
         # Clean up the temporary product_dict
         customer.pop("product_dict", None)
 
-def process_invoices_products(invoices, butchers_list=None, fresh_products_codes=[], invoice_list=[]):
+def process_invoices_products(invoices, fresh_products_codes=[], invoice_list=[]):
     """
     Process invoices and update the butchers list with products from invoices.
     Special handling for CASH accounts: products are added individually rather than summed.
     """
-    if butchers_list is None:
-        butchers_list = []
+
+    butchers_list = []
     
     # Step 1: Build customer lookup
     customer_lookup = create_customer_lookup(butchers_list)
