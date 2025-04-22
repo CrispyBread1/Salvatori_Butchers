@@ -32,58 +32,59 @@ class ButchersListTable(QWidget):
         while self.tab_widget.count() > 0:
             self.tab_widget.removeTab(0)
         
-        self.tables = {}
-        
-        if not butchers_lists:
-            # Create an empty "All" tab if no data
+        if butchers_lists:
+            self.tables = {}
+            
+            if not butchers_lists:
+                # Create an empty "All" tab if no data
+                all_tab = QWidget()
+                all_layout = QVBoxLayout(all_tab)
+                all_table = DynamicTableWidget()
+                all_layout.addWidget(all_table)
+                self.tab_widget.addTab(all_tab, "All Orders")
+                
+                # Set up empty table
+                headers = ["Customer", "Product", "Amount"]
+                all_table.populate(headers, [])
+                return
+            
+            # Create "All" tab first with data from all butchers lists
             all_tab = QWidget()
             all_layout = QVBoxLayout(all_tab)
             all_table = DynamicTableWidget()
             all_layout.addWidget(all_table)
             self.tab_widget.addTab(all_tab, "All Orders")
+            self.tables["all"] = all_table
             
-            # Set up empty table
-            headers = ["Customer", "Product", "Amount"]
-            all_table.populate(headers, [])
-            return
-        
-        # Create "All" tab first with data from all butchers lists
-        all_tab = QWidget()
-        all_layout = QVBoxLayout(all_tab)
-        all_table = DynamicTableWidget()
-        all_layout.addWidget(all_table)
-        self.tab_widget.addTab(all_tab, "All Orders")
-        self.tables["all"] = all_table
-        
-        # Create individual tabs for each butchers list
-        for i, butchers_list in enumerate(butchers_lists):
-            # Create tab for this butchers list
-            list_tab = QWidget()
-            list_layout = QVBoxLayout(list_tab)
-            list_table = DynamicTableWidget()
-            list_layout.addWidget(list_table)
-            
-            # Format date for tab name if available
-            if hasattr(butchers_list, 'created_at') and butchers_list.created_at:
-                try:
-                    # Format timestamp to something readable
-                    if isinstance(butchers_list.created_at, str):
-                        timestamp = datetime.fromisoformat(butchers_list.created_at.replace('Z', '+00:00'))
-                    else:
-                        timestamp = butchers_list.created_at
-                    
-                    time_str = timestamp.strftime("%H:%M")
-                    tab_name = f"List {i+1} ({time_str})"
-                except:
+            # Create individual tabs for each butchers list
+            for i, butchers_list in enumerate(butchers_lists):
+                # Create tab for this butchers list
+                list_tab = QWidget()
+                list_layout = QVBoxLayout(list_tab)
+                list_table = DynamicTableWidget()
+                list_layout.addWidget(list_table)
+                
+                # Format date for tab name if available
+                if hasattr(butchers_list, 'created_at') and butchers_list.created_at:
+                    try:
+                        # Format timestamp to something readable
+                        if isinstance(butchers_list.created_at, str):
+                            timestamp = datetime.fromisoformat(butchers_list.created_at.replace('Z', '+00:00'))
+                        else:
+                            timestamp = butchers_list.created_at
+                        
+                        time_str = timestamp.strftime("%H:%M")
+                        tab_name = f"List {i+1} ({time_str})"
+                    except:
+                        tab_name = f"List {i+1}"
+                else:
                     tab_name = f"List {i+1}"
-            else:
-                tab_name = f"List {i+1}"
+                
+                self.tab_widget.addTab(list_tab, tab_name)
+                self.tables[f"list_{i}"] = list_table
             
-            self.tab_widget.addTab(list_tab, tab_name)
-            self.tables[f"list_{i}"] = list_table
-        
-        # Populate all tables with data
-        self._populate_tables(butchers_lists)
+            # Populate all tables with data
+            self._populate_tables(butchers_lists)
     
     def _populate_tables(self, butchers_lists):
         """

@@ -64,8 +64,7 @@ class ButchersListWindow(QWidget):
         self.title_label.setText(f"Butchers List - {self.date}")
         self.status_label.setText("")  # Clear previous status
 
-        if hasattr(self, 'butchers_lists') and self.butchers_lists:
-          self.butchers_table.load_butchers_lists(self.butchers_lists)
+        self.butchers_table.load_butchers_lists(self.butchers_lists)
 
     def pull_butcher_data(self):
         # Disable the button to prevent multiple clicks
