@@ -160,6 +160,4 @@ class ButchersListWindow(QWidget):
         headers = ["Customer", "Age", "City"]
         data = []
         self.table.populate(headers, data)
-
-        pass
  

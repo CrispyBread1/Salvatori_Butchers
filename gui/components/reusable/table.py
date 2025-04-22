@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtGui import QColor
 
 class DynamicTableWidget(QTableWidget):
@@ -18,6 +18,9 @@ class DynamicTableWidget(QTableWidget):
         self.setColumnCount(len(headers))
         self.setRowCount(len(data))
         self.setHorizontalHeaderLabels(headers)
+        for index, header in enumerate(headers):
+            self.horizontalHeader().setSectionResizeMode(index, QHeaderView.Stretch)
+        
 
         for row_idx, row_data in enumerate(data):
             for col_idx, value in enumerate(row_data):
