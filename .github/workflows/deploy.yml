@@ -4,6 +4,18 @@ permissions:
   contents: write
   actions: write
 
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  SAGE_API_URL: ${{ secrets.SAGE_API_URL }}
+  SAGE_API_TOKEN: ${{ secrets.SAGE_API_TOKEN }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -73,6 +85,19 @@ jobs:
       - name: Debug dependencies
         run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
 
+      - name: Write .env file
+        run: |
+          echo "SUPABASE_URL=${SUPABASE_URL}" >> .env
+          echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> .env
+          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}" >> .env
+          echo "SAGE_API_URL=${SAGE_API_URL}" >> .env
+          echo "SAGE_API_TOKEN=${SAGE_API_TOKEN}" >> .env
+          echo "DB_USER=${DB_USER}" >> .env
+          echo "DB_PORT=${DB_PORT}" >> .env
+          echo "DB_PASSWORD=${DB_PASSWORD}" >> .env
+          echo "DB_NAME=${DB_NAME}" >> .env
+          echo "DB_HOST=${DB_HOST}" >> .env
+
       - name: Build executable
         run: pyinstaller main.spec
 
@@ -113,6 +138,19 @@ jobs:
 
       - name: Debug dependencies
         run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
+
+      - name: Write .env file
+        run: |
+          echo "SUPABASE_URL=${SUPABASE_URL}" >> .env
+          echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> .env
+          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}" >> .env
+          echo "SAGE_API_URL=${SAGE_API_URL}" >> .env
+          echo "SAGE_API_TOKEN=${SAGE_API_TOKEN}" >> .env
+          echo "DB_USER=${DB_USER}" >> .env
+          echo "DB_PORT=${DB_PORT}" >> .env
+          echo "DB_PASSWORD=${DB_PASSWORD}" >> .env
+          echo "DB_NAME=${DB_NAME}" >> .env
+          echo "DB_HOST=${DB_HOST}" >> .env
 
       - name: Build executable
         run: pyinstaller main.spec
