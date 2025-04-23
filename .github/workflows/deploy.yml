@@ -2,6 +2,7 @@ name: Build and Release
 
 permissions:
   contents: write
+  actions: write # Added permission for deleting artifacts
 
 on:
   workflow_dispatch:
@@ -11,7 +12,38 @@ on:
         required: true
 
 jobs:
+  cleanup-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old artifacts
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const repo = context.repo;
+            console.log(`Cleaning up artifacts for ${repo.owner}/${repo.repo}`);
+            
+            // Get list of all artifacts
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: repo.owner,
+              repo: repo.repo
+            });
+            
+            // Keep only the 5 most recent artifacts
+            const artifactsToDelete = artifacts.data.artifacts.slice(1);
+            
+            // Delete old artifacts
+            for (const artifact of artifactsToDelete) {
+              console.log(`Deleting artifact ${artifact.name} (ID: ${artifact.id})`);
+              await github.rest.actions.deleteArtifact({
+                owner: repo.owner,
+                repo: repo.repo,
+                artifact_id: artifact.id
+              });
+            }
+
   build-macos:
+    needs: cleanup-artifacts
     runs-on: macos-latest
 
     steps:
@@ -51,6 +83,7 @@ jobs:
           path: dist/ManageMeStock
 
   build-windows:
+    needs: cleanup-artifacts
     runs-on: windows-latest
 
     steps:
@@ -94,20 +127,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ManageMeStockW
-          path: .
+          path: dist
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
           name: ManageMeStockM
-          path: .
+          path: dist
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/ManageMeStockW.exe
-            dist/ManageMeStockM.app
+            dist/ManageMeStock.exe
+            dist/ManageMeStock
           tag_name: ${{ github.event.inputs.version }}
           release_name: Release ${{ github.event.inputs.version }}
           draft: false

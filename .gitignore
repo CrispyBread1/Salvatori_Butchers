@@ -1,6 +1,10 @@
 # Build directories
 /dist
 /build
+dist/
+build/
+**/dist/
+**/build/
 
 # Environment variables
 .env
