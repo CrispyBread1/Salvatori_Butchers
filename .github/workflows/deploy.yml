@@ -108,6 +108,7 @@ jobs:
           pip install requests
           pip install PyQtWebEngine
           pip install pyinstaller
+          pip install python-dotenv
 
       - name: Debug dependencies
         run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
