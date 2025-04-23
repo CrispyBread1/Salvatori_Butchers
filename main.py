@@ -1,3 +1,11 @@
+# Import the environment loader before any other imports
+from env_loader import ensure_environment_variables
+
+# Load environment variables before anything else
+env_loaded = ensure_environment_variables()
+if not env_loaded:
+    print("WARNING: Using fallback environment values!")
+
 import sys
 from PyQt5.QtWidgets import QApplication
 from database.schemas.products_schema import insert_to_database
