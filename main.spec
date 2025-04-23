@@ -2,12 +2,10 @@ from PyInstaller.utils.hooks import collect_submodules
 hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + collect_submodules("database") + collect_submodules("resources") + collect_submodules("dotenv") + collect_submodules("openpyxl")
 
 a = Analysis(
-    [
-      ('.env', '.')
-    ],
+    ["main.py"],
     pathex=[],
     binaries=[],
-    datas=['.env'],
+    datas=[('.env', '.')],
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
