@@ -15,6 +15,10 @@ def check_env_variables():
     
     supabase_url = os.getenv('SUPABASE_URL')
     supabase_key = os.getenv('SUPABASE_ANON_KEY')
+
+    if not supabase_url or not supabase_key:
+        supabase_url = os.environ.get("SUPABASE_URL")
+        supabase_key = os.environ.get("SUPABASE_ANON_KEY")
     
     print("Environment variables status:")
     print(f"SUPABASE_URL: {'Set correctly' if supabase_url else 'Not set'}")

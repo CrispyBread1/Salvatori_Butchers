@@ -16,6 +16,10 @@ load_dotenv()
 API_URL = os.getenv("SAGE_API_URL")
 API_TOKEN = os.getenv("SAGE_API_TOKEN")
 
+if not API_URL or not API_TOKEN:
+    API_URL = os.environ.get("API_URL")
+    API_TOKEN = os.environ.get("API_TOKEN")
+
 def get_invoice_products(date):
     """
     Main function to retrieve and process invoice products for a specific date.

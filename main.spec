@@ -5,7 +5,7 @@ a = Analysis(
     ["main.py"],
     pathex=[],
     binaries=[],
-    datas=[("path/to/.env", '.')],
+    datas=[(".env", ".")], 
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
@@ -28,4 +28,4 @@ exe = EXE(
     upx=True,
     console=True,
     icon=None,
-  )
+)

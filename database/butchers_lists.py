@@ -15,6 +15,13 @@ DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 
+if not DB_HOST or not DB_PORT or not DB_NAME or not DB_USER or not DB_PASSWORD:
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_PORT = os.environ.get("DB_PORT")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASSWORD = os.environ.get("DB_PASSWORD")
+
 def connect_db():
   try:
       # Establish the connection

@@ -14,6 +14,10 @@ class AuthService:
         # Get URLs directly from environment
         self.supabase_url = os.environ.get('SUPABASE_URL')
         self.supabase_anon_key = os.environ.get('SUPABASE_ANON_KEY')
+
+        if not self.supabase_url or not self.supabase_anon_key:
+          self.supabase_url = os.environ.get("SUPABASE_URL")
+          self.supabase_anon_key = os.environ.get("SUPABASE_ANON_KEY")
         
         # Check if environment variables are properly set
         if not self.supabase_url or not self.supabase_anon_key:
