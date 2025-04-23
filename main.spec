@@ -3,7 +3,7 @@ hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + col
 
 a = Analysis(
     [
-      ('.env' '.')
+      ('.env', '.')
     ],
     pathex=[],
     binaries=[],
