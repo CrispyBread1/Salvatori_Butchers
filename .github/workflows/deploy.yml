@@ -109,6 +109,7 @@ jobs:
           pip install PyQtWebEngine
           pip install pyinstaller
           pip install python-dotenv
+          pip3 install openpyxl
 
       - name: Debug dependencies
         run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
