@@ -2,7 +2,7 @@ name: Build and Release
 
 permissions:
   contents: write
-  actions: write # Added permission for deleting artifacts
+  actions: write
 
 on:
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
             });
             
             // Keep only the 5 most recent artifacts
-            const artifactsToDelete = artifacts.data.artifacts.slice(1);
+            const artifactsToDelete = artifacts.data.artifacts.slice(5);
             
             // Delete old artifacts
             for (const artifact of artifactsToDelete) {
@@ -76,11 +76,16 @@ jobs:
       - name: Build executable
         run: pyinstaller main.spec
 
-      - name: Upload executable as artifact
-        uses: actions/upload-artifact@v4
+      - name: Create macOS Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: ManageMeStockM
-          path: dist/ManageMeStock
+          files: dist/ManageMeStock
+          tag_name: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
     needs: cleanup-artifacts
@@ -110,38 +115,13 @@ jobs:
       - name: Build executable
         run: pyinstaller main.spec
 
-      - name: Upload executable as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ManageMeStockW
-          path: dist/ManageMeStock.exe
-
-  release:
-    needs: [build-windows, build-macos]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ManageMeStockW
-          path: dist
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ManageMeStockM
-          path: dist
-
-      - name: Create GitHub Release
+      - name: Create Windows Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            dist/ManageMeStock.exe
-            dist/ManageMeStock
+          files: dist/ManageMeStock.exe
           tag_name: ${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
