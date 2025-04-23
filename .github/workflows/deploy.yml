@@ -168,13 +168,15 @@ jobs:
           echo "Content of .env (first line only):"
           Get-Content .env -First 1
 
-      - name: Debug PyInstaller
+      - name: Debug environment
         run: |
-          echo "Current directory: $(pwd)"
+          echo "Current directory: $PWD"
           echo "Files in current directory:"
-          ls -la
-          echo "Environment variables (names only):"
-          env | cut -d= -f1
+          dir
+          echo "Does .env exist?"
+          Test-Path .env
+          echo "Content of .env (if it exists):"
+          if (Test-Path .env) { Get-Content .env | ForEach-Object { $_.Split('=')[0] + "=[REDACTED]" } }
 
 
       - name: Build executable
