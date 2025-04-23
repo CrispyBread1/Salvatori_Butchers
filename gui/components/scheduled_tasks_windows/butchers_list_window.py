@@ -129,23 +129,23 @@ class ButchersListWindow(QWidget):
         butchers_list_count = len(self.butchers_lists)
         selected_butchers_list = 0
 
-        if butchers_list_count > 1:
-            dialog = ButcherListPicker(max_number=len(self.butchers_lists))
-            if dialog.exec_():
-                selected_butchers_list = dialog.get_selected_number()
-                print(f"User selected number: {selected_butchers_list}")
-            
+        # if butchers_list_count > 1:
+        dialog = ButcherListPicker(max_number=len(self.butchers_lists))
+        if dialog.exec_():
+            selected_butchers_list = dialog.get_selected_number()
+            print(f"User selected number: {selected_butchers_list}")
+        
 
-            # print(self.butchers_lists)
-            flattened_data = self.flatten_order_data(self.butchers_lists[selected_butchers_list].data)
+        # print(self.butchers_lists)
+        flattened_data = self.flatten_order_data(self.butchers_lists[selected_butchers_list].data)
 
-            exporter = ExcelExporter(parent=self)  # `self` = your PyQt window/widget
-            exporter.export(
-                data=flattened_data,
-                group_by="customer_name",       # groups rows under customer headings
-                sheet_name="Customer Orders",   # name of the sheet
-                headers=["product_name", "quantity"]  # order of columns
-            )
+        exporter = ExcelExporter(parent=self)  # `self` = your PyQt window/widget
+        exporter.export(
+            data=flattened_data,
+            group_by="customer_name",       # groups rows under customer headings
+            sheet_name="Customer Orders",   # name of the sheet
+            headers=["product_name", "quantity"]  # order of columns
+        )
 
     def flatten_order_data(self, fetched_data):
         """
