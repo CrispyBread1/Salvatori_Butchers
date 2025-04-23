@@ -97,10 +97,10 @@ jobs:
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          # Verify the file exists
-          ls -la .env
-          echo "Content of .env (redacted):"
-          cat .env | sed 's/\(.*=\).*/\1REDACTED/'
+          # Verify the file exists (Windows commands)
+          dir .env
+          echo "Content of .env (first line only):"
+          Get-Content .env -First 1
 
       - name: Debug PyInstaller
         run: |
