@@ -71,7 +71,14 @@ def get_todays_invoices(date):
     }
 
     try:
-        response = requests.request("POST", url, headers=headers, data=payload)
+        # Increase timeout values (in seconds)
+        response = requests.request(
+            "POST", 
+            url, 
+            headers=headers, 
+            data=payload,
+            timeout=(30, 90)  # (connection timeout, read timeout)
+        )
         response.raise_for_status()  # Raise an error for non-2xx responses
 
         invoices = response.json()
@@ -109,7 +116,15 @@ def get_todays_new_invoices(date, previous_fetch):
     }
 
     try:
-        response = requests.request("POST", url, headers=headers, data=payload)
+        response = requests.request(
+            "POST", 
+            url, 
+            headers=headers, 
+            data=payload,
+            timeout=(30, 90)  # (connection timeout, read timeout)
+        )
+        response.raise_for_status()  # Raise an error for non-2xx responses
+
         response.raise_for_status()  # Raise an error for non-2xx responses
 
         invoices = response.json()
