@@ -40,6 +40,29 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='ManageMeStock',
+)
+
+app = BUNDLE(
+    coll,
+    name='ManageMeStock.app',
+    icon=None,  # Replace with 'assets/icon.icns' if you have it
+    bundle_identifier='com.managemestock.app',
+    info_plist={
+        'CFBundleShortVersionString': '1.0.0',
+        'CFBundleVersion': '1.0.0',
+        'NSHighResolutionCapable': 'True',
+    },
+)
 coll = COLLECT(
     exe,
     a.binaries,
