@@ -99,12 +99,6 @@ jobs:
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           # Verify the file exists
           ls -la .env
-
-      - name: Create and verify macos.spec file
-        run: |
-          # Create the macos.spec file dynamically
-          cat > macos.spec << 'EOL'
-          cat macos.spec
           
       - name: Build macOS app bundle
         run: |
