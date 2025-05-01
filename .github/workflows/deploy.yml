@@ -60,7 +60,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install PostgreSQL (Required for psycopg2)
         run: |
@@ -69,7 +69,7 @@ jobs:
           echo "PATH=$(brew --prefix postgresql)/bin:$PATH" >> $GITHUB_ENV
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
@@ -81,9 +81,9 @@ jobs:
           pip install requests
           pip install PyQtWebEngine
           pip install pyinstaller
-
-      - name: Debug dependencies
-        run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
+          pip install python-dotenv
+          pip install openpyxl
+          pip install -r requirements.txt || echo "No requirements.txt found"
 
       - name: Write .env file
         run: |
@@ -99,24 +99,59 @@ jobs:
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           # Verify the file exists
           ls -la .env
-          echo "Content of .env (redacted):"
-          cat .env | sed 's/\(.*=\).*/\1REDACTED/'
 
-      - name: Debug PyInstaller
+      - name: Build macOS app bundle
         run: |
-          echo "Current directory: $(pwd)"
-          echo "Files in current directory:"
-          ls -la
-          echo "Environment variables (names only):"
-          env | cut -d= -f1
+          pyinstaller macos.spec || (echo "macos.spec not found, using main.spec" && pyinstaller main.spec)
 
-      - name: Build executable
-        run: pyinstaller main.spec
+      - name: Verify app bundle creation
+        run: |
+          ls -la dist/
+          if [ -d "dist/ManageMeStock.app" ]; then
+            echo "App bundle created successfully!"
+          else
+            echo "App bundle creation failed! Checking directory contents:"
+            ls -R dist/
+            exit 1
+          fi
+
+      - name: Create DMG for macOS
+        run: |
+          # Install create-dmg
+          brew install create-dmg
+          
+          # Create DMG from the app bundle
+          create-dmg \
+            --volname "ManageMeStock" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "ManageMeStock.app" 175 190 \
+            --hide-extension "ManageMeStock.app" \
+            --app-drop-link 425 190 \
+            "ManageMeStock-${{ github.event.inputs.version }}.dmg" \
+            "dist/ManageMeStock.app" || echo "DMG creation failed, continuing with app bundle"
+
+      - name: Package app for release
+        run: |
+          cd dist
+          if [ -f "../ManageMeStock-${{ github.event.inputs.version }}.dmg" ]; then
+            # DMG was created successfully
+            mv "../ManageMeStock-${{ github.event.inputs.version }}.dmg" .
+            echo "DMG package ready for release"
+          else
+            # Fall back to zip if DMG creation failed
+            zip -r "ManageMeStock-Mac-${{ github.event.inputs.version }}.zip" ManageMeStock.app
+            echo "ZIP package ready for release"
+          fi
+          ls -la
 
       - name: Create macOS Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/ManageMeStock
+          files: |
+            dist/ManageMeStock-${{ github.event.inputs.version }}.dmg
+            dist/ManageMeStock-Mac-${{ github.event.inputs.version }}.zip
           tag_name: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
           draft: false
@@ -130,10 +165,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
@@ -147,9 +182,7 @@ jobs:
           pip install pyinstaller
           pip install python-dotenv
           pip install openpyxl
-
-      - name: Debug dependencies
-        run: python -c "import sys; print(sys.path); import psycopg2; import requests; print('All dependencies imported successfully!')"
+          pip install -r requirements.txt || echo "No requirements.txt found"
 
       - name: Write .env file
         run: |
@@ -163,29 +196,38 @@ jobs:
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          # Verify the file exists (Windows commands)
-          dir .env
-          echo "Content of .env (first line only):"
-          Get-Content .env -First 1
-
-      - name: Debug environment
-        run: |
-          echo "Current directory: $PWD"
-          echo "Files in current directory:"
-          dir
-          echo "Does .env exist?"
-          Test-Path .env
-          echo "Content of .env (if it exists):"
-          if (Test-Path .env) { Get-Content .env | ForEach-Object { $_.Split('=')[0] + "=[REDACTED]" } }
-
 
       - name: Build executable
-        run: pyinstaller main.spec
+        run: |
+          pyinstaller windows.spec || (echo "windows.spec not found, using main.spec" && pyinstaller main.spec)
+
+      - name: Verify executable creation
+        run: |
+          dir dist
+          if (Test-Path dist\ManageMeStock.exe) {
+            echo "Executable created successfully!"
+          } elseif (Test-Path dist\ManageMeStock\ManageMeStock.exe) {
+            echo "Executable created in subfolder!"
+          } else {
+            echo "Executable creation failed!"
+            dir -Recurse dist
+            exit 1
+          }
+
+      - name: Package Windows executable
+        run: |
+          cd dist
+          if (Test-Path ManageMeStock.exe) {
+            Compress-Archive -Path ManageMeStock.exe -DestinationPath "ManageMeStock-Win-${{ github.event.inputs.version }}.zip"
+          } elseif (Test-Path ManageMeStock) {
+            Compress-Archive -Path ManageMeStock -DestinationPath "ManageMeStock-Win-${{ github.event.inputs.version }}.zip"
+          }
 
       - name: Create Windows Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/ManageMeStock.exe
+          files: |
+            dist/ManageMeStock-Win-${{ github.event.inputs.version }}.zip
           tag_name: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
           draft: false
