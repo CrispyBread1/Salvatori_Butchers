@@ -27,7 +27,7 @@ def get_api_url():
 
     # Try primary URL
     try:
-        response = requests.get(f"{primary_url}/api/health", timeout=5)
+        response = requests.get(f"{primary_url}/api/health", timeout=100)
         if response.status_code == 200:
             print(f"Successfully connected to primary URL: {primary_url}")
             return primary_url
@@ -36,7 +36,7 @@ def get_api_url():
     
     # Try secondary URL
     try:
-        response = requests.get(f"{secondary_url}/api/health", timeout=5)
+        response = requests.get(f"{secondary_url}/api/health", timeout=100)
         if response.status_code == 200:
             print(f"Successfully connected to secondary URL: {secondary_url}")
             return secondary_url
@@ -127,7 +127,7 @@ def get_todays_new_invoices(date, previous_fetch):
     """
     Fetch all invoices for a specific date from the Sage API.
     """
-    if not API_URL or not API_TOKE:
+    if not API_URL or not API_TOKEN:
         raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
 
     url = f"{API_URL}/api/searchInvoice"
