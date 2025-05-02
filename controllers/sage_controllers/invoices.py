@@ -13,11 +13,45 @@ from models.butchers_list import ButchersList
 # Load environment variables from .env
 load_dotenv()
 
-API_URL = os.getenv("SAGE_API_URL")
+def get_api_url():
+    """
+    Function to get the API URL with fallback support.
+    First tries connecting to the internal server URL, then falls back to the external URL if needed.
+    """
+    primary_url = os.getenv("SAGE_API_URL_INTERNALL")
+    secondary_url = os.getenv("SAGE_API_URL")
+
+    if not primary_url or not secondary_url:
+      primary_url = os.environ.get("API_URL")
+      secondary_url = os.environ.get("API_TOKEN")
+
+    # Try primary URL
+    try:
+        response = requests.get(f"{primary_url}/api/health", timeout=5)
+        if response.status_code == 200:
+            print(f"Successfully connected to primary URL: {primary_url}")
+            return primary_url
+    except requests.RequestException:
+        print(f"Failed to connect to primary URL: {primary_url}")
+    
+    # Try secondary URL
+    try:
+        response = requests.get(f"{secondary_url}/api/health", timeout=5)
+        if response.status_code == 200:
+            print(f"Successfully connected to secondary URL: {secondary_url}")
+            return secondary_url
+    except requests.RequestException:
+        print(f"Failed to connect to secondary URL: {secondary_url}")
+
+
+
+
+
+API_URL = get_api_url()
 API_TOKEN = os.getenv("SAGE_API_TOKEN")
 
-if not API_URL or not API_TOKEN:
-    API_URL = os.environ.get("API_URL")
+
+if not API_TOKEN:
     API_TOKEN = os.environ.get("API_TOKEN")
 
 def get_invoice_products(date):
@@ -93,7 +127,7 @@ def get_todays_new_invoices(date, previous_fetch):
     """
     Fetch all invoices for a specific date from the Sage API.
     """
-    if not API_URL or not API_TOKEN:
+    if not API_URL or not API_TOKE:
         raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
 
     url = f"{API_URL}/api/searchInvoice"
