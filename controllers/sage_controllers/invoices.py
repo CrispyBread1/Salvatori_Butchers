@@ -18,16 +18,16 @@ def get_api_url():
     Function to get the API URL with fallback support.
     First tries connecting to the internal server URL, then falls back to the external URL if needed.
     """
-    primary_url = os.getenv("SAGE_API_URL_INTERNALL")
+    primary_url = os.getenv("SAGE_API_URL_INTERNAL")
     secondary_url = os.getenv("SAGE_API_URL")
 
     if not primary_url or not secondary_url:
-      primary_url = os.environ.get("API_URL")
-      secondary_url = os.environ.get("API_TOKEN")
+      primary_url = os.environ.get("SAGE_API_URL_INTERNAL")
+      secondary_url = os.environ.get("SAGE_API_URL")
 
     # Try primary URL
     try:
-        response = requests.get(f"{primary_url}/api/health", timeout=100)
+        response = requests.get(f"{primary_url}/api/health", timeout=5)
         if response.status_code == 200:
             print(f"Successfully connected to primary URL: {primary_url}")
             return primary_url
@@ -36,7 +36,7 @@ def get_api_url():
     
     # Try secondary URL
     try:
-        response = requests.get(f"{secondary_url}/api/health", timeout=100)
+        response = requests.get(f"{secondary_url}/api/health", timeout=5)
         if response.status_code == 200:
             print(f"Successfully connected to secondary URL: {secondary_url}")
             return secondary_url
