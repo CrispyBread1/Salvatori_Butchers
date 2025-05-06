@@ -1,6 +1,7 @@
 from itertools import chain
 import json
 import os
+import socket
 import requests
 from datetime import date, datetime
 from dotenv import load_dotenv
@@ -13,48 +14,95 @@ from models.butchers_list import ButchersList
 # Load environment variables from .env
 load_dotenv()
 
+def is_internal_network():
+    """
+    Check if we're likely running on the internal network by testing if we can
+    resolve the internal hostname quickly.
+    """
+    try:
+        # Try to resolve the internal server hostname with a short timeout
+        socket.getaddrinfo('server69.cw-direct.co.uk', 50027, timeout=1)
+        return True
+    except (socket.gaierror, socket.timeout):
+        return False
+
 def get_api_url():
     """
     Function to get the API URL with fallback support.
-    First tries connecting to the internal server URL, then falls back to the external URL if needed.
-    Simply tests if the server responds with a HEAD request instead of looking for a specific endpoint.
+    Detects whether we're on internal or external network to choose 
+    the appropriate connection route.
     """
-    primary_url = os.getenv("SAGE_API_URL_INTERNAL")
-    secondary_url = os.getenv("SAGE_API_URL")
-
-    if not primary_url or not secondary_url:
-        primary_url = os.environ.get("SAGE_API_URL_INTERNAL")
-        secondary_url = os.environ.get("SAGE_API_URL")
-
-    # Try primary URL
-    try:
-        # Using HEAD request instead of GET to minimize data transfer
-        response = requests.head(primary_url, timeout=5)
-        if response.status_code < 400:  # Any non-error response is good
-            print(f"Successfully connected to primary URL: {primary_url}")
-            return primary_url
-    except requests.RequestException as e:
-        print(f"Failed to connect to primary URL: {primary_url} - {str(e)}")
+    # Get configured URLs from environment
+    internal_url = os.getenv("SAGE_API_URL_INTERNAL") or os.environ.get("SAGE_API_URL_INTERNAL")
+    external_url = os.getenv("SAGE_API_URL") or os.environ.get("SAGE_API_URL")
     
-    # Try secondary URL
+    # Define direct internal server connection as backup option
+    direct_internal = "http://10.0.0.69:50027"  # Direct IP to SERVER69
+    
+    # If we're likely on the internal network, prioritize internal connections
+    if is_internal_network():
+        print("Detected internal network, prioritizing direct internal connection")
+        urls_to_try = [direct_internal, internal_url, external_url]
+    else:
+        print("Detected external network, prioritizing external connection")
+        urls_to_try = [external_url, internal_url]
+    
+    # Try each URL in priority order
+    for url in urls_to_try:
+        if not url:
+            continue
+            
+        try:
+            print(f"Attempting to connect to {url}...")
+            # Use a GET request to a known existing endpoint instead of HEAD to root
+            # The /api path likely exists even if /api/health doesn't
+            test_url = f"{url}/api"
+            response = requests.get(test_url, timeout=3)
+            
+            # Any response (even an error) indicates the server is reachable
+            print(f"Successfully connected to {url} (status: {response.status_code})")
+            return url
+        except requests.RequestException as e:
+            print(f"Failed to connect to {url} - {str(e)}")
+    
+    # If all attempts fail, log error and return the external URL as last resort
+    print(f"All connection attempts failed. Defaulting to external URL: {external_url}")
+    return external_url
+
+
+
+
+def test_connection():
+    url = get_api_url()
+    print(f"\nFinal selected API URL: {url}")
+    
+    # Optional: Try making a basic API request with the selected URL
+    # This helps verify the URL works beyond just being reachable
     try:
-        # Using HEAD request instead of GET to minimize data transfer
-        response = requests.head(secondary_url, timeout=5)
-        if response.status_code < 400:  # Any non-error response is good
-            print(f"Successfully connected to secondary URL: {secondary_url}")
-            return secondary_url
-    except requests.RequestException as e:
-        print(f"Failed to connect to secondary URL: {secondary_url} - {str(e)}")
+        test_endpoint = f"{url}/api/searchInvoice"  # Using an endpoint we know exists
+        print(f"\nTesting API endpoint: {test_endpoint}")
         
-    # If both fail, return the secondary URL as fallback
-    print(f"Both URLs failed, defaulting to secondary URL: {secondary_url}")
-    return secondary_url
+        # Only send a HEAD request to avoid unnecessary data transfer
+        headers = {
+            'Content-Type': 'application/json',
+            'AuthToken': os.getenv("SAGE_API_TOKEN") or os.environ.get("SAGE_API_TOKEN") or "test-token"
+        }
+        test_response = requests.head(test_endpoint, headers=headers, timeout=5)
+        
+        print(f"API endpoint test status: {test_response.status_code}")
+        if test_response.status_code < 400:
+            print("✓ API endpoint is accessible")
+        else:
+            print("✗ API endpoint returned an error status")
+    except requests.RequestException as e:
+        print(f"✗ API endpoint test failed: {str(e)}")
 
 
-
-API_URL = get_api_url()
+# API_URL = get_api_url()
 API_TOKEN = os.getenv("SAGE_API_TOKEN")
 
+
+test_connection()
 
 if not API_TOKEN:
     API_TOKEN = os.environ.get("API_TOKEN")
