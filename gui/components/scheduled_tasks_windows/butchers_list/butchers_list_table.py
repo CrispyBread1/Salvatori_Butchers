@@ -124,7 +124,7 @@ class ButchersListTable(QWidget):
                             # Add remaining products without customer name (empty string)
                             for product in products[1:]:
                                 list_data.append([
-                                    "",  # Empty string for customer name
+                                    customer_name,  # Empty string for customer name
                                     product.get("product_name", "Unknown"),
                                     product.get("quantity", 0)
                                 ])
