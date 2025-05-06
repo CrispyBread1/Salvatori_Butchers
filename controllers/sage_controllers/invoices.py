@@ -21,10 +21,13 @@ def is_internal_network():
     """
     try:
         # Try to resolve the internal server hostname with a short timeout
-        socket.getaddrinfo('server69.cw-direct.co.uk', 50027, timeout=1)
+        socket.getaddrinfo('server69.cw-direct.co.uk', 50027)
         return True
     except (socket.gaierror, socket.timeout):
         return False
+    finally:
+        # Reset socket timeout to default
+        socket.setdefaulttimeout(None)
 
 def get_api_url():
     """
