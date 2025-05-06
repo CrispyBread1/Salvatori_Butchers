@@ -17,33 +17,38 @@ def get_api_url():
     """
     Function to get the API URL with fallback support.
     First tries connecting to the internal server URL, then falls back to the external URL if needed.
+    Simply tests if the server responds with a HEAD request instead of looking for a specific endpoint.
     """
     primary_url = os.getenv("SAGE_API_URL_INTERNAL")
     secondary_url = os.getenv("SAGE_API_URL")
 
     if not primary_url or not secondary_url:
-      primary_url = os.environ.get("SAGE_API_URL_INTERNAL")
-      secondary_url = os.environ.get("SAGE_API_URL")
+        primary_url = os.environ.get("SAGE_API_URL_INTERNAL")
+        secondary_url = os.environ.get("SAGE_API_URL")
 
     # Try primary URL
     try:
-        response = requests.get(f"{primary_url}/api/health", timeout=5)
-        if response.status_code == 200:
+        # Using HEAD request instead of GET to minimize data transfer
+        response = requests.head(primary_url, timeout=5)
+        if response.status_code < 400:  # Any non-error response is good
             print(f"Successfully connected to primary URL: {primary_url}")
             return primary_url
-    except requests.RequestException:
-        print(f"Failed to connect to primary URL: {primary_url}")
+    except requests.RequestException as e:
+        print(f"Failed to connect to primary URL: {primary_url} - {str(e)}")
     
     # Try secondary URL
     try:
-        response = requests.get(f"{secondary_url}/api/health", timeout=5)
-        if response.status_code == 200:
+        # Using HEAD request instead of GET to minimize data transfer
+        response = requests.head(secondary_url, timeout=5)
+        if response.status_code < 400:  # Any non-error response is good
             print(f"Successfully connected to secondary URL: {secondary_url}")
             return secondary_url
-    except requests.RequestException:
-        print(f"Failed to connect to secondary URL: {secondary_url}")
-
-
+    except requests.RequestException as e:
+        print(f"Failed to connect to secondary URL: {secondary_url} - {str(e)}")
+        
+    # If both fail, return the secondary URL as fallback
+    print(f"Both URLs failed, defaulting to secondary URL: {secondary_url}")
+    return secondary_url
 
 
 
