@@ -113,3 +113,92 @@ def insert_butchers_list(date, data, updated_at):
 def convert_to_butchers_list_objects(butchers_list):
   if butchers_list:
     return ButchersList(*butchers_list)
+  
+def combine_butchers_lists(lists):
+    """
+    Combines multiple ButchersList objects by merging their data.
+    Orders for the same customer are combined, except for cash tickets which stay separate.
+    
+    Args:
+        *lists: Variable number of ButchersList objects to combine
+        
+    Returns:
+        A new ButchersList object with combined data
+    """
+    # Dictionary to track combined data by customer_act_ref
+    combined_data = {}
+
+    # Process each ButchersList object
+    for butchers_list in lists:
+        for order in butchers_list.data:
+            customer_ref = order.get("customer_act_ref", "")
+            customer_name = order.get("customer_name", "")
+            
+            # Create a unique key for this customer
+            # For CASH customers, include invoice_ids to keep them separate
+            if customer_ref == "CASH":
+                # Each cash order remains separate
+                invoice_ids = order.get("invoice_ids", [])
+                key = f"{customer_ref}_{','.join(invoice_ids)}"
+            else:
+                # Use customer_act_ref as key for normal customers
+                key = customer_ref
+            
+            # Initialize entry for this customer if not exists
+            if key not in combined_data:
+                combined_data[key] = {
+                    "customer_act_ref": customer_ref,
+                    "customer_name": customer_name,
+                    "invoice_ids": [],
+                    "products": []
+                }
+            
+            # Add all invoice IDs from this order
+            combined_data[key]["invoice_ids"].extend(order.get("invoice_ids", []))
+            
+            # Process each product in the order
+            for product in order.get("products", []):
+                code = product.get("sage_code", "")
+                name = product.get("product_name", "")
+                qty = product.get("quantity", 0)
+                
+                # Here will go the logic for handling "completed" status
+                # --------------------------------------------------------
+                # TODO: Add logic to handle completed/not completed products
+                # If products have a "completed" field:
+                # - If this product is not completed, don't combine with other products
+                # - If same product exists with different completion status, keep separate
+                # --------------------------------------------------------
+                
+                # For CASH accounts, add as a new product instead of summing quantities
+                if customer_ref == "CASH":
+                    combined_data[key]["products"].append({
+                        "sage_code": code,
+                        "product_name": name,
+                        "quantity": qty
+                    })
+                else:
+                    # For regular customers, combine quantities for same product
+                    product_found = False
+                    for existing_product in combined_data[key]["products"]:
+                        if existing_product["sage_code"] == code:
+                            existing_product["quantity"] += qty
+                            product_found = True
+                            break
+                    
+                    # If product not found, add it
+                    if not product_found:
+                        combined_data[key]["products"].append({
+                            "sage_code": code,
+                            "product_name": name,
+                            "quantity": qty
+                        })
+    
+    # Remove duplicate invoice IDs
+    for key in combined_data:
+        combined_data[key]["invoice_ids"] = list(set(combined_data[key]["invoice_ids"]))
+    
+    # Convert the dictionary back to a list format for the new ButchersList
+    combined_list_data = list(combined_data.values())
+    
+    return combined_list_data

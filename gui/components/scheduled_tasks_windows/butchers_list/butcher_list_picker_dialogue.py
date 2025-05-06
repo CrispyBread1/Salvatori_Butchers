@@ -23,7 +23,10 @@ class ButcherListPicker(QDialog):
         if self.max_number <= 5:  # Use radio buttons for small numbers
             self.radio_group = QButtonGroup(self)
             radio_layout = QHBoxLayout()
-            
+
+            radio_button_all = QRadioButton('all', self)
+            self.radio_group.addButton(radio_button_all, 0)
+            radio_layout.addWidget(radio_button_all)
             for i in range(1, self.max_number + 1):
                 radio_button = QRadioButton(str(i), self)
                 if i == 1:  # Default selection
@@ -37,6 +40,7 @@ class ButcherListPicker(QDialog):
         # Option 2: Dropdown (good for larger numbers)
         else:
             self.combo_box = QComboBox(self)
+            self.combo_box_all.addItem('all')
             for i in range(1, self.max_number + 1):
                 self.combo_box.addItem(str(i))
             layout.addWidget(self.combo_box)

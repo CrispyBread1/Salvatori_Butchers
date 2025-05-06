@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
 from auth.userAuthentication import AuthService
-from database.butchers_lists import fetch_all_butchers_lists_by_date, insert_butchers_list
+from database.butchers_lists import combine_butchers_lists, fetch_all_butchers_lists_by_date, insert_butchers_list
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.scheduled_tasks_windows.butchers_list.butcher_list_picker_dialogue import ButcherListPicker
@@ -135,9 +135,14 @@ class ButchersListWindow(QWidget):
             selected_butchers_list = dialog.get_selected_number()
             print(f"User selected number: {selected_butchers_list}")
         
-
+        flattened_data = []
         # print(self.butchers_lists)
-        flattened_data = self.flatten_order_data(self.butchers_lists[selected_butchers_list].data)
+        if selected_butchers_list == -1:
+            combined_data = combine_butchers_lists(self.butchers_lists)
+            flattened_data = self.flatten_order_data(combined_data)
+
+        else:
+            flattened_data = self.flatten_order_data(self.butchers_lists[selected_butchers_list].data)
 
         exporter = ExcelExporter(parent=self)  # `self` = your PyQt window/widget
         exporter.export(
