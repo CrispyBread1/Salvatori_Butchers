@@ -1,38 +1,57 @@
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
-from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QLineEdit, QTableWidget, QTableWidgetItem, QHeaderView
+)
 
-class DynamicTableWidget(QTableWidget):
+class DynamicTableWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-    def populate(self, headers, data, cell_format_callback=None):
-        """
-        Populates the table dynamically.
+        self.search_bar = QLineEdit(self)
+        self.search_bar.setPlaceholderText("Search...")
+        self.search_bar.textChanged.connect(self.search)
 
-        Args:
-            headers (List[str]): Column headers.
-            data (List[List[Any]]): 2D list for rows.
-            cell_format_callback (Callable): Optional function for custom cell formatting.
-        """
-        self.clear()
-        self.setColumnCount(len(headers))
-        self.setRowCount(len(data))
-        self.setHorizontalHeaderLabels(headers)
-        for index, header in enumerate(headers):
-            self.horizontalHeader().setSectionResizeMode(index, QHeaderView.Stretch)
-        
+        self.table = QTableWidget(self)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.search_bar)
+        layout.addWidget(self.table)
+        self.setLayout(layout)
+
+        self.data = []
+        self.headers = []
+        self.cell_format_callback = None
+
+    def populate(self, headers, data, cell_format_callback=None):
+        self.headers = headers
+        self.cell_format_callback = cell_format_callback
+        if not self.data:
+            self.data = data
+
+        self.table.clear()
+        self.table.setColumnCount(len(headers))
+        self.table.setRowCount(len(data))
+        self.table.setHorizontalHeaderLabels(headers)
+
+        for index in range(len(headers)):
+            self.table.horizontalHeader().setSectionResizeMode(index, QHeaderView.Stretch)
 
         for row_idx, row_data in enumerate(data):
             for col_idx, value in enumerate(row_data):
                 item = QTableWidgetItem(str(value))
-
-                # Apply custom formatting if provided
                 if cell_format_callback:
                     item = cell_format_callback(item, row_idx, col_idx, value)
+                self.table.setItem(row_idx, col_idx, item)
 
-                self.setItem(row_idx, col_idx, item)
+        self.table.resizeColumnsToContents()
+        self.table.resizeRowsToContents()
 
-        self.resizeColumnsToContents()
-        self.resizeRowsToContents()
-
-
+    def search(self, query):
+        if not query:
+            filtered_data = self.data
+        else:
+            query = query.lower()
+            filtered_data = [
+                row for row in self.data
+                if any(query in str(cell).lower() for cell in row)
+            ]
+        self.populate(self.headers, filtered_data, self.cell_format_callback)
