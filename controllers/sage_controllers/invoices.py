@@ -57,12 +57,7 @@ def get_api_url():
             
         try:
             print(f"Attempting to connect to {url}...")
-            # Use a GET request to a known existing endpoint instead of HEAD to root
-            # The /api path likely exists even if /api/health doesn't
-            test_url = f"{url}/api"
-            response = requests.get(test_url, timeout=3)
-            
-            # Any response (even an error) indicates the server is reachable
+            response = requests.get(f"{url}/api/searchInvoice", timeout=3)
             print(f"Successfully connected to {url} (status: {response.status_code})")
             return url
         except requests.RequestException as e:
@@ -101,7 +96,7 @@ def test_connection():
         print(f"✗ API endpoint test failed: {str(e)}")
 
 
-# API_URL = get_api_url()
+API_URL = get_api_url()
 API_TOKEN = os.getenv("SAGE_API_TOKEN")
 
 
