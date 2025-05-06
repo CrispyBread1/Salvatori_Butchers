@@ -131,15 +131,15 @@ jobs:
             --icon "ManageMeStock.app" 175 190 \
             --hide-extension "ManageMeStock.app" \
             --app-drop-link 425 190 \
-            "ManageMeStock-${{ github.event.inputs.version }}.dmg" \
+            "ManageMeStock.dmg" \
             "dist/ManageMeStock.app" || echo "DMG creation failed, continuing with app bundle"
 
       - name: Package app for release
         run: |
           cd dist
-          if [ -f "../ManageMeStock-${{ github.event.inputs.version }}.dmg" ]; then
+          if [ -f "../ManageMeStock.dmg" ]; then
             # DMG was created successfully
-            mv "../ManageMeStock-${{ github.event.inputs.version }}.dmg" .
+            mv "../ManageMeStock.dmg" .
             echo "DMG package ready for release"
           else
             # Fall back to zip if DMG creation failed
@@ -152,7 +152,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/ManageMeStock-${{ github.event.inputs.version }}.dmg
+            dist/ManageMeStock.dmg
             dist/ManageMeStock-Mac-${{ github.event.inputs.version }}.zip
           tag_name: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
