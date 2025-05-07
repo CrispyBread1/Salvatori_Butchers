@@ -40,12 +40,12 @@ def get_api_url():
     external_url = os.getenv("SAGE_API_URL") or os.environ.get("SAGE_API_URL")
     
     # Define direct internal server connection as backup option
-    direct_internal = "http://10.0.0.69:50027"  # Direct IP to SERVER69
+    # direct_internal = "https://10.0.0.69:50027"  # Direct IP to SERVER69
     
     # If we're likely on the internal network, prioritize internal connections
     if is_internal_network():
         print("Detected internal network, prioritizing direct internal connection")
-        urls_to_try = [direct_internal, internal_url, external_url]
+        urls_to_try = [internal_url, external_url]
     else:
         print("Detected external network, prioritizing external connection")
         urls_to_try = [external_url, internal_url]
