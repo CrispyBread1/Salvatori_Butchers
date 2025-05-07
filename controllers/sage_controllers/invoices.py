@@ -85,7 +85,7 @@ def test_connection():
             'Content-Type': 'application/json',
             'AuthToken': os.getenv("SAGE_API_TOKEN") or os.environ.get("SAGE_API_TOKEN") or "test-token"
         }
-        test_response = requests.head(test_endpoint, headers=headers, timeout=5)
+        test_response = requests.head(test_endpoint, headers=headers, timeout=5, verify=False)
         
         print(f"API endpoint test status: {test_response.status_code}")
         if test_response.status_code < 400:
@@ -162,7 +162,8 @@ def get_todays_invoices(date):
             url, 
             headers=headers, 
             data=payload,
-            timeout=(30, 90)  # (connection timeout, read timeout)
+            timeout=(30, 90),  # (connection timeout, read timeout)
+            verify=False
         )
         response.raise_for_status()  # Raise an error for non-2xx responses
 
@@ -206,7 +207,8 @@ def get_todays_new_invoices(date, previous_fetch):
             url, 
             headers=headers, 
             data=payload,
-            timeout=(30, 90)  # (connection timeout, read timeout)
+            timeout=(30, 90),  # (connection timeout, read timeout)
+            verify=False
         )
         response.raise_for_status()  # Raise an error for non-2xx responses
 
@@ -236,7 +238,7 @@ def get_invoice_by_id(invoice_id):
     }
 
     try:
-        response = requests.request("GET", url, headers=headers, data=payload)
+        response = requests.request("GET", url, headers=headers, data=payload, verify=False)
         response.raise_for_status()  # Raise an error for non-2xx responses
 
         invoice = response.json()
