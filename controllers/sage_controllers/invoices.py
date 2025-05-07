@@ -45,27 +45,27 @@ def get_api_url():
     # If we're likely on the internal network, prioritize internal connections
     if is_internal_network():
         print("Detected internal network, prioritizing direct internal connection")
-        urls_to_try = [internal_url, external_url]
+        return internal_url
     else:
         print("Detected external network, prioritizing external connection")
-        urls_to_try = [external_url, internal_url]
+        return external_url
     
-    # Try each URL in priority order
-    for url in urls_to_try:
-        if not url:
-            continue
+    # # Try each URL in priority order
+    # for url in urls_to_try:
+    #     if not url:
+    #         continue
             
-        try:
-            print(f"Attempting to connect to {url}...")
-            response = requests.get(f"{url}/api/searchInvoice", timeout=3)
-            print(f"Successfully connected to {url} (status: {response.status_code})")
-            return url
-        except requests.RequestException as e:
-            print(f"Failed to connect to {url} - {str(e)}")
+    #     try:
+    #         print(f"Attempting to connect to {url}...")
+    #         response = requests.get(f"{url}/api/searchInvoice", timeout=3)
+    #         print(f"Successfully connected to {url} (status: {response.status_code})")
+    #         return url
+    #     except requests.RequestException as e:
+    #         print(f"Failed to connect to {url} - {str(e)}")
     
-    # If all attempts fail, log error and return the external URL as last resort
-    print(f"All connection attempts failed. Defaulting to external URL: {external_url}")
-    return external_url
+    # # If all attempts fail, log error and return the external URL as last resort
+    # print(f"All connection attempts failed. Defaulting to external URL: {external_url}")
+    # return external_url
 
 
 
