@@ -100,8 +100,6 @@ API_URL = get_api_url()
 API_TOKEN = os.getenv("SAGE_API_TOKEN")
 
 
-test_connection()
-
 if not API_TOKEN:
     API_TOKEN = os.environ.get("API_TOKEN")
 
@@ -157,14 +155,23 @@ def get_todays_invoices(date):
 
     try:
         # Increase timeout values (in seconds)
-        response = requests.request(
-            "POST", 
-            url, 
-            headers=headers, 
-            data=payload,
-            timeout=(30, 90),  # (connection timeout, read timeout)
-            verify=False
-        )
+        if is_internal_network():
+          response = requests.request(
+              "POST", 
+              url, 
+              headers=headers, 
+              data=payload,
+              timeout=(30, 90),  # (connection timeout, read timeout)
+              verify=False
+          )
+        else:
+            response = requests.request(
+              "POST", 
+              url, 
+              headers=headers, 
+              data=payload,
+              timeout=(30, 90),  # (connection timeout, read timeout)
+          )
         response.raise_for_status()  # Raise an error for non-2xx responses
 
         invoices = response.json()
@@ -202,14 +209,23 @@ def get_todays_new_invoices(date, previous_fetch):
     }
 
     try:
-        response = requests.request(
-            "POST", 
-            url, 
-            headers=headers, 
-            data=payload,
-            timeout=(30, 90),  # (connection timeout, read timeout)
-            verify=False
-        )
+        if is_internal_network():
+          response = requests.request(
+              "POST", 
+              url, 
+              headers=headers, 
+              data=payload,
+              timeout=(30, 90),  # (connection timeout, read timeout)
+              verify=False
+          )
+        else:
+            response = requests.request(
+              "POST", 
+              url, 
+              headers=headers, 
+              data=payload,
+              timeout=(30, 90),  # (connection timeout, read timeout)
+          )
         response.raise_for_status()  # Raise an error for non-2xx responses
 
         response.raise_for_status()  # Raise an error for non-2xx responses
@@ -238,7 +254,10 @@ def get_invoice_by_id(invoice_id):
     }
 
     try:
-        response = requests.request("GET", url, headers=headers, data=payload, verify=False)
+        if is_internal_network():
+            response = requests.request("GET", url, headers=headers, data=payload, verify=False)
+        else:
+            response = requests.request("GET", url, headers=headers, data=payload)
         response.raise_for_status()  # Raise an error for non-2xx responses
 
         invoice = response.json()
