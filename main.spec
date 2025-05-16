@@ -5,7 +5,7 @@ print(f"Packaging .env file from: {env_file}")
 print(f"File exists: {os.path.exists(env_file)}")
 
 
-hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + collect_submodules("database") + collect_submodules("resources") + collect_submodules("dotenv") + collect_submodules("openpyxl")
+hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + collect_submodules("database") + collect_submodules("resources") + collect_submodules("dotenv") + collect_submodules("openpyxl") + ["pandas"]
 
 a = Analysis(
     ["main.py"],
