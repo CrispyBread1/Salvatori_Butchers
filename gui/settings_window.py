@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow,
 )
 from PyQt5.QtCore import Qt
+from auth.userAuthentication import AuthService
 from database.users import get_pending_users
 from gui.components.reusable.buttons.notifications import NotificationButton
 from gui.components.setting_windows.general_settings_component import GeneralSettingsComponent
@@ -14,14 +15,14 @@ class SettingsWindow(QMainWindow):
         super().__init__()
         self.setup_ui()
         
-    def setup_ui(self):
+    def setup_ui(self, user=None):
         # Set up the central widget layout
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
         
         # Create stacked widget to switch between views
         self.stacked_widget = QStackedWidget(self.central_widget)
-        
+
         # Main content layout
         self.content_layout = QVBoxLayout()
         
@@ -44,10 +45,15 @@ class SettingsWindow(QMainWindow):
         
         self.new_users_button = NotificationButton("New Users", self)
         self.new_users_button.clicked.connect(self.show_user_approval)
-        
+        self.new_users_button.hide() 
+
         self.general_settings_button = QPushButton("General", self)
         self.general_settings_button.clicked.connect(self.show_general_settings)
-        
+      
+        if user and user.admin:
+            self.new_users_button.show() 
+
+
         self.settings_menu_layout.addWidget(self.new_users_button)
         self.settings_menu_layout.addWidget(self.general_settings_button)
         self.settings_menu_layout.addStretch(1)  # Add stretch to push buttons to the left

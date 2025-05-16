@@ -228,6 +228,7 @@ class MainWindow(QMainWindow):
 
     def on_login_successful(self, user_data):
         """Handle successful login"""
+        self.settings_window.setup_ui(user_data)
         self.update_auth_state()
         self.show_home()
 
