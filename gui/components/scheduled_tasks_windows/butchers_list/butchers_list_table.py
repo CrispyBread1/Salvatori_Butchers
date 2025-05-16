@@ -73,6 +73,8 @@ class ButchersListTable(QWidget):
                         else:
                             timestamp = butchers_list.created_at
                         
+                        local_timestamp = timestamp.astimezone()  # This converts to the local system timezone
+                        time_str = local_timestamp.strftime("%H:%M")
                         time_str = timestamp.strftime("%H:%M")
                         tab_name = f"List {i+1} ({time_str})"
                     except:

@@ -152,7 +152,7 @@ class MainWindow(QMainWindow):
 
         # Set initial auth state
         self.update_auth_state()
-        self.update_pending_users_notification()
+        
 
     def set_application_style(self):
         """Set global application style and colors"""

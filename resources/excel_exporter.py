@@ -116,10 +116,14 @@ class ExcelExporter:
 
 
         if butchers_list:
-            for column_cells in ws.columns:
-              length = max(len(str(cell.value)) if cell.value else 0 for cell in column_cells)
-              ws.column_dimensions[column_cells[0].column_letter].width = length
-
+            # Get only the first column's cells
+            first_column_cells = list(ws.columns)[0]
+                
+            # Calculate the maximum length in the first column
+            length = max(len(str(cell.value)) if cell.value else 0 for cell in first_column_cells)
+                
+            # Set the width of just the first column
+            ws.column_dimensions[first_column_cells[0].column_letter].width = length
             ws.page_margins = PageMargins(
                 left=0.23622,
                 right=0.23622,
