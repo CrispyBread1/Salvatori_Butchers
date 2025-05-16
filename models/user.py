@@ -1,5 +1,5 @@
 class User:
-    def __init__(self, id, created_at, name, department, permissions, email, approved):
+    def __init__(self, id, created_at, name, department, permissions, email, approved, admin):
         self.id = id
         self.approved = approved
         self.created_at = created_at
@@ -7,5 +7,6 @@ class User:
         self.email = email
         self.department = department
         self.permissions = permissions
+        self.admin = admin
 
   

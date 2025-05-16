@@ -19,7 +19,7 @@ class ButchersListWindow(QWidget):
         super().__init__()
 
         self.auth_service = AuthService()
-        user = self.auth_service.current_user
+        self.user = self.auth_service.current_user
 
         self.loading_manager = LoadingManager(self)
         self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -34,7 +34,7 @@ class ButchersListWindow(QWidget):
         self.main_layout.addWidget(self.title_label)
         
         # Create button layout
-        button_layout = QHBoxLayout()
+        self.button_layout = QHBoxLayout()
         
         self.pull_orders_button = QPushButton("Pull Orders", self)
         self.pull_orders_button.clicked.connect(self.pull_butcher_data)
@@ -46,17 +46,13 @@ class ButchersListWindow(QWidget):
         self.export_xl_button.clicked.connect(self.export_to_xl)
         
         
-        
-        button_layout.addWidget(self.pull_orders_button)
-        button_layout.addWidget(self.change_date_button)
+        self.button_layout.addWidget(self.change_date_button)
+        self.button_layout.addWidget(self.pull_orders_button)
 
-        if user and user.department == 'admin':
-            self.invoice_pull_test_button = QPushButton("invoice_pull_test_button", self)
-            self.invoice_pull_test_button.clicked.connect(self.invoice_pull_test)
-            button_layout.addWidget(self.invoice_pull_test_button)
 
-        button_layout.addWidget(self.export_xl_button)
-        self.main_layout.addLayout(button_layout)
+
+        self.button_layout.addWidget(self.export_xl_button)
+        self.main_layout.addLayout(self.button_layout)
         
         # Status label to show results
         self.status_label = QLabel("", self)
@@ -72,7 +68,6 @@ class ButchersListWindow(QWidget):
         """Update UI elements without recreating the layout"""
         self.title_label.setText(f"Butchers List - {self.date}")
         self.status_label.setText("")  # Clear previous status
-
         self.butchers_table.load_butchers_lists(self.butchers_lists)
 
     def pull_butcher_data(self):
