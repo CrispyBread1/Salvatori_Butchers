@@ -1,5 +1,6 @@
+from datetime import date, timedelta
 import openpyxl
-from openpyxl.styles import Font
+from openpyxl.styles import Font, Border, Side
 from PyQt5.QtWidgets import QFileDialog
 
 class ExcelExporter:
@@ -11,8 +12,10 @@ class ExcelExporter:
         data,
         group_by=None,
         sheet_name="Sheet1",
+        title=None,
         filename=None,
-        headers=None
+        headers=None,
+        butchers_list=None
     ):
         """
         Export list-of-dict data to Excel.
@@ -26,11 +29,35 @@ class ExcelExporter:
         if not data or not isinstance(data, list):
             raise ValueError("Data must be a non-empty list of dictionaries.")
 
+        
+
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = sheet_name
         row = 1
-        bold_font = Font(bold=True)
+        title_font = Font(
+            bold=True,
+            size = 20
+        )
+        bold_font = Font(
+            bold=True,
+            size = 12
+        )
+        border = Border(
+            left=Side(border_style="thin",
+                color='00000000'),
+            right=Side(border_style="thin",
+                color='00000000'),
+            top=Side(border_style="thin",
+                color='00000000'),
+            bottom=Side(border_style="thin",
+                color='00000000')
+        )
+
+
+        if butchers_list:
+            ws.cell(row=1, column=1, value=title).font = title_font
+            row += 1
 
         if group_by:
             grouped = {}
@@ -45,11 +72,17 @@ class ExcelExporter:
                 keys = headers or list(items[0].keys())
                 for col, key in enumerate(keys, start=1):
                     ws.cell(row=row, column=col, value=key).font = bold_font
+                if butchers_list:
+                    ws.cell(row=row, column=(len(keys) + 1), value="Weight").font = bold_font
+                    ws.cell(row=row, column=(len(keys) + 2), value="Code").font = bold_font
                 row += 1
 
                 for item in items:
                     for col, key in enumerate(keys, start=1):
-                        ws.cell(row=row, column=col, value=item.get(key, ""))
+                        ws.cell(row=row, column=col, value=item.get(key.lower(), ""))
+                    if butchers_list:
+                        ws.cell(row=row, column=(len(keys) + 1), value="").border = border
+                        ws.cell(row=row, column=(len(keys) + 2), value="").border = border
                     row += 1
 
                 row += 1  # spacer between groups

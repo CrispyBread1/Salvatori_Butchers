@@ -128,11 +128,13 @@ class ButchersListWindow(QWidget):
     def export_to_xl(self):
         butchers_list_count = len(self.butchers_lists)
         selected_butchers_list = 0
+        list_number = ""
+        todays_date = date.today().strftime('%Y-%m-%d')
 
         # if butchers_list_count > 1:
         dialog = ButcherListPicker(max_number=len(self.butchers_lists))
         if dialog.exec_():
-            selected_butchers_list = dialog.get_selected_number()
+            selected_butchers_list = dialog.get_selected_number()                
             print(f"User selected number: {selected_butchers_list}")
         
         flattened_data = []
@@ -140,16 +142,21 @@ class ButchersListWindow(QWidget):
         if selected_butchers_list == -1:
             combined_data = combine_butchers_lists(self.butchers_lists)
             flattened_data = self.flatten_order_data(combined_data)
-
+            list_number += "List: All"
         else:
             flattened_data = self.flatten_order_data(self.butchers_lists[selected_butchers_list].data)
+            list_number += f"List: {(selected_butchers_list + 1)}"
+
+
 
         exporter = ExcelExporter(parent=self)  # `self` = your PyQt window/widget
         exporter.export(
             data=flattened_data,
             group_by="customer_name",       # groups rows under customer headings
             sheet_name="Customer Orders",   # name of the sheet
-            headers=["product_name", "quantity"]  # order of columns
+            title= f"Date: {todays_date}, {list_number}",
+            headers=["Product", "Quantity"],  # order of columns
+            butchers_list=True
         )
 
     def flatten_order_data(self, fetched_data):
@@ -164,7 +171,7 @@ class ButchersListWindow(QWidget):
             for product in customer.get("products", []):
                 flattened.append({
                     "customer_name": customer["customer_name"],
-                    "product_name": product["product_name"],
+                    "product": product["product_name"],
                     "quantity": product["quantity"]
                 })
         
