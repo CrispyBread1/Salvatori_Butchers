@@ -6,6 +6,9 @@ import requests
 from datetime import date, datetime
 from dotenv import load_dotenv
 from collections import defaultdict
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from database.butchers_lists import fetch_butchers_list_by_date
 from database.products import fetch_products_stock_code_fresh

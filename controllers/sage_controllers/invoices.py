@@ -3,14 +3,17 @@ import json
 import os
 import socket
 import requests
+import urllib3  # Add this import
 from datetime import date, datetime
 from dotenv import load_dotenv
 from collections import defaultdict
 
+# Disable InsecureRequestWarning
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 from database.butchers_lists import fetch_butchers_list_by_date
 from database.products import fetch_products_stock_code_fresh
 from models.butchers_list import ButchersList
-
 # Load environment variables from .env
 load_dotenv()
 
