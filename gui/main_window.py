@@ -230,6 +230,7 @@ class MainWindow(QMainWindow):
         """Handle successful login"""
         self.settings_window.setup_ui(user_data)
         self.stock_take_window.setup_ui(user_data)
+        self.edit_product_window.setup_ui(user_data)
         self.update_auth_state()
         self.show_home()
 

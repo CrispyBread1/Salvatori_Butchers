@@ -14,6 +14,10 @@ from resources.update_supplier_excel import process_file, save_output_file
 class EditProductWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.setup_ui()
+
+
+    def setup_ui(self, user=None):
 
         self.products = []
         self.reloading = False
@@ -35,10 +39,15 @@ class EditProductWindow(QMainWindow):
         # Add Dashboard buttons
         self.update_supplier_sheet_button = QPushButton("Update Prices On Supplier Sheet", self)
         self.update_supplier_sheet_button.clicked.connect(self.update_supplier_sheet)
-        
+        self.update_supplier_sheet_button.hide() 
+
+        if user and user.admin:
+            self.update_supplier_sheet_button.show() 
         
         # Add buttons to navigation Dashboard
-        self.nav_dashboard_layout.addWidget(self.update_supplier_sheet_button)
+        self.nav_dashboard_layout.addWidget(self.update_supplier_sheet_button)            
+
+
         self.nav_dashboard_layout.addStretch(1)  # Add stretch to push buttons to the left
         self.layout.addLayout(self.nav_dashboard_layout)
         
