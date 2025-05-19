@@ -60,10 +60,15 @@ class ProductDetailWindow(QMainWindow):
         self.sage_code_layout = QVBoxLayout()
         
         # Original Sage Code field
-        if self.products[self.current_index].sage_code:
-            sage_codes = json.loads(self.products[self.current_index].sage_code)
-        else:
-            sage_codes = []
+
+        sage_code = self.products[self.current_index].sage_code
+        sage_codes = []
+
+        if sage_code and not isinstance(sage_code, str):
+            sage_codes = json.loads(sage_code)
+        elif sage_code and isinstance(sage_code, str):
+            sage_codes.append(sage_code)
+   
         
         self.sage_code_inputs = []  # List to hold the QLineEdit inputs
         self.delete_buttons = []  # List to hold the delete buttons
@@ -203,6 +208,7 @@ class ProductDetailWindow(QMainWindow):
                        sage_code=product.sage_code, supplier=product.supplier, sold_as=product.sold_as)
         QMessageBox.information(self, "Success", "Product updated successfully!")
 
+
     def load_product(self):
         """Load the selected product details into editable fields."""
         product = self.products[self.current_index]
@@ -212,21 +218,43 @@ class ProductDetailWindow(QMainWindow):
         self.stock_category_edit.setText(product.stock_category)
         self.product_category_edit.setText(product.product_category)
 
-        # Populate the Sage Code fields
-        if self.products[self.current_index].sage_code:
-            sage_codes = json.loads(self.products[self.current_index].sage_code)
-            for sage_code in sage_codes:
-                self.add_sage_code_input(sage_code)
-        else:
-            # Remove any existing sage code inputs and delete buttons
-            for sage_code_input, delete_button in zip(self.sage_code_inputs, self.delete_buttons):
-                self.sage_code_layout.removeWidget(sage_code_input)
-                self.sage_code_layout.removeWidget(delete_button)
-                sage_code_input.deleteLater()
-                delete_button.deleteLater()
+        # Clear existing sage code inputs and delete buttons
+        for sage_code_input, delete_button in zip(self.sage_code_inputs[:], self.delete_buttons[:]):
+            self.delete_sage_code_input(sage_code_input, delete_button)
+        
+        self.sage_code_inputs.clear()
+        self.delete_buttons.clear()
 
-            self.sage_code_inputs.clear()
-            self.delete_buttons.clear()
+        # Populate the Sage Code fields
+        sage_code = self.products[self.current_index].sage_code
+        sage_codes = []
+        
+        if sage_code:
+            try:
+                if isinstance(sage_code, str):
+                    # Try to parse as JSON first
+                    try:
+                        sage_codes = json.loads(sage_code)
+                        if not isinstance(sage_codes, list):
+                            sage_codes = [str(sage_codes)]
+                    except json.JSONDecodeError:
+                        # If not valid JSON, treat as a single string
+                        sage_codes = [sage_code]
+                else:
+                    # If not a string, convert to string
+                    sage_codes = [str(sage_code)]
+                    
+                # Add each sage code to the UI
+                for code in sage_codes:
+                    self.add_sage_code_input(code)
+                    
+            except Exception as e:
+                print(f"Error processing sage_code: {e}")
+                # Add a blank input if there was an error
+                self.add_sage_code_input("")
+        else:
+            # Add a blank input if there's no sage code
+            self.add_sage_code_input("")
 
         self.supplier_edit.setText(product.supplier)
         self.sold_as_edit.setText(product.sold_as)

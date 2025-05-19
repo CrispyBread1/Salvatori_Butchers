@@ -18,6 +18,7 @@ class DynamicTableWidget(QWidget):
         self.setLayout(layout)
 
         self.data = []
+        self.filtered_result = []
         self.headers = []
         self.cell_format_callback = None
 
@@ -54,4 +55,8 @@ class DynamicTableWidget(QWidget):
                 row for row in self.data
                 if any(query in str(cell).lower() for cell in row)
             ]
+        self.filtered_result = filtered_data
         self.populate(self.headers, filtered_data, self.cell_format_callback)
+
+    def return_row(self):
+        return self.filtered_result
