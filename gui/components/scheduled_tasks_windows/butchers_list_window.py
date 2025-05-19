@@ -172,8 +172,5 @@ class ButchersListWindow(QWidget):
         
         return flattened
     
-    def create_table(self):
-        headers = ["Customer", "Age", "City"]
-        data = []
-        self.table.populate(headers, data)
+
  
