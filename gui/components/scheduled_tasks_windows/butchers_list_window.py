@@ -124,7 +124,7 @@ class ButchersListWindow(QWidget):
         butchers_list_count = len(self.butchers_lists)
         selected_butchers_list = 0
         list_number = ""
-        todays_date = date.today().strftime('%Y-%m-%d')
+        # todays_date = date.today().strftime('%Y-%m-%d')
 
         # if butchers_list_count > 1:
         dialog = ButcherListPicker(max_number=len(self.butchers_lists))
@@ -149,7 +149,7 @@ class ButchersListWindow(QWidget):
             data=flattened_data,
             group_by="customer_name",       # groups rows under customer headings
             sheet_name="Customer Orders",   # name of the sheet
-            title= f"Date: {todays_date}, {list_number}",
+            title= f"Date: {self.date}, {list_number}",
             headers=["Product", "Quantity"],  # order of columns
             butchers_list=True
         )
