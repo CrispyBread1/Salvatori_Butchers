@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
 
         # Main content layout for welcome screen
         self.content_layout = QVBoxLayout()
-        self.user = self.auth_service.current_user
+        
         self.user_label = QLabel("Please log in, or Sign up to continue", self)
         self.content_layout.addWidget(self.user_label)
         
@@ -228,7 +228,9 @@ class MainWindow(QMainWindow):
 
     def on_login_successful(self, user_data):
         """Handle successful login"""
-        self.user = user_data
+        self.settings_window.setup_ui(user_data)
+        self.stock_take_window.setup_ui(user_data)
+        self.edit_product_window.setup_ui(user_data)
         self.update_auth_state()
         self.show_home()
 
@@ -265,12 +267,24 @@ class MainWindow(QMainWindow):
 
     def open_stock_take_window(self):
         # Check authentication before allowing access
-        self.stock_take_window.setup_ui(self.user)
+        user = self.auth_service.current_user
+        if not user.approved:
+            QMessageBox.warning(self, "Authentication Required", 
+                               "Please log in to access this feature.")
+            self.show_login()
+            return
+            
         self.stacked_widget.setCurrentWidget(self.stock_take_window)
 
     def open_edit_product_window(self):
         # Check authentication before allowing access
-        self.edit_product_window.setup_ui(self.user)
+        user = self.auth_service.current_user
+        if not user.approved:
+            QMessageBox.warning(self, "Authentication Required", 
+                               "Please log in to access this feature.")
+            self.show_login()
+            return
+            
         self.stacked_widget.setCurrentWidget(self.edit_product_window)
 
     def show_home(self):
@@ -279,7 +293,6 @@ class MainWindow(QMainWindow):
 
     def show_settings(self):
         """Switch to settings page"""
-        self.settings_window.setup_ui(self.user)
         self.stacked_widget.setCurrentWidget(self.settings_window)
 
     def show_login(self):
