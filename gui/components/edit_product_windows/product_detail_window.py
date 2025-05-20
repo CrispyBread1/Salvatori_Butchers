@@ -40,11 +40,6 @@ class ProductDetailWindow(QMainWindow):
         self.product_value_edit.setText(str(self.products[self.current_index].product_value))
         self.layout.addWidget(self.product_value_edit)
 
-        # self.stock_category_label = QLabel("Stock Category:")
-        # self.layout.addWidget(self.stock_category_label)
-        # self.stock_category_edit = QComboBox(self)
-        # self.stock_category_edit.setText(self.products[self.current_index].stock_category)
-        # self.layout.addWidget(self.stock_category_edit)
         self.stock_category_label = QLabel("Stock Category:")
         self.layout.addWidget(self.stock_category_label)
         self.stock_category_combo = QComboBox(self)
@@ -203,7 +198,7 @@ class ProductDetailWindow(QMainWindow):
         product.name = self.name_edit.text()
         product.cost = float(self.cost_edit.text())
         product.product_value = float(self.product_value_edit.text())
-        product.stock_category = self.stock_category_edit.text()
+        product.stock_category = self.stock_category_combo.currentText()
         product.product_category = self.product_category_edit.text()
 
         # Save all the Sage Codes from the dynamic fields
