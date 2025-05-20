@@ -112,6 +112,8 @@ def get_invoice_products(date):
     Creates a new butchers list row in the database instead of updating a JSON blob.
     """
     invoices = []
+    invoices_ids = []
+    
     invoice_list = []
     fresh_products_codes = fetch_products_stock_code_fresh()
     existing_butchers_list = fetch_butchers_list_by_date(date)
@@ -124,14 +126,20 @@ def get_invoice_products(date):
     else:
         invoice_list = get_todays_invoices(date)
     
+
     if invoice_list and 'results' in invoice_list and invoice_list['results']:
         for invoice in invoice_list['results']:
             if 'invoiceNumber' in invoice:
-                current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
-                invoices.append(current_invoice)
+                invoices_ids.append(invoice['invoiceNumber'])
+                # current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
+                # invoices.append(current_invoice)
         
         # Process invoices and create new butchers list
-        processed_data = process_invoices_products(invoices, fresh_products_codes, invoice_list['results'])
+        # print(invoices_ids)
+        invoice_items = get_invoice_items_id(invoices_ids)
+
+        # print(invoice_items)
+        processed_data = process_invoices_products(invoice_items['results'], fresh_products_codes, invoice_list['results'])
 
     return processed_data
 
@@ -268,6 +276,41 @@ def get_invoice_by_id(invoice_id):
 
     except requests.RequestException as e:
         print(f"Error fetching invoice: {e}")
+        return None
+    
+def get_invoice_items_id(invoices_ids):
+    """
+    Fetch a specific invoice by its ID from the Sage API.
+    """
+    if not API_URL or not API_TOKEN:
+        raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
+    
+    url = f"{API_URL}/api/searchInvoiceItem/"
+
+    payload = json.dumps([
+      {
+        "field": "INVOICE_NUMBER",
+        "type": "in",
+        "value": invoices_ids
+      }
+    ])
+    headers = {
+      'Content-Type': 'application/json',
+      'AuthToken': API_TOKEN
+    }
+
+    try:
+        if is_internal_network():
+            response = requests.request("POST", url, headers=headers, data=payload, verify=False)
+        else:
+            response = requests.request("POST", url, headers=headers, data=payload)
+        response.raise_for_status()  # Raise an error for non-2xx responses
+
+        invoice = response.json()
+        return invoice
+
+    except requests.RequestException as e:
+        print(f"Error fetching invoice items: {e}")
         return None
 
 def get_company_name_from_invoice_list(customer_act_ref, invoice_list):
