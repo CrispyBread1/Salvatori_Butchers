@@ -59,4 +59,7 @@ class DynamicTableWidget(QWidget):
         self.populate(self.headers, filtered_data, self.cell_format_callback)
 
     def return_row(self):
-        return self.filtered_result
+        if self.filtered_result:
+            return self.filtered_result
+        else:
+            return self.data

@@ -1,6 +1,6 @@
 import json
 from PyQt5.QtWidgets import (
-    QWidget, QPushButton, QLabel, QVBoxLayout, QMainWindow, QLineEdit, QMessageBox, QHBoxLayout
+    QWidget, QPushButton, QLabel, QVBoxLayout, QMainWindow, QLineEdit, QMessageBox, QHBoxLayout, QComboBox
 )
 from PyQt5.QtCore import Qt
 from database.products import update_product
@@ -40,11 +40,21 @@ class ProductDetailWindow(QMainWindow):
         self.product_value_edit.setText(str(self.products[self.current_index].product_value))
         self.layout.addWidget(self.product_value_edit)
 
+        # self.stock_category_label = QLabel("Stock Category:")
+        # self.layout.addWidget(self.stock_category_label)
+        # self.stock_category_edit = QComboBox(self)
+        # self.stock_category_edit.setText(self.products[self.current_index].stock_category)
+        # self.layout.addWidget(self.stock_category_edit)
         self.stock_category_label = QLabel("Stock Category:")
         self.layout.addWidget(self.stock_category_label)
-        self.stock_category_edit = QLineEdit(self)
-        self.stock_category_edit.setText(self.products[self.current_index].stock_category)
-        self.layout.addWidget(self.stock_category_edit)
+        self.stock_category_combo = QComboBox(self)
+        stock_categories = ["dry", "fresh", "frozen"]
+        self.stock_category_combo.addItems(stock_categories)
+
+        # Set the current index based on the product's stock category
+        current_category = self.products[self.current_index].stock_category
+        self.stock_category_combo.setCurrentText(current_category)
+        self.layout.addWidget(self.stock_category_combo)
 
         self.product_category_label = QLabel("Product Category:")
         self.layout.addWidget(self.product_category_label)
@@ -215,7 +225,7 @@ class ProductDetailWindow(QMainWindow):
         self.name_edit.setText(product.name)
         self.cost_edit.setText(str(product.cost))
         self.product_value_edit.setText(str(product.product_value))
-        self.stock_category_edit.setText(product.stock_category)
+        self.stock_category_combo.setCurrentText(product.stock_category)
         self.product_category_edit.setText(product.product_category)
 
         # Clear existing sage code inputs and delete buttons
