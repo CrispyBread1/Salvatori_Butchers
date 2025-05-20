@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QPushButton, QLabel,
 from PyQt5.QtCore import QDate, QTime, QDateTime
 
 class ButcherListPicker(QDialog):
-    def __init__(self, max_number=1, parent=None):
+    def __init__(self, max_number=1, parent=None, refresh=None):
         super().__init__(parent)
         self.setWindowTitle("Select butchers list to export")
         self.setModal(True)  # Make the dialog modal (blocks input until closed)
@@ -23,10 +23,10 @@ class ButcherListPicker(QDialog):
         if self.max_number <= 5:  # Use radio buttons for small numbers
             self.radio_group = QButtonGroup(self)
             radio_layout = QHBoxLayout()
-
-            radio_button_all = QRadioButton('All', self)
-            self.radio_group.addButton(radio_button_all, 0)
-            radio_layout.addWidget(radio_button_all)
+            if not refresh:
+              radio_button_all = QRadioButton('All', self)
+              self.radio_group.addButton(radio_button_all, 0)
+              radio_layout.addWidget(radio_button_all)
             for i in range(1, self.max_number + 1):
                 radio_button = QRadioButton(str(i), self)
                 if i == 1:  # Default selection
@@ -40,7 +40,8 @@ class ButcherListPicker(QDialog):
         # Option 2: Dropdown (good for larger numbers)
         else:
             self.combo_box = QComboBox(self)
-            self.combo_box_all.addItem('All')
+            if not refresh:
+              self.combo_box_all.addItem('All')
             for i in range(1, self.max_number + 1):
                 self.combo_box.addItem(str(i))
             layout.addWidget(self.combo_box)

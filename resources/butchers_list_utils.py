@@ -1,8 +1,8 @@
 from itertools import chain
 from collections import defaultdict
 
-from controllers.sage_controllers.invoices import get_invoice_items_id, get_todays_invoices, get_todays_new_invoices
-from database.butchers_lists import fetch_butchers_list_by_date
+from controllers.sage_controllers.invoices import get_invoice_items_id, get_todays_invoices, get_todays_new_invoices, refresh_get_todays_invoices
+from database.butchers_lists import fetch_all_butchers_lists_by_date, fetch_butchers_list_by_date
 from database.products import fetch_products_stock_code_fresh
 
 def get_invoice_products(date):
@@ -40,7 +40,48 @@ def get_invoice_products(date):
         # print(invoice_items)
         processed_data = process_invoices_products(invoice_items['results'], fresh_products_codes, invoice_list['results'])
 
-    return processed_data
+    return processed_data, "Not sure what to put here"
+
+def refresh_get_invoice_products(date, list_number):
+    """
+    Main function to refresh and process invoice products for a specific date.
+    Creates a new butchers list row in the database instead of updating a JSON blob.
+    """
+    invoices = []
+    invoices_ids = []
+    
+    invoice_list = []
+    fresh_products_codes = fetch_products_stock_code_fresh()
+    existing_butchers_lists = fetch_all_butchers_lists_by_date(date)
+    processed_data = []
+    
+    # Get appropriate invoices based on whether we have an existing list
+ 
+    
+    original_fetch = existing_butchers_lists[list_number].updated_at.strftime("%Y-%m-%d %H:%M:%S")
+
+    if list_number == 0:
+        previous_fetch = ""
+    else:
+        previous_fetch = existing_butchers_lists[(list_number - 1)].updated_at.strftime("%Y-%m-%d %H:%M:%S")
+
+    invoice_list = refresh_get_todays_invoices(date, original_fetch, previous_fetch)    
+
+    if invoice_list and 'results' in invoice_list and invoice_list['results']:
+        for invoice in invoice_list['results']:
+            if 'invoiceNumber' in invoice:
+                invoices_ids.append(invoice['invoiceNumber'])
+                # current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
+                # invoices.append(current_invoice)
+        
+        # Process invoices and create new butchers list
+        # print(invoices_ids)
+        invoice_items = get_invoice_items_id(invoices_ids)
+
+        # print(invoice_items)
+        processed_data = process_invoices_products(invoice_items['results'], fresh_products_codes, invoice_list['results'])
+
+    return processed_data,  existing_butchers_lists[list_number].id
 
 def get_company_name_from_invoice_list(customer_act_ref, invoice_list):
     """

@@ -60,9 +60,10 @@ def fetch_all_butchers_lists_by_date(date):
       "SELECT * FROM butchers_lists WHERE date = %s ORDER BY updated_at ASC",
       (date,)
     )
-    # print(cursor.fetchone())
     fetched_data = cursor.fetchall()
+    # print(fetched_data)
     results = [ButchersList(*row) for row in fetched_data]
+    # results.sort(key=lambda x: x.updated_at, reverse=False)
     cursor.close()
     connection.close()
     return results
@@ -109,6 +110,38 @@ def insert_butchers_list(date, data, updated_at):
         # Ensure connection is closed even if an exception occurs
         if connection:
             connection.close()
+
+def update_butchers_list(butchers_list_id, refreshed_at, data=None):
+    """Update the details of an existing product in the database."""
+    
+    # Create a connection to the database
+    connection = connect_db()
+    # print(f"butchers_list_id: {butchers_list_id}")
+    # print(f"refreshed_at: {refreshed_at}")
+    if connection:
+        cursor = connection.cursor()
+        
+        # Prepare the SQL statement
+        update_query = sql.SQL("""
+            UPDATE butchers_lists
+            SET 
+                data = COALESCE(%s, data),
+                refreshed_at = COALESCE(%s, refreshed_at)
+            WHERE id = %s
+        """)
+        
+        # Execute the query with parameters
+        cursor.execute(update_query, (json.dumps(data), refreshed_at, butchers_list_id))
+        
+        connection.commit()  # Commit the changes
+        # print(f"Product with ID {product_id} updated successfully!")
+        
+        cursor.close()
+        connection.close()
+    else:
+        print("Failed to connect to the database, product not updated.")
+
+
 
 def convert_to_butchers_list_objects(butchers_list):
   if butchers_list:

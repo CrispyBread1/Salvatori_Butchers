@@ -75,8 +75,9 @@ class LoadingManager:
             self.progress_dialog.setWindowTitle(f"{base_title} ({self.elapsed_seconds}s)")
 
     def _handle_completion(self, result, callback):
+        processed_data, original_id = result
         self._close_dialog()
-        callback(result, self.fetched_at)
+        callback(processed_data, self.fetched_at, original_id)
 
     def _handle_error(self, error, callback):
         self._close_dialog()

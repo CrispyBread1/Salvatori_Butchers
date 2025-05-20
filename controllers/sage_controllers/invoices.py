@@ -189,18 +189,48 @@ def get_todays_new_invoices(date, previous_fetch):
     except requests.RequestException as e:
         print(f"Error fetching invoices: {e}")
         return None
-
-
-def get_invoice_by_id(invoice_id):
+    
+def refresh_get_todays_invoices(date, original_fetch, previous_fetch):
     """
-    Fetch a specific invoice by its ID from the Sage API.
+    Fetch all invoices for a specific date from the Sage API.
     """
     if not API_URL or not API_TOKEN:
         raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
-    
-    url = f"{API_URL}/api/salesInvoice/{invoice_id}"
 
-    payload = ""
+    url = f"{API_URL}/api/searchInvoice"
+
+    if previous_fetch:
+        payload = json.dumps([
+          {
+            "field": "INVOICE_DATE",
+            "type": "eq",
+            "value": date
+          },
+          {
+            "field": "RECORD_CREATE_DATE",
+            "type": "lte",
+            "value": original_fetch
+          },
+          {
+            "field": "RECORD_CREATE_DATE",
+            "type": "gte",
+            "value": previous_fetch
+          }
+        ])
+    else:
+        payload = json.dumps([
+          {
+            "field": "INVOICE_DATE",
+            "type": "eq",
+            "value": date
+          },
+          {
+            "field": "RECORD_CREATE_DATE",
+            "type": "lte",
+            "value": original_fetch
+          }
+        ])
+
     headers = {
       'Content-Type': 'application/json',
       'AuthToken': API_TOKEN
@@ -208,16 +238,30 @@ def get_invoice_by_id(invoice_id):
 
     try:
         if is_internal_network():
-            response = requests.request("GET", url, headers=headers, data=payload, verify=False)
+          response = requests.request(
+              "POST", 
+              url, 
+              headers=headers, 
+              data=payload,
+              timeout=(30, 90),  # (connection timeout, read timeout)
+              verify=False
+          )
         else:
-            response = requests.request("GET", url, headers=headers, data=payload)
+            response = requests.request(
+              "POST", 
+              url, 
+              headers=headers, 
+              data=payload,
+              timeout=(30, 90),  # (connection timeout, read timeout)
+          )
         response.raise_for_status()  # Raise an error for non-2xx responses
 
-        invoice = response.json()
-        return invoice
+        invoices = response.json()
+        print(f"Fetch in controller completed successfully: {len(invoices['results'])}")
+        return invoices
 
     except requests.RequestException as e:
-        print(f"Error fetching invoice: {e}")
+        print(f"Error fetching invoices: {e}")
         return None
     
 

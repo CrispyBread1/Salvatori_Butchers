@@ -1,16 +1,16 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
 from auth.userAuthentication import AuthService
-from database.butchers_lists import combine_butchers_lists, fetch_all_butchers_lists_by_date, insert_butchers_list
+from database.butchers_lists import combine_butchers_lists, fetch_all_butchers_lists_by_date, insert_butchers_list, update_butchers_list
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.scheduled_tasks_windows.butchers_list.butcher_list_picker_dialogue import ButcherListPicker
 from controllers.sage_controllers.invoices import *
 from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_table import ButchersListTable
-from resources.butchers_list_utils import get_invoice_products
+from resources.butchers_list_utils import get_invoice_products, refresh_get_invoice_products
 from resources.excel_exporter import ExcelExporter
 
 
@@ -39,6 +39,13 @@ class ButchersListWindow(QWidget):
         
         self.pull_orders_button = QPushButton("Pull Orders", self)
         self.pull_orders_button.clicked.connect(self.pull_butcher_data)
+
+        self.refresh_butchers_list_button = QPushButton("Refresh List", self)
+        self.refresh_butchers_list_button.clicked.connect(self.refresh_pull_butcher_data)
+        self.refresh_butchers_list_button.hide()
+
+        if self.butchers_lists:
+            self.refresh_butchers_list_button.show()
         
         self.change_date_button = QPushButton("Change Date", self)
         self.change_date_button.clicked.connect(self.change_date)
@@ -49,6 +56,7 @@ class ButchersListWindow(QWidget):
         
         self.button_layout.addWidget(self.change_date_button)
         self.button_layout.addWidget(self.pull_orders_button)
+        self.button_layout.addWidget(self.refresh_butchers_list_button)
 
 
 
@@ -70,6 +78,9 @@ class ButchersListWindow(QWidget):
         self.title_label.setText(f"Butchers List - {self.date}")
         self.status_label.setText("")  # Clear previous status
         self.butchers_table.load_butchers_lists(self.butchers_lists)
+        if self.butchers_lists:
+            self.refresh_butchers_list_button.show()
+        
 
     def pull_butcher_data(self):
         # Disable the button to prevent multiple clicks
@@ -85,7 +96,7 @@ class ButchersListWindow(QWidget):
             task_args=(self.date,)
         )
     
-    def on_fetch_complete(self, invoices, updated_at):
+    def on_fetch_complete(self, invoices, updated_at, original_id=None):
         # Re-enable button
         self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
         # Update status with results
@@ -98,9 +109,53 @@ class ButchersListWindow(QWidget):
         else:
             self.status_label.setText("No invoices found for the selected date.")
 
-        self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
+        # self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
     
     def on_fetch_error(self, error_message):
+        # Re-enable button
+        self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
+        
+        # Show error message
+        print(error_message)
+        self.status_label.setText(f"Error fetching invoices: {error_message}")
+
+    def refresh_pull_butcher_data(self):
+        # Disable the button to prevent multiple clicks
+        self.pull_orders_button.setEnabled(False)  # Fixed: was using general_settings_button
+        selected_butchers_list = 0
+        # todays_date = date.today().strftime('%Y-%m-%d')
+        dialog = ButcherListPicker(max_number=len(self.butchers_lists), refresh=True)
+        if dialog.exec_():
+            selected_butchers_list = (dialog.get_selected_number())                
+            print(f"User selected number: {selected_butchers_list}")
+
+        # Use the loading manager to run the get_invoice_products function with a loading animation
+        self.loading_manager.run_with_loading(
+            task_function=refresh_get_invoice_products,  # Direct call to your function
+            on_complete=self.refresh_on_fetch_complete,
+            on_error=self.refresh_on_fetch_error,
+            loading_text="Fetching invoice data...",
+            title="Loading Invoices",
+            task_args=(self.date, selected_butchers_list,)
+        )
+    
+    def refresh_on_fetch_complete(self, invoices, fetched_at, original_id):
+        # Re-enable button
+        self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
+        # Update status with results
+        if invoices:
+            self.status_label.setText(f"Successfully created {self.date} butchers list.")
+            # Process invoices further as needed   
+            # update_butchers_list(butchers_list_id, refreshed_at, data=None)         
+            update_butchers_list(original_id, fetched_at, invoices)
+            self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
+            self.update_ui()
+        else:
+            self.status_label.setText("No invoices found for the selected date.")
+
+        # self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    def refresh_on_fetch_error(self, error_message):
         # Re-enable button
         self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
         
