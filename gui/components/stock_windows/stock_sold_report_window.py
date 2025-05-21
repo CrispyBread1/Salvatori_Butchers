@@ -103,7 +103,7 @@ class StockSoldReportWindow(QWidget):
         update_report(current_product_ids, report.id)
         
         # Update the UI to reflect the changes
-        self.setup_ui()
+        self.update_ui()
         
 
   def open_product_selection(self):
@@ -122,5 +122,8 @@ class StockSoldReportWindow(QWidget):
       pass
   
   def create_report(self):
+      pass
+  
+  def update_ui(self):
       pass
 
