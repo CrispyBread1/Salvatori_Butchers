@@ -33,7 +33,7 @@ class LoadingManager:
         self.worker_thread = None
         self.timer = None
         self.elapsed_seconds = 0
-        self.fetched_at = datetime.now().strftime('%Y-%m-%d, %H:%M:%S')
+        
     
     def run_with_loading(self, task_function, on_complete=None, on_error=None,
                          loading_text="Loading...", title="Please Wait",
@@ -50,6 +50,7 @@ class LoadingManager:
         
         # Setup timer for updating title with elapsed time
         self.elapsed_seconds = 0
+        self.fetched_at = datetime.now().strftime('%Y-%m-%d, %H:%M:%S')
         self.timer = QTimer()
         self.timer.timeout.connect(lambda: self._update_timer_title(title))
         self.timer.start(1000)  # tick every 1 second
