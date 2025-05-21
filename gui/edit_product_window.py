@@ -68,11 +68,11 @@ class EditProductWindow(QMainWindow):
     def load_product_table(self):
         """Load product data into the table (Hardcoded Columns)."""
         self.products = fetch_products()
-        self.products.sort(key=lambda product: (product.stock_category, product.name))  
 
         if not self.products:
             self.label.setText("No data found.")
             return
+
 
         # Set headers manually (matching database fields)
         headers = ["Name", "Stock Cost £", "Stock Count", "Selling Price £", "Stock Category", "Product Category", "Sage Code", "Supplier", "Sold As"]
@@ -92,7 +92,7 @@ class EditProductWindow(QMainWindow):
                 product.sold_as
             ]
             data.append(row_data)
-
+  
         # Custom format function for cells
         def format_cell(item, row_idx, col_idx, value):
             # Make all cells read-only
@@ -134,11 +134,20 @@ class EditProductWindow(QMainWindow):
             self.product_detail_window.show()
     
     def get_product_by_name(self, filtered_rows):
+        # Need to send the whole product object to the display - this uses the name to get the filtered list but obvs there are duplicates
+        pop_array_products = self.products.copy()
         products_found = []
-        for product in self.products:
-            for filtered_row in filtered_rows:
+
+        for filtered_row in filtered_rows:
+          index = 0
+          while index < len(pop_array_products):
+              product = pop_array_products[index]
               if product.name == filtered_row[0]:
                   products_found.append(product)
+                  pop_array_products.pop(index)
+              else:
+                  index += 1
+
         return products_found
                   
 

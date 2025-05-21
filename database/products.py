@@ -108,7 +108,7 @@ def fetch_products():
   rows = []
   if connection:
       cursor = connection.cursor()
-      cursor.execute("SELECT * FROM products")
+      cursor.execute("SELECT * FROM products ORDER BY name ASC")
       rows = convert_to_product_objects(cursor.fetchall())
       cursor.close()
       connection.close()

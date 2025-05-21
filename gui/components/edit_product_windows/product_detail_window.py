@@ -135,6 +135,7 @@ class ProductDetailWindow(QMainWindow):
         """)
         self.save_button.clicked.connect(self.save_product)
         self.layout.addWidget(self.save_button)
+        self.load_product()
 
     def add_sage_code_input(self, sage_code=""):
         """Dynamically adds another Sage Code input and delete button under the first one"""
@@ -247,7 +248,7 @@ class ProductDetailWindow(QMainWindow):
                         sage_codes = [sage_code]
                 else:
                     # If not a string, convert to string
-                    sage_codes = [str(sage_code)]
+                    sage_codes = json.loads(sage_code)
                     
                 # Add each sage code to the UI
                 for code in sage_codes:

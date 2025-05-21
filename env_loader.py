@@ -17,26 +17,26 @@ def resource_path(relative_path):
 def load_environment_variables():
     """Load environment variables with proper path handling for both dev and PyInstaller"""
     # Print debug information
-    print("=== Environment Debug Info ===")
-    print(f"Current directory: {os.getcwd()}")
+    # print("=== Environment Debug Info ===")
+    # print(f"Current directory: {os.getcwd()}")
     
-    # Check if running in PyInstaller bundle
-    if getattr(sys, 'frozen', False):
-        print(f"Running in PyInstaller bundle")
-        if hasattr(sys, '_MEIPASS'):
-            print(f"sys._MEIPASS: {sys._MEIPASS}")
-            print(f"Files in _MEIPASS: {os.listdir(sys._MEIPASS)}")
-    else:
-        print("Running in normal Python environment")
+    # # Check if running in PyInstaller bundle
+    # if getattr(sys, 'frozen', False):
+    #     print(f"Running in PyInstaller bundle")
+    #     if hasattr(sys, '_MEIPASS'):
+    #         print(f"sys._MEIPASS: {sys._MEIPASS}")
+    #         print(f"Files in _MEIPASS: {os.listdir(sys._MEIPASS)}")
+    # else:
+    #     print("Running in normal Python environment")
     
     # Get the correct path to .env file
     env_path = resource_path('.env')
-    print(f"Looking for .env at: {env_path}")
-    print(f"File exists: {os.path.exists(env_path)}")
+    # print(f"Looking for .env at: {env_path}")
+    # print(f"File exists: {os.path.exists(env_path)}")
     
     # Try to load from .env file
     if os.path.exists(env_path):
-        print("Loading environment variables from .env file")
+        # print("Loading environment variables from .env file")
         load_dotenv(env_path)
     else:
         print("WARNING: .env file not found!")
@@ -45,9 +45,9 @@ def load_environment_variables():
     supabase_url = os.environ.get('SUPABASE_URL')
     supabase_key = os.environ.get('SUPABASE_ANON_KEY')
     
-    print(f"SUPABASE_URL loaded: {'Yes' if supabase_url else 'No'}")
-    print(f"SUPABASE_ANON_KEY loaded: {'Yes' if supabase_key else 'No'}")
-    print("=== End Environment Debug Info ===")
+    # print(f"SUPABASE_URL loaded: {'Yes' if supabase_url else 'No'}")
+    # print(f"SUPABASE_ANON_KEY loaded: {'Yes' if supabase_key else 'No'}")
+    # print("=== End Environment Debug Info ===")
     
     return supabase_url and supabase_key  # Return True if both are loaded
 
