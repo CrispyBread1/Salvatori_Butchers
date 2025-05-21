@@ -2,8 +2,9 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
-from gui.components.stock_take_windows.stock_take_new_window import StockTakeNewWindow
-from gui.components.stock_take_windows.stock_take_view_window import StockTakeViewWindow
+from gui.components.stock_windows.stock_take.stock_take_new_window import StockTakeNewWindow
+from gui.components.stock_windows.stock_take.stock_take_view_window import StockTakeViewWindow
+from gui.components.stock_windows.dashboard_window import DashboardWindow
 
 
 class StockTakeWindow(QMainWindow):
@@ -50,6 +51,19 @@ class StockTakeWindow(QMainWindow):
         main_content.setLayout(self.content_layout)
         self.stacked_widget.addWidget(main_content)
 
+
+        
+        # Add buttons to navigation Dashboard
+        self.nav_dashboard_layout.addWidget(self.stock_take_button)
+        self.nav_dashboard_layout.addWidget(self.stock_sold_button)
+        self.nav_dashboard_layout.addStretch(1)  # Add stretch to push buttons to the left
+        self.nav_dashboard_layout.addWidget(self.back_button)
+        
+        
+        # Add components to the main layout
+        self.content_layout.addLayout(self.nav_dashboard_layout)
+        self.content_layout.addWidget(self.stacked_widget)
+
         # Create the product window as a component
         self.stock_take_new_window = StockTakeNewWindow()
         self.stock_take_view_window = StockTakeViewWindow()
@@ -92,5 +106,3 @@ class StockTakeWindow(QMainWindow):
       self.stacked_widget.setCurrentWidget(self.stock_take_view_window)
       self.stock_take_menu_button1.show()
       self.stock_take_menu_button2.hide()
-
-

@@ -4,7 +4,7 @@ from database.users import get_pending_users
 from gui.components.reusable.buttons.notifications import NotificationButton
 from gui.product_value_window import ProductWindow   
 from gui.scheduled_tasks import ScheduledTasks
-from gui.stock_take_window import StockTakeWindow 
+from gui.stock_window import StockWindow 
 from gui.edit_product_window import EditProductWindow
 from auth.userAuthentication import AuthService  
 from gui.components.user_accounts.loginComponent import LoginComponent  
@@ -69,7 +69,7 @@ class MainWindow(QMainWindow):
 
         # Other windows
         self.scheduled_tasks_window = ScheduledTasks()
-        self.stock_take_window = StockTakeWindow()
+        self.stock_take_window = StockWindow()
         self.edit_product_window = EditProductWindow()
         self.settings_window = SettingsWindow()
         self.stacked_widget.addWidget(self.scheduled_tasks_window)
