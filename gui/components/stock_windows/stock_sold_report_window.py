@@ -1,10 +1,12 @@
 from datetime import date
+import json
 from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow, QDialog
 )
 
 from database.products import fetch_products
+from database.reports import fetch_report_by_id, update_report
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.reusable.table import DynamicTableWidget
 from gui.components.stock_windows.stock_sold.add_product_popup import AddProductPopup
@@ -20,7 +22,9 @@ class StockSoldReportWindow(QWidget):
     self.main_layout.addWidget(self.title_label)
     self.setup_ui()
         
-  def setup_ui(self):      
+  def setup_ui(self):
+      self.report = fetch_report_by_id(1)  
+      print(self.report)   
       self.date = date.today().strftime('%Y-%m-%d')
       self.title_label.setText(f"Report for: {self.date}")
 
@@ -35,7 +39,7 @@ class StockSoldReportWindow(QWidget):
       self.create_report_button = QPushButton("Create Report", self)
       self.create_report_button.clicked.connect(self.create_report)
       self.add_product_button = QPushButton("Add product", self)
-      self.add_product_button.clicked.connect(self.open_product_selection)
+      self.add_product_button.clicked.connect(self.add_product)
       self.remove_product_button = QPushButton("Remove product", self)
       self.remove_product_button.clicked.connect(self.remove_product)
       
@@ -60,19 +64,58 @@ class StockSoldReportWindow(QWidget):
           # Update the UI with the new date
           self.update_ui()
 
+  def add_product(self):
+      product_id = self.open_product_selection()
+      
+
+      if product_id is not None:
+        # Get the current report's product IDs
+        report = self.report  # Assuming self.report holds the current report object
+        
+        # Check if report has products already
+        if report.products:
+            try:
+                # Try to parse existing product_ids as JSON if it's a string
+                if isinstance(report.products, str):
+                    
+                    current_product_ids = json.loads(report.products)
+                else:
+                    # Otherwise, assume it's already a list
+                    current_product_ids = report.products
+                
+                # Make sure current_product_ids is a list
+                if not isinstance(current_product_ids, list):
+                    current_product_ids = [current_product_ids]
+                
+                # Add the new product ID if it's not already in the list
+                if product_id not in current_product_ids:
+                    current_product_ids.append(product_id)
+            except Exception as e:
+                # If there was a problem parsing the existing product_ids
+                print(f"Error processing existing product IDs: {e}")
+                current_product_ids = [product_id]  # Start fresh with just the new ID
+        else:
+            # No existing products, create a new array with the selected product ID
+            current_product_ids = [product_id]
+        
+        # Update the report with the new product_ids array
+        
+        update_report(current_product_ids, report.id)
+        
+        # Update the UI to reflect the changes
+        self.setup_ui()
+        
+
   def open_product_selection(self):
       products = fetch_products()
       dialog = AddProductPopup(products, DynamicTableWidget)
-      
-      # Connect to the product_selected signal if you want to handle the selection in a callback
-      dialog.product_selected.connect(lambda product_id: print(f"Selected product ID: {product_id}"))
       
       result = dialog.exec_()
       if result == QDialog.Accepted:
           # Get the selected product ID
           selected_id = dialog.get_selected_product_id()
-          print(f"Dialog returned product ID: {selected_id}")
           return selected_id
+      
       return None
   
   def remove_product(self):
@@ -80,3 +123,4 @@ class StockSoldReportWindow(QWidget):
   
   def create_report(self):
       pass
+

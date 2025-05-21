@@ -1,3 +1,4 @@
+import json
 import os
 import psycopg2
 from psycopg2 import sql
@@ -43,8 +44,10 @@ def fetch_report_by_id(id):
   results = {}
   if connection:
     cursor = connection.cursor()
-    cursor.execute(f"SELECT * FROM reports WHERE id = '{id}' ")
-    convert_to_product_objects(cursor.fetchone())
+    cursor.execute(f"SELECT * FROM reports WHERE id = %s", (id,))
+    result = cursor.fetchone()
+        # This function needs to return a value and save it to results
+    results = convert_to_product_objects(result)
 
     cursor.close()
     connection.close()
@@ -73,7 +76,7 @@ def update_report(products, report_id):
         """)
         
         # Execute the query with parameters
-        cursor.execute(update_query, (products, report_id))
+        cursor.execute(update_query, (json.dumps(products), report_id))
         
         connection.commit()  # Commit the changes
         # print(f"Product with ID {product_id} updated successfully!")
