@@ -69,11 +69,11 @@ class MainWindow(QMainWindow):
 
         # Other windows
         self.scheduled_tasks_window = ScheduledTasks()
-        self.stock_take_window = StockWindow()
+        self.stock_window = StockWindow()
         self.edit_product_window = EditProductWindow()
         self.settings_window = SettingsWindow()
         self.stacked_widget.addWidget(self.scheduled_tasks_window)
-        self.stacked_widget.addWidget(self.stock_take_window)
+        self.stacked_widget.addWidget(self.stock_window)
         self.stacked_widget.addWidget(self.edit_product_window)
         self.stacked_widget.addWidget(self.settings_window)
 
@@ -90,8 +90,8 @@ class MainWindow(QMainWindow):
         self.nav_button_4 = QPushButton("Edit Products", self)
         self.nav_button_4.clicked.connect(self.open_edit_product_window)
 
-        self.nav_button_5 = QPushButton("Stock Take", self)
-        self.nav_button_5.clicked.connect(self.open_stock_take_window)
+        self.nav_button_5 = QPushButton("Stock", self)
+        self.nav_button_5.clicked.connect(self.open_stock_window)
 
         self.logout_button = QPushButton("Log Out", self)
         self.logout_button.clicked.connect(self.handle_logout)
@@ -229,7 +229,7 @@ class MainWindow(QMainWindow):
     def on_login_successful(self, user_data):
         """Handle successful login"""
         self.settings_window.setup_ui(user_data)
-        self.stock_take_window.setup_ui(user_data)
+        self.stock_window.setup_ui(user_data)
         self.edit_product_window.setup_ui(user_data)
         self.update_auth_state()
         self.show_home()
@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
             
         self.stacked_widget.setCurrentWidget(self.scheduled_tasks_window)
 
-    def open_stock_take_window(self):
+    def open_stock_window(self):
         # Check authentication before allowing access
         user = self.auth_service.current_user
         if not user.approved:
@@ -274,7 +274,7 @@ class MainWindow(QMainWindow):
             self.show_login()
             return
             
-        self.stacked_widget.setCurrentWidget(self.stock_take_window)
+        self.stacked_widget.setCurrentWidget(self.stock_window)
 
     def open_edit_product_window(self):
         # Check authentication before allowing access
