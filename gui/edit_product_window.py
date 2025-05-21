@@ -123,7 +123,7 @@ class EditProductWindow(QMainWindow):
         self.table.cellDoubleClicked.connect(self.open_product_detail)
 
     def reload_product_list(self):
-        self.load_product_table()  # Reload the table data.
+        self.setup_ui()  # Reload the table data.
 
     def open_product_detail(self, row_idx, col_idx):
         """Open detailed product edit window when clicking on Name."""

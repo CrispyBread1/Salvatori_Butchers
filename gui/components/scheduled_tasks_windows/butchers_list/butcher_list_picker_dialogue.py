@@ -41,7 +41,7 @@ class ButcherListPicker(QDialog):
         else:
             self.combo_box = QComboBox(self)
             if not refresh:
-              self.combo_box_all.addItem('All')
+              self.combo_box.addItem('All')
             for i in range(1, self.max_number + 1):
                 self.combo_box.addItem(str(i))
             layout.addWidget(self.combo_box)
@@ -63,4 +63,4 @@ class ButcherListPicker(QDialog):
         if self.max_number <= 5:
             return (self.radio_group.checkedId() - 1)
         else:
-            return self.combo_box.currentIndex() 
+            return (self.combo_box.currentIndex() - 1)
