@@ -10,7 +10,6 @@ def get_invoice_products(date):
     Main function to retrieve and process invoice products for a specific date.
     Creates a new butchers list row in the database instead of updating a JSON blob.
     """
-    invoices = []
     invoices_ids = []
     
     invoice_list = []
@@ -25,19 +24,15 @@ def get_invoice_products(date):
     else:
         invoice_list = get_todays_invoices(date)
     
-
     if invoice_list and 'results' in invoice_list and invoice_list['results']:
         for invoice in invoice_list['results']:
             if 'invoiceNumber' in invoice:
                 invoices_ids.append(invoice['invoiceNumber'])
-                # current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
-                # invoices.append(current_invoice)
         
         # Process invoices and create new butchers list
-        # print(invoices_ids)
+        print(invoices_ids)
         invoice_items = get_invoice_items_id(invoices_ids)
 
-        # print(invoice_items)
         processed_data = process_invoices_products(invoice_items['results'], fresh_products_codes, invoice_list['results'])
 
     return processed_data, "Not sure what to put here"
@@ -47,16 +42,12 @@ def refresh_get_invoice_products(date, list_number):
     Main function to refresh and process invoice products for a specific date.
     Creates a new butchers list row in the database instead of updating a JSON blob.
     """
-    invoices = []
     invoices_ids = []
     
     invoice_list = []
     fresh_products_codes = fetch_products_stock_code_fresh()
     existing_butchers_lists = fetch_all_butchers_lists_by_date(date)
     processed_data = []
-    
-    # Get appropriate invoices based on whether we have an existing list
- 
     
     original_fetch = existing_butchers_lists[list_number].updated_at.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -71,30 +62,11 @@ def refresh_get_invoice_products(date, list_number):
         for invoice in invoice_list['results']:
             if 'invoiceNumber' in invoice:
                 invoices_ids.append(invoice['invoiceNumber'])
-                # current_invoice = get_invoice_by_id(invoice['invoiceNumber'])
-                # invoices.append(current_invoice)
         
-        # Process invoices and create new butchers list
-        # print(invoices_ids)
         invoice_items = get_invoice_items_id(invoices_ids)
-
-        # print(invoice_items)
         processed_data = process_invoices_products(invoice_items['results'], fresh_products_codes, invoice_list['results'])
 
-    return processed_data,  existing_butchers_lists[list_number].id
-
-def get_company_name_from_invoice_list(customer_act_ref, invoice_list):
-    """
-    Find the company name for a customer account reference in the invoice list.
-    Returns the company name if found, otherwise an empty string.
-    """
-    for invoice in invoice_list:
-        # Debug output to see what's happening
-        # print(f"Comparing {invoice.get('accountRef', '')} with {customer_act_ref}")
-        
-        if invoice.get("accountRef", "").strip() == customer_act_ref:
-            return invoice.get("name", "").strip()
-    return ""
+    return processed_data, existing_butchers_lists[list_number].id
 
 def check_product_is_fresh(stock_code, fresh_products_codes):
     """
@@ -107,13 +79,13 @@ def check_product_is_fresh(stock_code, fresh_products_codes):
 
 def create_customer_lookup(butchers_list):
     """
-    Build a lookup dictionary for existing customers.
+    Build a lookup dictionary for existing customers based on customer name only.
     """
     customer_lookup = {}
     
     for customer in butchers_list:
-        customer_key = customer.get("customer_act_ref") or customer.get("customer_name")
-        customer_lookup[customer_key.strip()] = customer
+        customer_key = customer.get("customer_name", "").strip()
+        customer_lookup[customer_key] = customer
 
         # Create a quick-access product map for merging
         customer["product_dict"] = {
@@ -123,22 +95,25 @@ def create_customer_lookup(butchers_list):
     
     return customer_lookup
 
-def get_or_create_customer(key, customer_lookup, customer_name, customer_act_ref, invoice_id, new_customers):
+def get_or_create_customer(customer_name, customer_lookup, invoice_id, new_customers):
     """
-    Get an existing customer or create a new one if it doesn't exist.
+    Get an existing customer or create a new one if it doesn't exist, using only customer name.
     """
-    if key in customer_lookup:
-        customer_entry = customer_lookup[key]
-        customer_entry["invoice_ids"].append(str(invoice_id))
+    customer_key = customer_name.strip()
+    
+    if customer_key in customer_lookup:
+        customer_entry = customer_lookup[customer_key]
+        # Avoid duplicate invoice IDs
+        if str(invoice_id) not in customer_entry["invoice_ids"]:
+            customer_entry["invoice_ids"].append(str(invoice_id))
     else:
         customer_entry = {
             "customer_name": customer_name,
-            "customer_act_ref": customer_act_ref,
             "invoice_ids": [str(invoice_id)],
             "products": [],
             "product_dict": defaultdict(float)
         }
-        customer_lookup[key] = customer_entry
+        customer_lookup[customer_key] = customer_entry
         new_customers.append(customer_entry)
     
     return customer_entry
@@ -146,10 +121,9 @@ def get_or_create_customer(key, customer_lookup, customer_name, customer_act_ref
 def process_invoice_items(invoice_products, customer_entry, fresh_products_codes):
     """
     Process items in an invoice and update customer's products.
-    Special handling for CASH accounts: products are added individually rather than summed.
+    All products are aggregated by their stock code and name.
     """
     has_fresh_products = False
-    customer_act_ref = customer_entry["customer_act_ref"]
     
     # Safety check - ensure invoice_products is iterable
     if not invoice_products:
@@ -160,7 +134,6 @@ def process_invoice_items(invoice_products, customer_entry, fresh_products_codes
     
     for item in invoice_products:
         # Get invoice number to match with our invoice list
-        # Handle the case where invoiceNumber might be an integer
         invoice_number = item.get("invoiceNumber")
         if invoice_number is not None:
             invoice_number = str(invoice_number)  # Convert to string to ensure comparison works
@@ -188,48 +161,34 @@ def process_invoice_items(invoice_products, customer_entry, fresh_products_codes
                     
                 qty = float(item.get("quantity", 0))
                 
-                # Special handling for CASH accounts
-                if customer_act_ref == "CASH":
-                    # For CASH accounts, add as a new product instead of summing quantities
-                    customer_entry["products"].append({
-                        "sage_code": code,
-                        "product_name": name,
-                        "quantity": qty  # No rounding applied
-                    })
-                else:
-                    # For regular accounts, aggregate quantities of the same product
-                    product_key = (code, name)
-                    customer_entry["product_dict"][product_key] += qty
+                # Always aggregate quantities of the same product, regardless of customer type
+                product_key = (code, name)
+                customer_entry["product_dict"][product_key] += qty
     
     return has_fresh_products
-
 
 def finalize_customer_products(butchers_list):
     """
     Finalize customer products by converting product_dict back to products list.
-    Skip CASH accounts as their products are already directly added.
     """
     for customer in butchers_list:
-        # Only process non-CASH accounts
-        if customer.get("customer_act_ref") != "CASH":
-            customer["products"] = [
-                {
-                    "sage_code": code,
-                    "product_name": name,
-                    "quantity": qty  # No rounding applied
-                }
-                for (code, name), qty in customer.get("product_dict", {}).items()
-            ]
+        customer["products"] = [
+            {
+                "sage_code": code,
+                "product_name": name,
+                "quantity": qty
+            }
+            for (code, name), qty in customer.get("product_dict", {}).items()
+        ]
         
         # Clean up the temporary product_dict
         customer.pop("product_dict", None)
 
 def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_list=[]):
     """
-    Process invoices and update the butchers list with products from invoices.
-    Special handling for CASH accounts: products are added individually rather than summed.
+    Process invoices and update the butchers list with products from invoices,
+    identifying customers by name only.
     """
-
     butchers_list = []
     
     # Step 1: Build customer lookup
@@ -240,23 +199,17 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
     new_customers = []
     
     for invoice in invoice_list:
-        # Make sure we're getting the right field for customer_act_ref
-        customer_act_ref = invoice.get("accountRef", "").strip()  # Changed from customerAccountRef to accountRef
+        # Get company name from the invoice
+        company_name = invoice.get("name", "").strip()
         contact_name = invoice.get("contactName", "").strip()
         invoice_id = invoice.get("invoiceNumber")
         
-        # Get company name from the invoice_list if available
-        company_name = invoice.get("name", "").strip()  # Get name directly from current invoice
-        # print(f"For customer {customer_act_ref}, found company name: {company_name}")
-        
         # Use company name as customer name if available, otherwise use contact name
         customer_name = company_name or contact_name or "Unknown Customer"
-
-        key = customer_act_ref or customer_name
         
-        # Get or create customer entry
+        # Get or create customer entry based only on name
         customer_entry = get_or_create_customer(
-            key, customer_lookup, customer_name, customer_act_ref, invoice_id, new_customers
+            customer_name, customer_lookup, invoice_id, new_customers
         )
         
         # Process invoice items
@@ -264,14 +217,13 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
         
         # Track customers who have fresh products
         if has_fresh_products:
-            customers_with_fresh_products.add(key)
+            customers_with_fresh_products.add(customer_name.strip())
 
     # Only add new customers who have fresh products
     for customer in new_customers:
-        customer_key = customer.get("customer_act_ref") or customer.get("customer_name")
-        key = customer_key.strip()
+        customer_key = customer.get("customer_name", "").strip()
         
-        if key in customers_with_fresh_products:
+        if customer_key in customers_with_fresh_products:
             butchers_list.append(customer)
 
     # Step 3: Finalize products for all customers
