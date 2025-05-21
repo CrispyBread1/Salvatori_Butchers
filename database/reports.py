@@ -50,48 +50,36 @@ def fetch_report_by_id(id):
     connection.close()
     return results
   
-
       
 def convert_to_product_objects(report):
   return Report(*report)
 
-# def update_product(product_id, name=None, cost=None, stock_count=None, 
-#                    product_value=None, stock_category=None, product_category=None, 
-#                    sage_code=None, supplier=None, sold_as=None):
-#     """Update the details of an existing product in the database."""
+
+def update_report(products, report_id):
+    """Update the details of an existing product in the database."""
     
-#     # Create a connection to the database
-#     connection = connect_db()
+    # Create a connection to the database
+    connection = connect_db()
     
-#     if connection:
-#         cursor = connection.cursor()
+    if connection:
+        cursor = connection.cursor()
         
-#         # Prepare the SQL statement
-#         update_query = sql.SQL("""
-#             UPDATE products
-#             SET 
-#                 name = COALESCE(%s, name),
-#                 cost = COALESCE(%s, cost),
-#                 stock_count = COALESCE(%s, stock_count),
-#                 product_value = COALESCE(%s, product_value),
-#                 stock_category = COALESCE(%s, stock_category),
-#                 product_category = COALESCE(%s, product_category),
-#                 sage_code = COALESCE(%s, sage_code),
-#                 supplier = COALESCE(%s, supplier),
-#                 sold_as = COALESCE(%s, sold_as)
-#             WHERE id = %s
-#         """)
+        # Prepare the SQL statement
+        update_query = sql.SQL("""
+            UPDATE reports
+            SET 
+                products = COALESCE(%s, products)
+            WHERE id = %s
+        """)
         
-#         # Execute the query with parameters
-#         cursor.execute(update_query, (name, cost, stock_count, product_value, 
-#                                       stock_category, product_category, sage_code, 
-#                                       supplier, sold_as, product_id))
+        # Execute the query with parameters
+        cursor.execute(update_query, (products, report_id))
         
-#         connection.commit()  # Commit the changes
-#         # print(f"Product with ID {product_id} updated successfully!")
+        connection.commit()  # Commit the changes
+        # print(f"Product with ID {product_id} updated successfully!")
         
-#         cursor.close()
-#         connection.close()
-#     else:
-#         print("Failed to connect to the database, product not updated.")
+        cursor.close()
+        connection.close()
+    else:
+        print("Failed to connect to the database, product not updated.")
 
