@@ -83,6 +83,8 @@ def update_report(products, report_id):
         
         cursor.close()
         connection.close()
+        return True
     else:
         print("Failed to connect to the database, product not updated.")
+        return False
 

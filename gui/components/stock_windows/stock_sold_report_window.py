@@ -10,6 +10,7 @@ from database.reports import fetch_report_by_id, update_report
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.reusable.table import DynamicTableWidget
 from gui.components.stock_windows.stock_sold.add_product_popup import AddProductPopup
+from utils.stock_sold_report_utils import add_product_stock_sold_report
 
 
 class StockSoldReportWindow(QWidget):
@@ -66,46 +67,15 @@ class StockSoldReportWindow(QWidget):
 
   def add_product(self):
       product_id = self.open_product_selection()
-      
 
-      if product_id is not None:
-        # Get the current report's product IDs
-        report = self.report  # Assuming self.report holds the current report object
-        
-        # Check if report has products already
-        if report.products:
-            try:
-                # Try to parse existing product_ids as JSON if it's a string
-                if isinstance(report.products, str):
-                    
-                    current_product_ids = json.loads(report.products)
-                else:
-                    # Otherwise, assume it's already a list
-                    current_product_ids = report.products
-                
-                # Make sure current_product_ids is a list
-                if not isinstance(current_product_ids, list):
-                    current_product_ids = [current_product_ids]
-                
-                # Add the new product ID if it's not already in the list
-                if product_id not in current_product_ids:
-                    current_product_ids.append(product_id)
-                else:
-                    QMessageBox.critical(self, "Add failed", "Error: Product already added")
-            except Exception as e:
-                # If there was a problem parsing the existing product_ids
-                print(f"Error processing existing product IDs: {e}")
-                current_product_ids = [product_id]  # Start fresh with just the new ID
-        else:
-            # No existing products, create a new array with the selected product ID
-            current_product_ids = [product_id]
-        
-        # Update the report with the new product_ids array
-        
-        update_report(current_product_ids, report.id)
-        
+      state, message = add_product_stock_sold_report(self.report, product_id)
+      QMessageBox.information(
+                self, 
+                f"{state}", 
+                f"{message}!"
+            )
         # Update the UI to reflect the changes
-        self.update_ui()
+      self.update_ui()
         
 
   def open_product_selection(self):

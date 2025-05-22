@@ -10,7 +10,7 @@ from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.scheduled_tasks_windows.butchers_list.butcher_list_picker_dialogue import ButcherListPicker
 from controllers.sage_controllers.invoices import *
 from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_table import ButchersListTable
-from resources.butchers_list_utils import get_invoice_products, refresh_get_invoice_products
+from utils.butchers_list_utils import get_invoice_products, refresh_get_invoice_products
 from resources.excel_exporter import ExcelExporter
 
 
