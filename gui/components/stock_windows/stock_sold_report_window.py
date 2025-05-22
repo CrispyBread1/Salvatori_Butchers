@@ -159,8 +159,7 @@ class StockSoldReportWindow(QWidget):
       print(error_message)
       self.status_label.setText(f"Error fetching invoices: {error_message}")
   
-  def populate_table(self, product_sold_data):
-      print(product_sold_data)
+  def populate_table(self, product_sold_data=None):
       if product_sold_data:
           headers = ["Name", "Quantity Sold"]
           data = []
@@ -168,16 +167,26 @@ class StockSoldReportWindow(QWidget):
           for key, value in product_sold_data.items():
               row_data = [key, value]
               data.append(row_data)
-
+          self.table_widget.setEnabled(True)
           self.table_widget.populate(headers, data)
+      else:
+        # Clear and hide the table if no data
+        self.table_widget.table.clear()
+        self.table_widget.setEnabled(False)
+        self.table_widget.table.setRowCount(0)
+        self.table_widget.table.setColumnCount(0)
 
   def update_ui(self):
       self.report = fetch_report_by_id(1)
       self.report_products = fetch_products_by_ids(self.report.products)
       self.stock_sold_report = fetch_stock_sold_report_by_date(self.date)
+      self.title_label.setText(f"Report for: {self.date}")
       if self.stock_sold_report:
           self.create_report_button.hide()
           self.update_report_button.show()
           self.populate_table(self.stock_sold_report.data)
-      pass
+      else:
+          self.create_report_button.show()
+          self.update_report_button.hide()    
+          self.populate_table()
 
