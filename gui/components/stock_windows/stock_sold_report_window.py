@@ -7,10 +7,11 @@ from PyQt5.QtWidgets import (
 
 from database.products import fetch_products, fetch_products_by_ids
 from database.reports import fetch_report_by_id, update_report
+from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.reusable.table import DynamicTableWidget
 from gui.components.reusable.product_popup import AddProductPopup
-from utils.stock_sold_report_utils import add_product_stock_sold_report, remove_product_stock_sold_report
+from utils.stock_sold_report_utils import add_product_stock_sold_report, fetch_chosen_dates_invoice_items, fetch_chosen_dates_invoice_items, remove_product_stock_sold_report
 
 
 class StockSoldReportWindow(QWidget):
@@ -21,6 +22,7 @@ class StockSoldReportWindow(QWidget):
     self.title_label = QLabel()
     self.title_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 15px;")
     self.main_layout.addWidget(self.title_label)
+    self.loading_manager = LoadingManager(self)
     self.setup_ui()
         
   def setup_ui(self):
@@ -105,7 +107,42 @@ class StockSoldReportWindow(QWidget):
 
   
   def create_report(self):
-      pass
+      # products_sage_codes = create_sage_codes_array(self.report_products)
+      # Disable the button to prevent multiple clicks
+      self.create_report_button.setEnabled(False)  # Fixed: was using general_settings_button
+      
+      # Use the loading manager to run the get_invoice_products function with a loading animation
+      self.loading_manager.run_with_loading(
+          task_function=fetch_chosen_dates_invoice_items,  # Direct call to your function
+          on_complete=self.on_fetch_complete,
+          on_error=self.on_fetch_error,
+          loading_text="Fetching invoice data...",
+          title="Loading Invoices",
+          task_args=(self.date, self.report_products,)
+      )
+    
+  def on_fetch_complete(self, product_sold_data, updated_at, original_id=None):
+      # Re-enable button
+      self.create_report_button.setEnabled(True)  # Fixed: was using general_settings_button
+      # Update status with results
+      if product_sold_data:
+          # self.status_label.setText(f"Successfully created {self.date} product report.")
+          # Process invoices further as needed            
+          # insert_stock_sold_report(self.date, product_sold_data, updated_at)
+          # self.butchers_lists = fetch_stock_sold_report_by_date(self.date)
+          self.update_ui()
+      else:
+          self.status_label.setText("No invoices found for the selected date.")
+
+      # self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
+  
+  def on_fetch_error(self, error_message):
+      # Re-enable button
+      self.create_report_button.setEnabled(True)  # Fixed: was using general_settings_button
+      
+      # Show error message
+      print(error_message)
+      self.status_label.setText(f"Error fetching invoices: {error_message}")
   
   def update_ui(self):
       self.report = fetch_report_by_id(1)

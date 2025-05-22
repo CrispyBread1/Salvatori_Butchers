@@ -265,39 +265,5 @@ def refresh_get_todays_invoices(date, original_fetch, previous_fetch):
         return None
     
 
-def get_invoice_items_id(invoices_ids):
-    """
-    Fetch a specific invoice by its ID from the Sage API.
-    """
-    if not API_URL or not API_TOKEN:
-        raise ValueError("Missing SAGE_API_URL or SAGE_API_TOKEN in environment variables.")
-    
-    url = f"{API_URL}/api/searchInvoiceItem/"
 
-    payload = json.dumps([
-      {
-        "field": "INVOICE_NUMBER",
-        "type": "in",
-        "value": invoices_ids
-      }
-    ])
-    headers = {
-      'Content-Type': 'application/json',
-      'AuthToken': API_TOKEN
-    }
-
-    try:
-        if is_internal_network():
-            response = requests.request("POST", url, headers=headers, data=payload, verify=False)
-        else:
-            response = requests.request("POST", url, headers=headers, data=payload)
-        response.raise_for_status()  # Raise an error for non-2xx responses
-
-        invoice_items = response.json()
-        print(f"Fetch in controller completed successfully: {len(invoice_items['results'])}")
-        return invoice_items
-
-    except requests.RequestException as e:
-        print(f"Error fetching invoice items: {e}")
-        return None
 
