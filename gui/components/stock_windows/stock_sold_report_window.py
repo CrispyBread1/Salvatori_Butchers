@@ -2,7 +2,7 @@ from datetime import date
 import json
 from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QStackedWidget,
-    QVBoxLayout, QFrame, QHBoxLayout, QMainWindow, QDialog
+    QVBoxLayout, QFrame, QHBoxLayout, QMessageBox, QDialog
 )
 
 from database.products import fetch_products
@@ -90,6 +90,8 @@ class StockSoldReportWindow(QWidget):
                 # Add the new product ID if it's not already in the list
                 if product_id not in current_product_ids:
                     current_product_ids.append(product_id)
+                else:
+                    QMessageBox.critical(self, "Add failed", "Error: Product already added")
             except Exception as e:
                 # If there was a problem parsing the existing product_ids
                 print(f"Error processing existing product IDs: {e}")
