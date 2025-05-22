@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFrame, QHBoxLayout, QMessageBox, QDialog
 )
 
-from database.products import fetch_products
+from database.products import fetch_products, fetch_products_by_ids
 from database.reports import fetch_report_by_id, update_report
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.reusable.table import DynamicTableWidget
@@ -25,7 +25,9 @@ class StockSoldReportWindow(QWidget):
         
   def setup_ui(self):
       self.report = fetch_report_by_id(1)  
-      print(self.report)   
+      self.report_products = fetch_products_by_ids(self.report.products)
+      print(self.report_products)
+
       self.date = date.today().strftime('%Y-%m-%d')
       self.title_label.setText(f"Report for: {self.date}")
 
@@ -97,5 +99,6 @@ class StockSoldReportWindow(QWidget):
       pass
   
   def update_ui(self):
+      self.report_products = fetch_products_by_ids(self.report.products)
       pass
 

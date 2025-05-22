@@ -137,6 +137,23 @@ def fetch_products_stock_code_fresh():
     cursor.close()
     connection.close()
     return results
+  
+def fetch_products_by_ids(product_ids):
+  connection = connect_db()
+  results = {}
+  if connection:
+      cursor = connection.cursor()
+      
+      # Create placeholders for the IN clause
+      placeholders = ','.join(['%s'] * len(product_ids))
+      query = f"SELECT * FROM products WHERE id IN ({placeholders})"
+      
+      cursor.execute(query, product_ids)
+      results = convert_to_product_objects(cursor.fetchall())
+
+      cursor.close()
+      connection.close()
+      return results
       
 def convert_to_product_objects(products):
   return [Product(*product) for product in products]
