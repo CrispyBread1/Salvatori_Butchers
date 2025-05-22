@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
 
 from database.products import fetch_products, fetch_products_by_ids
 from database.reports import fetch_report_by_id, update_report
+from database.stock_sold_reports import fetch_stock_sold_report_by_date, insert_stock_sold_report
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.reusable.table import DynamicTableWidget
@@ -23,20 +24,26 @@ class StockSoldReportWindow(QWidget):
     self.title_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 15px;")
     self.main_layout.addWidget(self.title_label)
     self.loading_manager = LoadingManager(self)
+    self.table_widget = DynamicTableWidget(self)
+    self.main_layout.addWidget(self.table_widget)
+    self.status_label = QLabel("", self)
+    self.main_layout.addWidget(self.status_label)
     self.setup_ui()
         
   def setup_ui(self):
+      self.date = date.today().strftime('%Y-%m-%d')
       self.report = fetch_report_by_id(1)  
       self.report_products = fetch_products_by_ids(self.report.products)
-      print(self.report_products)
-
-      self.date = date.today().strftime('%Y-%m-%d')
+      self.stock_sold_report = fetch_stock_sold_report_by_date(self.date)
+      
       self.title_label.setText(f"Report for: {self.date}")
 
 
       self.change_date_button = QPushButton("Change Date", self)
       self.change_date_button.clicked.connect(self.change_date)
       self.create_report_button = QPushButton("Create Report", self)
+      self.create_report_button.clicked.connect(self.create_report)
+      self.create_report_button = QPushButton("Update Report", self)
       self.create_report_button.clicked.connect(self.create_report)
       self.add_product_button = QPushButton("Add product", self)
       self.add_product_button.clicked.connect(self.add_product)
@@ -49,6 +56,10 @@ class StockSoldReportWindow(QWidget):
       self.button_layout.addWidget(self.add_product_button)
       self.button_layout.addWidget(self.remove_product_button)
 
+      if self.stock_sold_report:
+          self.populate_table(self.stock_sold_report.data)
+      else:
+          self.table_widget.setEnabled(False)
 
       self.main_layout.addLayout(self.button_layout)
     
@@ -126,10 +137,8 @@ class StockSoldReportWindow(QWidget):
       self.create_report_button.setEnabled(True)  # Fixed: was using general_settings_button
       # Update status with results
       if product_sold_data:
-          # self.status_label.setText(f"Successfully created {self.date} product report.")
-          # Process invoices further as needed            
-          # insert_stock_sold_report(self.date, product_sold_data, updated_at)
-          # self.butchers_lists = fetch_stock_sold_report_by_date(self.date)
+          self.status_label.setText(f"Successfully created {self.date} product report.")
+          insert_stock_sold_report(self.date, product_sold_data)
           self.update_ui()
       else:
           self.status_label.setText("No invoices found for the selected date.")
@@ -147,5 +156,23 @@ class StockSoldReportWindow(QWidget):
   def update_ui(self):
       self.report = fetch_report_by_id(1)
       self.report_products = fetch_products_by_ids(self.report.products)
+      self.stock_sold_report = fetch_stock_sold_report_by_date(self.date)
+      if self.stock_sold_report:
+          self.populate_table(self.stock_sold_report.data)
       pass
+  
+  def populate_table(self, product_sold_data):
+      print(product_sold_data)
+      if product_sold_data:
+          headers = ["Name", "Quantity Sold"]
+          data = []
+
+          for key, value in product_sold_data.items():
+              row_data = [key, value]
+              data.append(row_data)
+
+          print(headers)
+          print(data)
+
+          self.table_widget.populate(headers, data)
 
