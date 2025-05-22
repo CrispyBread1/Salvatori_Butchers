@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
 
 from database.products import fetch_products, fetch_products_by_ids
 from database.reports import fetch_report_by_id, update_report
-from database.stock_sold_reports import fetch_stock_sold_report_by_date, insert_stock_sold_report
+from database.stock_sold_reports import fetch_stock_sold_report_by_date, insert_stock_sold_report, update_stock_sold_report
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.reusable.table import DynamicTableWidget
@@ -43,8 +43,8 @@ class StockSoldReportWindow(QWidget):
       self.change_date_button.clicked.connect(self.change_date)
       self.create_report_button = QPushButton("Create Report", self)
       self.create_report_button.clicked.connect(self.create_report)
-      self.create_report_button = QPushButton("Update Report", self)
-      self.create_report_button.clicked.connect(self.create_report)
+      self.update_report_button = QPushButton("Update Report", self)
+      self.update_report_button.clicked.connect(self.create_report)
       self.add_product_button = QPushButton("Add product", self)
       self.add_product_button.clicked.connect(self.add_product)
       self.remove_product_button = QPushButton("Remove product", self)
@@ -53,10 +53,13 @@ class StockSoldReportWindow(QWidget):
       self.button_layout = QHBoxLayout()
       self.button_layout.addWidget(self.change_date_button)
       self.button_layout.addWidget(self.create_report_button)
+      self.button_layout.addWidget(self.update_report_button)
       self.button_layout.addWidget(self.add_product_button)
       self.button_layout.addWidget(self.remove_product_button)
 
       if self.stock_sold_report:
+          self.create_report_button.hide()
+          self.update_report_button.show()
           self.populate_table(self.stock_sold_report.data)
       else:
           self.table_widget.setEnabled(False)
@@ -115,7 +118,6 @@ class StockSoldReportWindow(QWidget):
       
       return None
   
-
   
   def create_report(self):
       # products_sage_codes = create_sage_codes_array(self.report_products)
@@ -138,7 +140,11 @@ class StockSoldReportWindow(QWidget):
       # Update status with results
       if product_sold_data:
           self.status_label.setText(f"Successfully created {self.date} product report.")
-          insert_stock_sold_report(self.date, product_sold_data)
+          if self.stock_sold_report:
+              update_stock_sold_report(self.stock_sold_report.id, product_sold_data, updated_at)
+          else:
+              insert_stock_sold_report(self.date, product_sold_data)
+              
           self.update_ui()
       else:
           self.status_label.setText("No invoices found for the selected date.")
@@ -153,14 +159,6 @@ class StockSoldReportWindow(QWidget):
       print(error_message)
       self.status_label.setText(f"Error fetching invoices: {error_message}")
   
-  def update_ui(self):
-      self.report = fetch_report_by_id(1)
-      self.report_products = fetch_products_by_ids(self.report.products)
-      self.stock_sold_report = fetch_stock_sold_report_by_date(self.date)
-      if self.stock_sold_report:
-          self.populate_table(self.stock_sold_report.data)
-      pass
-  
   def populate_table(self, product_sold_data):
       print(product_sold_data)
       if product_sold_data:
@@ -171,8 +169,15 @@ class StockSoldReportWindow(QWidget):
               row_data = [key, value]
               data.append(row_data)
 
-          print(headers)
-          print(data)
-
           self.table_widget.populate(headers, data)
+
+  def update_ui(self):
+      self.report = fetch_report_by_id(1)
+      self.report_products = fetch_products_by_ids(self.report.products)
+      self.stock_sold_report = fetch_stock_sold_report_by_date(self.date)
+      if self.stock_sold_report:
+          self.create_report_button.hide()
+          self.update_report_button.show()
+          self.populate_table(self.stock_sold_report.data)
+      pass
 

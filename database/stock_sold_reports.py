@@ -60,7 +60,7 @@ def convert_to_stock_sold_report_objects(report):
   return StockSoldReport(*report)
 
 
-def update_stock_sold_report(data, report_id):
+def update_stock_sold_report(report_id, data, updated_at):
     """Update the details of an existing product in the database."""
     
     # Create a connection to the database
@@ -71,14 +71,15 @@ def update_stock_sold_report(data, report_id):
         
         # Prepare the SQL statement
         update_query = sql.SQL("""
-            UPDATE reports
+            UPDATE stock_sold_report
             SET 
-                stock_sold_report = COALESCE(%s, products)
+                data = COALESCE(%s, data),
+                updated_at = COALESCE(%s, updated_at)
             WHERE id = %s
         """)
         
         # Execute the query with parameters
-        cursor.execute(update_query, (json.dumps(data), report_id))
+        cursor.execute(update_query, (json.dumps(data), updated_at, report_id))
         
         connection.commit()  # Commit the changes
         # print(f"Product with ID {product_id} updated successfully!")
