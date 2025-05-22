@@ -9,8 +9,8 @@ from database.products import fetch_products, fetch_products_by_ids
 from database.reports import fetch_report_by_id, update_report
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from gui.components.reusable.table import DynamicTableWidget
-from gui.components.stock_windows.stock_sold.add_product_popup import AddProductPopup
-from utils.stock_sold_report_utils import add_product_stock_sold_report
+from gui.components.reusable.product_popup import AddProductPopup
+from utils.stock_sold_report_utils import add_product_stock_sold_report, remove_product_stock_sold_report
 
 
 class StockSoldReportWindow(QWidget):
@@ -31,11 +31,6 @@ class StockSoldReportWindow(QWidget):
       self.date = date.today().strftime('%Y-%m-%d')
       self.title_label.setText(f"Report for: {self.date}")
 
-      
-      # Title
-      # title = QLabel("Stock Sold Report")
-      # title.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 15px;")
-      # layout.addWidget(title)
 
       self.change_date_button = QPushButton("Change Date", self)
       self.change_date_button.clicked.connect(self.change_date)
@@ -79,10 +74,25 @@ class StockSoldReportWindow(QWidget):
         # Update the UI to reflect the changes
       self.update_ui()
         
+  def remove_product(self):
+      product_id = self.open_product_selection(True)
 
-  def open_product_selection(self):
-      products = fetch_products()
-      dialog = AddProductPopup(products, DynamicTableWidget)
+      state, message = remove_product_stock_sold_report(self.report, product_id)
+      QMessageBox.information(
+                self, 
+                f"{state}", 
+                f"{message}!"
+            )
+        # Update the UI to reflect the changes
+      self.update_ui()
+      
+
+  def open_product_selection(self, remove=None):
+      if remove:
+          dialog = AddProductPopup(self.report_products, DynamicTableWidget)
+      else:
+          products = fetch_products()
+          dialog = AddProductPopup(products, DynamicTableWidget)
       
       result = dialog.exec_()
       if result == QDialog.Accepted:
@@ -92,13 +102,13 @@ class StockSoldReportWindow(QWidget):
       
       return None
   
-  def remove_product(self):
-      pass
+
   
   def create_report(self):
       pass
   
   def update_ui(self):
+      self.report = fetch_report_by_id(1)
       self.report_products = fetch_products_by_ids(self.report.products)
       pass
 
