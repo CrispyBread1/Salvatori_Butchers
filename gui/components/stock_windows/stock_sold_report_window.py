@@ -123,7 +123,6 @@ class StockSoldReportWindow(QWidget):
       # products_sage_codes = create_sage_codes_array(self.report_products)
       # Disable the button to prevent multiple clicks
       self.create_report_button.setEnabled(False)  # Fixed: was using general_settings_button
-      
       # Use the loading manager to run the get_invoice_products function with a loading animation
       self.loading_manager.run_with_loading(
           task_function=fetch_chosen_dates_invoice_items,  # Direct call to your function
