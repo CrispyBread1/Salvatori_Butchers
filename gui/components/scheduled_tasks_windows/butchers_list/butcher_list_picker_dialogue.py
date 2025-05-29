@@ -56,6 +56,7 @@ class ButcherListPicker(QDialog):
         self.selected_number = self.radio_group.id(button)
         
     def on_combo_selected(self, index):
+        print(index)
         self.selected_number = index + 1  # +1 because index starts at 0
         
     def get_selected_number(self):
@@ -63,4 +64,4 @@ class ButcherListPicker(QDialog):
         if self.max_number <= 5:
             return (self.radio_group.checkedId() - 1)
         else:
-            return (self.combo_box.currentIndex() - 1)
+            return (self.combo_box.currentIndex())
