@@ -64,4 +64,4 @@ class ButcherListPicker(QDialog):
         if self.max_number <= 5:
             return (self.radio_group.checkedId() - 1)
         else:
-            return (self.combo_box.currentIndex())
+            return (self.combo_box.currentIndex() - 1)
