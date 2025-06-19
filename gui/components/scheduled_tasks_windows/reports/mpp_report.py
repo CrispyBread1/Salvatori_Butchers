@@ -10,7 +10,7 @@ from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_table im
 from utils.butchers_list_utils import get_invoice_products, refresh_get_invoice_products
 from resources.excel_exporter import ExcelExporter
 
-class MPPReportWindow(QWidget):
+class MPPReport(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -33,14 +33,12 @@ class MPPReportWindow(QWidget):
         self.button_layout = QHBoxLayout()
         
         self.create_report_button = QPushButton("Create report", self)
-        self.create_report_button.clicked.connect(self.pull_butcher_data)
+        self.create_report_button.clicked.connect(self.create_mpp_report)
 
         self.refresh_report_button = QPushButton("Refresh Report", self)
-        self.refresh_report_button.clicked.connect(self.refresh_pull_butcher_data)
+        self.refresh_report_button.clicked.connect(self.refresh_mpp_report)
         self.refresh_report_button.hide()
 
-        if self.butchers_lists:
-            self.refresh_report_button.show()
 
         self.export_xl_button = QPushButton("Export to XL", self)
         self.export_xl_button.clicked.connect(self.export_to_xl)
@@ -65,4 +63,13 @@ class MPPReportWindow(QWidget):
         """Update UI elements without recreating the layout"""
         self.title_label.setText(f"MPP Report - {self.date}")
         self.status_label.setText("")  # Clear previous status
+
+    def create_mpp_report(self):
+        pass
+    
+    def refresh_mpp_report(self):
+        pass
+    
+    def export_to_xl(self):
+        pass
 
