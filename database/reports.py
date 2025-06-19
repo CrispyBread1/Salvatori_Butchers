@@ -87,4 +87,34 @@ def update_report(products, report_id):
     else:
         print("Failed to connect to the database, product not updated.")
         return False
+    
+def update_report_by_column(data, report_id, column):
+    """Update the details of an existing product in the database."""
+    
+    # Create a connection to the database
+    connection = connect_db()
+    
+    if connection:
+        cursor = connection.cursor()
+        
+        # Prepare the SQL statement
+        update_query = sql.SQL("""
+            UPDATE reports
+            SET 
+                {column} = COALESCE(%s, {column})
+            WHERE id = %s
+        """)
+        
+        # Execute the query with parameters
+        cursor.execute(update_query, (json.dumps(data), report_id))
+        
+        connection.commit()  # Commit the changes
+        # print(f"Product with ID {product_id} updated successfully!")
+        
+        cursor.close()
+        connection.close()
+        return True
+    else:
+        print("Failed to connect to the database, product not updated.")
+        return False
 
