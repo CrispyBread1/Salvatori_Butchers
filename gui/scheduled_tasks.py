@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 
 from gui.components.scheduled_tasks_windows.dashboard_window import DashboardWindow
 from gui.components.scheduled_tasks_windows.butchers_list_window import ButchersListWindow
+from gui.components.scheduled_tasks_windows.report_window import ReportWindow
 
 
 class ScheduledTasks(QMainWindow):
@@ -47,10 +48,12 @@ class ScheduledTasks(QMainWindow):
         # Create the Scheduled tasks components
         self.dashboard_window = DashboardWindow()
         self.butchers_list_window = ButchersListWindow()
+        self.report_window = ReportWindow()
         
         # Add windows to stacked widget
         self.stacked_widget.addWidget(self.dashboard_window)
         self.stacked_widget.addWidget(self.butchers_list_window)
+        self.stacked_widget.addWidget(self.report_window)
         
         # Add components to the main layout
         main_layout.addLayout(self.nav_dashboard_layout)
@@ -68,9 +71,9 @@ class ScheduledTasks(QMainWindow):
         self.reports_button.hide()
     
     def show_reports(self):
-        pass
-        """Switch to reports window (placeholder)"""
+        """Switch to reports window"""
         self.back_button.show()  # Show back button when viewing a subpage
+        self.stacked_widget.setCurrentWidget(self.report_window)
         # Hide Dashboard navigation buttons when in a specific section
         self.butchers_list_button.hide()
         self.reports_button.hide()
