@@ -34,7 +34,7 @@ def get_invoice_products(date):
         print(invoices_ids)
         invoice_items = get_invoice_items_id(invoices_ids)
 
-        processed_data = process_invoices_products(invoice_items['results'], fresh_products_codes, invoice_list['results'])
+        processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'])
 
     return processed_data, "Not sure what to put here"
 
