@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from auth.userAuthentication import AuthService
 from controllers.sage_controllers.invoice_products import get_invoice_items_between_time_frame, get_invoice_items_id
+from database.products import fetch_products
 from database.reports import fetch_report_by_id
 from gui.components.reusable.animations.loading_component import LoadingManager
 from controllers.sage_controllers.invoices import *
@@ -109,13 +110,13 @@ class MPPReport(QWidget):
         """Export detailed report with all invoice items"""
         # Flatten the data for detailed export
         flattened_data = self.flatten_invoice_data(self.customer_invoice_data)
-        print(flattened_data)
+        # print(flattened_data)
         # Define headers for detailed report (using display names)
         headers = [
               'location_name', 'city', 'county', 'address_1', 'address_2', 'post_code',
               'sage_code', 'account_name', 'distributor_location',
               'invoice_number', 'invoice_date',
-              'product_code', 'product_description', 'unit_price', 'quantity', 'total_price'
+              'product_code', 'product_description', 'unit_price', 'quantity', 'total_price', 'unit_of_measurement'
         ]
             
         # Generate filename
@@ -132,7 +133,7 @@ class MPPReport(QWidget):
             butchers_list=False
         )
             
-        QMessageBox.information(self, "Success", f"Detailed report exported successfully!")
+        QMessageBox.information(self, "Success", f"Report exported successfully!")
             
         
 
@@ -172,7 +173,8 @@ class MPPReport(QWidget):
                             'product_description': item.get('product_description', ''),
                             'unit_price': item.get('product_unit_price', 0),
                             'quantity': item.get('amount', 0),
-                            'total_price': item.get('total_price', 0)
+                            'total_price': item.get('total_price', 0),
+                            'unit_of_measurement': item.get('unit_of_measurement', 0)
                         })
                         flattened.append(row)
         
@@ -210,7 +212,8 @@ class MPPReport(QWidget):
                 customer["data"].append(invoice_data)  # Append each invoice as an object to the list
         return customers
 
-    def filter_invoice_items(self, invoice_items_for_week, customer_invoice_number):     
+    def filter_invoice_items(self, invoice_items_for_week, customer_invoice_number):    
+        supabase_items =  fetch_products()
         items = []
         for invoice_item in invoice_items_for_week:
             invoice_item_number = invoice_item["invoiceNumber"]
@@ -220,7 +223,32 @@ class MPPReport(QWidget):
                     "product_description": invoice_item["description"],
                     "product_unit_price": invoice_item["unitPrice"],
                     "amount": invoice_item["quantity"],
-                    "total_price": invoice_item["netAmount"]
+                    "total_price": invoice_item["netAmount"],
+                    "unit_of_measurement": self.get_unit_of_measurement(supabase_items, invoice_item["stockCode"])
                 }
                 items.append(item_data)
         return items
+    
+    def get_unit_of_measurement(self, supabase_items, stockCode):
+        for supabase_item in supabase_items:
+            sage_code = supabase_item.sage_code
+            
+            try:
+                # Try to parse as JSON first
+                parsed_sage_codes = json.loads(sage_code)
+                
+                if isinstance(parsed_sage_codes, str):
+                    # JSON string value
+                    if parsed_sage_codes == stockCode:
+                        return supabase_item.sold_as
+                elif isinstance(parsed_sage_codes, list):
+                    # JSON array
+                    if stockCode in parsed_sage_codes:
+                        return supabase_item.sold_as
+                        
+            except (json.JSONDecodeError, TypeError):
+                # If JSON parsing fails, treat as plain string
+                if isinstance(sage_code, str) and sage_code == stockCode:
+                    return supabase_item.sold_as
+        
+        return None
