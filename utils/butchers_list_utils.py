@@ -1,5 +1,6 @@
 from itertools import chain
 from collections import defaultdict
+import json
 
 from controllers.sage_controllers.invoice_products import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_todays_invoices, get_todays_new_invoices, refresh_get_todays_invoices
@@ -31,7 +32,6 @@ def get_invoice_products(date):
                 invoices_ids.append(invoice['invoiceNumber'])
         
         # Process invoices and create new butchers list
-        print(invoices_ids)
         invoice_items = get_invoice_items_id(invoices_ids)
 
         processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'])
@@ -65,7 +65,7 @@ def refresh_get_invoice_products(date, list_number):
                 invoices_ids.append(invoice['invoiceNumber'])
         
         invoice_items = get_invoice_items_id(invoices_ids)
-        processed_data = process_invoices_products(invoice_items['results'], fresh_products_codes, invoice_list['results'])
+        processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'])
 
     return processed_data, existing_butchers_lists[list_number].id
 
@@ -73,10 +73,27 @@ def check_product_is_fresh(stock_code, fresh_products_codes):
     """
     Check if a product is considered fresh based on its stock code.
     """
-    flat_codes = list(chain.from_iterable(
-        [item] if not isinstance(item, list) else item for item in fresh_products_codes
-    ))
-    return stock_code in flat_codes
+    
+    for fresh_code in fresh_products_codes:
+        try:
+            # Try to parse as JSON first
+            parsed_codes = json.loads(fresh_code)
+            if isinstance(parsed_codes, str):
+                # JSON string value
+                if parsed_codes == stock_code:
+
+                    return True
+            elif isinstance(parsed_codes, list):
+                # JSON array
+                if stock_code in parsed_codes:
+                    return True
+                    
+        except (json.JSONDecodeError, TypeError):
+            # If JSON parsing fails, treat as plain string
+            if isinstance(fresh_code, str) and fresh_code == stock_code:
+                return True
+    
+    return False
 
 def create_customer_lookup(butchers_list):
     """
