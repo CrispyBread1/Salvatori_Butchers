@@ -10,7 +10,6 @@ from database.reports import fetch_report_by_id
 from gui.components.reusable.animations.loading_component import LoadingManager
 from controllers.sage_controllers.invoices import *
 from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_table import ButchersListTable
-from utils.butchers_list_utils import get_invoice_products, refresh_get_invoice_products
 from resources.excel_exporter import ExcelExporter
 from utils.mpp_report_utils import add_customer_mpp_report, remove_customer_mpp_report
 

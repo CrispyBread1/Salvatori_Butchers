@@ -66,7 +66,6 @@ def refresh_get_invoice_products(date, list_number):
         
         invoice_items = get_invoice_items_id(invoices_ids)
         processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'])
-
     return processed_data, existing_butchers_lists[list_number].id
 
 def check_product_is_fresh(stock_code, fresh_products_codes):
@@ -150,38 +149,39 @@ def process_invoice_items(invoice_products, customer_entry, fresh_products_codes
     # Convert invoice_ids to strings for comparison
     invoice_ids_as_strings = [str(inv_id) for inv_id in customer_entry["invoice_ids"]]
     
-    for item in invoice_products:
-        # Get invoice number to match with our invoice list
-        invoice_number = item.get("invoiceNumber")
-        if invoice_number is not None:
-            invoice_number = str(invoice_number)  # Convert to string to ensure comparison works
-        else:
-            invoice_number = ""
-        
-        # Check if this item belongs to one of our target invoices
-        if invoice_number in invoice_ids_as_strings:
-            code = item.get("stockCode", "")
-            # Handle case where stockCode might be None or an integer
-            if code is not None:
-                code = str(code).strip()
+    for invoice_id in invoice_ids_as_strings:
+        for item in invoice_products:
+            # Get invoice number to match with our invoice list
+            product_invoice_number = item.get("invoiceNumber")
+            if product_invoice_number is not None:
+                product_invoice_number = str(product_invoice_number)  # Convert to string to ensure comparison works
             else:
-                code = ""
-                
-            if check_product_is_fresh(code, fresh_products_codes):
-                has_fresh_products = True
-                
-                # Handle case where description might be None or an integer
-                name = item.get("description", "")
-                if name is not None:
-                    name = str(name).strip()
+                product_invoice_number = ""
+            
+            # Check if this item belongs to one of our target invoices
+            if product_invoice_number == invoice_id:
+                code = item.get("stockCode", "")
+                # Handle case where stockCode might be None or an integer
+                if code is not None:
+                    code = str(code).strip()
                 else:
-                    name = ""
+                    code = ""
                     
-                qty = float(item.get("quantity", 0))
-                
-                # Always aggregate quantities of the same product, regardless of customer type
-                product_key = (code, name)
-                customer_entry["product_dict"][product_key] += qty
+                if check_product_is_fresh(code, fresh_products_codes):
+                    has_fresh_products = True
+                    
+                    # Handle case where description might be None or an integer
+                    name = item.get("description", "")
+                    if name is not None:
+                        name = str(name).strip()
+                    else:
+                        name = ""
+                        
+                    qty = float(item.get("quantity", 0))
+                    
+                    # Always aggregate quantities of the same product, regardless of customer type
+                    product_key = (code, name)
+                    customer_entry["product_dict"][product_key] += qty
     
     return has_fresh_products
 
