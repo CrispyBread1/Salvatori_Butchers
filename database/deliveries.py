@@ -65,12 +65,16 @@ def fetch_deliveries_by_week(chosen_date):
             
             cursor_results = cursor.fetchall()
             if cursor_results:
-              results.append(convert_to_delivery_objects(cursor_results))
+              # print(f'cursor_results: {cursor_results}')
+              for row in cursor_results:
+                #  print(f'row: {row}')
+                #  print(f'delivery object: {Delivery(*row)}')
+                 results.append(Delivery(*row))
+              # results.append(convert_to_delivery_objects(cursor_results))
 
             
             cursor.close()
     connection.close()
-        
     return results
   
       
