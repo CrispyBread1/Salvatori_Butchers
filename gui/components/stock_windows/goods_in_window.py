@@ -8,6 +8,8 @@ from datetime import date, datetime, timedelta
 from database.deliveries import fetch_deliveries_by_week
 from database.products import fetch_products
 from gui.components.reusable.table import DynamicTableWidget
+from gui.components.stock_windows.goods_in.delivery_detail_window import DeliveryDetailWindow
+
 
 
 class GoodsInWindow(QWidget):
@@ -15,6 +17,7 @@ class GoodsInWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.chosen_date = datetime.now()
+        self.deliveries = []  # Store deliveries for detail window
         # Create product lookup dictionary once for O(1) access
         self.product_lookup = {product.id: product.name for product in fetch_products()}
         self.layout = QVBoxLayout()
@@ -57,9 +60,9 @@ class GoodsInWindow(QWidget):
 
     def load_product_table(self):
         """Load product data into the table."""
-        deliveries = fetch_deliveries_by_week(self.chosen_date)
+        self.deliveries = fetch_deliveries_by_week(self.chosen_date)
 
-        if not deliveries:
+        if not self.deliveries:
             self.label.setText("No data found.")
             # Clear the table when no deliveries are found
             self.dynamic_table_widget.populate([], [], None)
@@ -72,30 +75,17 @@ class GoodsInWindow(QWidget):
         self.title.setText(f"Goods In - {self.chosen_date.strftime('%Y-%m-%d')}")
         
         # Headers
-        headers = ["Product", "Cases", "Batch Code", "Vehicle Temperature", "Product Temperature", 
-                  "Driver Name", "License Plate", "Origin", "Kill Date", "Use By",
-                  "Supplier", "Slaughter Number", "Cut Number", "Red Tractor", "RSPCA", "Organic Assured"]
+        headers = ["Product", "Cases", "Batch Code", "Supplier", "Date"]
         
         # Build data list more efficiently
         data = []
-        for delivery in deliveries:
+        for delivery in self.deliveries:
             row_data = [
                 self.product_lookup.get(delivery.product, "Unknown Product"),  # O(1) lookup
                 str(delivery.quantity),
                 str(delivery.batch_code),
-                delivery.vehicle_temperature,
-                delivery.product_temperature,
-                delivery.driver_name,
-                delivery.license_plate,
-                delivery.origin,
-                delivery.kill_date.strftime('%Y-%m-%d'),
-                delivery.use_by.strftime('%Y-%m-%d'),
                 delivery.supplier,  # Fixed order - supplier was in wrong position
-                delivery.slaughter_number,
-                delivery.cut_number,
-                delivery.red_tractor,
-                delivery.rspca,
-                delivery.organic_assured,
+                delivery.date,
             ]
             data.append(row_data)
 
@@ -116,6 +106,23 @@ class GoodsInWindow(QWidget):
         # Populate table
         self.dynamic_table_widget.populate(headers, data, format_cell)
         self.table = self.dynamic_table_widget.table
+        
+        # Connect table double-click event to open detail window (matching EditProductWindow pattern)
+        try:
+            self.table.cellDoubleClicked.disconnect()
+        except:
+            pass
+        
+        self.table.cellDoubleClicked.connect(self.open_delivery_detail)
+
+    def open_delivery_detail(self, row_idx, col_idx):
+        """Open the delivery detail window when double-clicking on Product column (similar to EditProductWindow)."""
+        if col_idx == 0 and row_idx < len(self.deliveries):  # Only open on Product column (first column)
+            # Import here to avoid circular imports
+            
+            
+            self.delivery_detail_window = DeliveryDetailWindow(self.deliveries, row_idx, self)
+            self.delivery_detail_window.show()
 
     def move_previous_week(self):
         self.chosen_date -= timedelta(weeks=1)
