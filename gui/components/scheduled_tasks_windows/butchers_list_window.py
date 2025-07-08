@@ -126,7 +126,7 @@ class ButchersListWindow(QWidget):
         # todays_date = date.today().strftime('%Y-%m-%d')
         dialog = ButcherListPicker(max_number=len(self.butchers_lists), refresh=True)
         if dialog.exec_():
-            selected_butchers_list += (dialog.get_selected_number())                
+            selected_butchers_list = (dialog.get_selected_number())                
             print(f"User selected number: {selected_butchers_list}")
 
         # Use the loading manager to run the get_invoice_products function with a loading animation
