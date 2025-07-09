@@ -178,7 +178,6 @@ def process_invoice_items(invoice_products, customer_entry, fresh_products_codes
                 # Aggregate quantities
                 product_key = (code, name)
                 customer_entry["product_dict"][product_key] += qty
-    
     return has_fresh_products
 
 def finalize_customer_products(butchers_list):
