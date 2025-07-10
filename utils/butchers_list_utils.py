@@ -135,7 +135,7 @@ def get_or_create_customer(customer_name, customer_lookup, invoice_id, new_custo
     
     return customer_entry
 
-def process_invoice_items(invoice_products, customer_entry, fresh_products_codes):
+def process_invoice_items(invoice_products, customer_entry, fresh_products_codes, invoice_id):
     """
     Process items in an invoice and update customer's products.
     All products are aggregated by their stock code and name.
@@ -157,7 +157,7 @@ def process_invoice_items(invoice_products, customer_entry, fresh_products_codes
             product_invoice_number = ""
         
         # Check if this item belongs to any of this customer's invoices
-        if product_invoice_number in invoice_ids_as_strings:
+        if product_invoice_number == invoice_id:
             code = item.get("stockCode", "")
             if code is not None:
                 code = str(code).strip()
@@ -226,7 +226,7 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
         )
         
         # Process invoice items
-        has_fresh_products = process_invoice_items(invoices_items, customer_entry, fresh_products_codes)
+        has_fresh_products = process_invoice_items(invoices_items, customer_entry, fresh_products_codes, invoice_id)
         
         # Track customers who have fresh products
         if has_fresh_products:
