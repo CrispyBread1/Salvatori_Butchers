@@ -3,13 +3,14 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QMessageBox,
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
+from matplotlib.dates import relativedelta
 from auth.userAuthentication import AuthService
 from controllers.sage_controllers.invoice_products import get_invoice_items_between_time_frame, get_invoice_items_id
 from database.products import fetch_products
 from database.reports import fetch_report_by_id
 from gui.components.reusable.animations.loading_component import LoadingManager
 from controllers.sage_controllers.invoices import *
-from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_table import ButchersListTable
+from gui.components.reusable.date_input_dialog import DateInputDialog
 from resources.excel_exporter import ExcelExporter
 from utils.mpp_report_utils import add_customer_mpp_report, remove_customer_mpp_report
 
@@ -26,7 +27,7 @@ class MPPReport(QWidget):
         self.customer_invoice_data = None  # Store data for export
         
         self.date = date.today().strftime('%Y-%m-%d')
-        self.previous_week = (date.today() - timedelta(weeks=1)).strftime('%Y-%m-%d')
+        self.previous_week = (date.today() - relativedelta(month=1)).strftime('%Y-%m-%d')
         
         # Create main layout once
         self.main_layout = QVBoxLayout()
@@ -39,10 +40,14 @@ class MPPReport(QWidget):
         
         # Create button layout
         self.button_layout = QHBoxLayout()
+
+        self.create_report_from_date_button = QPushButton("Create report form chosen Date", self)
+        self.create_report_from_date_button.clicked.connect(self.create_report_from_date)
         
         self.create_report_button = QPushButton("Create report", self)
         self.create_report_button.clicked.connect(self.create_mpp_report)
 
+        self.button_layout.addWidget(self.create_report_from_date_button)
         self.button_layout.addWidget(self.create_report_button)
 
         self.main_layout.addLayout(self.button_layout)
@@ -60,6 +65,24 @@ class MPPReport(QWidget):
         """Update UI elements without recreating the layout"""
         self.title_label.setText(f"MPP Report - {self.date}")
         self.status_label.setText("")  # Clear previous status
+
+    def create_report_from_date(self):
+        # Open date input dialog
+        dialog = DateInputDialog(self)
+        if dialog.exec_():  # If user clicks OK
+            chosen_date = dialog.get_just_date()
+
+        # Disable the button to prevent multiple clicks
+        self.create_report_button.setEnabled(False)
+        # Use the loading manager to run the get_invoice_products function with a loading animation
+        self.loading_manager.run_with_loading(
+            task_function=self.create_report,  # Direct call to your function
+            on_complete=self.on_fetch_complete,
+            on_error=self.on_fetch_error,
+            loading_text="Fetching invoice data...",
+            title="Loading Invoices",
+            task_args=(self.date, chosen_date, self.report)
+        )
 
     def create_mpp_report(self):
         # Disable the button to prevent multiple clicks
@@ -109,7 +132,7 @@ class MPPReport(QWidget):
         """Export detailed report with all invoice items"""
         # Flatten the data for detailed export
         flattened_data = self.flatten_invoice_data(self.customer_invoice_data)
-        # print(flattened_data)
+
         # Define headers for detailed report (using display names)
         headers = [
               'location_name', 'city', 'county', 'address_1', 'address_2', 'post_code',
