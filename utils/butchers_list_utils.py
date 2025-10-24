@@ -216,21 +216,25 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
         company_name = invoice.get("name", "").strip()
         contact_name = invoice.get("contactName", "").strip()
         invoice_id = invoice.get("invoiceNumber")
+
+        if company_name == "App Test Account":
+            pass
+        else:
         
-        # Use company name as customer name if available, otherwise use contact name
-        customer_name = company_name or contact_name or "Unknown Customer"
-        
-        # Get or create customer entry based only on name
-        customer_entry = get_or_create_customer(
-            customer_name, customer_lookup, invoice_id, new_customers
-        )
-        
-        # Process invoice items
-        has_fresh_products = process_invoice_items(invoices_items, customer_entry, fresh_products_codes, invoice_id)
-        
-        # Track customers who have fresh products
-        if has_fresh_products:
-            customers_with_fresh_products.add(customer_name.strip())
+          # Use company name as customer name if available, otherwise use contact name
+          customer_name = company_name or contact_name or "Unknown Customer"
+          
+          # Get or create customer entry based only on name
+          customer_entry = get_or_create_customer(
+              customer_name, customer_lookup, invoice_id, new_customers
+          )
+          
+          # Process invoice items
+          has_fresh_products = process_invoice_items(invoices_items, customer_entry, fresh_products_codes, invoice_id)
+          
+          # Track customers who have fresh products
+          if has_fresh_products:
+              customers_with_fresh_products.add(customer_name.strip())
 
     # Only add new customers who have fresh products
     for customer in new_customers:
