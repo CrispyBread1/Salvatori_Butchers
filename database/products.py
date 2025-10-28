@@ -138,6 +138,19 @@ def fetch_products_stock_code_fresh():
     connection.close()
     return results
   
+def fetch_single_product_stock_code(sage_code):
+    connection = connect_db()
+    if connection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM products WHERE sage_code LIKE %s", (sage_code,))
+        row = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        if row:
+            return Product(*row)
+        return None
+
+  
 def fetch_products_by_ids(product_ids):
   connection = connect_db()
   results = {}

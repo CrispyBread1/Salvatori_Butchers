@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from PyQt5.QtWidgets import (
-    QWidget, QPushButton, QLabel, QStackedWidget,
-    QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
+    QWidget, QPushButton, QLabel, QMessageBox, QComboBox,
+    QVBoxLayout, QFormLayout, QHBoxLayout, QLineEdit, QDialog, QDialogButtonBox
 )
 from auth.userAuthentication import AuthService
 from database.butchers_lists import combine_butchers_lists, fetch_all_butchers_lists_by_date, insert_butchers_list, update_butchers_list
@@ -12,6 +12,7 @@ from controllers.sage_controllers.invoices import *
 from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_table import ButchersListTable
 from utils.butchers_list_utils import get_invoice_products, refresh_get_invoice_products
 from resources.excel_exporter import ExcelExporter
+from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_add_new_product import AddProductDialog
 
 
 class ButchersListWindow(QWidget):
@@ -91,10 +92,25 @@ class ButchersListWindow(QWidget):
             task_function=get_invoice_products,  # Direct call to your function
             on_complete=self.on_fetch_complete,
             on_error=self.on_fetch_error,
+            on_pause=self.handle_product_pause,
             loading_text="Fetching invoice data...",
             title="Loading Invoices",
             task_args=(self.date,)
         )
+
+    def handle_product_pause(self, data):
+        if data.get("type") == "missing_product":
+            sage_code = data.get("sage_code", "")
+            product_description = data.get("description")
+
+            dialog = AddProductDialog(sage_code=sage_code, product_description=product_description, parent=self)
+            if dialog.exec_():
+                # Success — dialog handled the DB insert itself
+                print("Added product:", dialog.product_data)
+                return True, dialog.product_data  # clean return value
+            else:
+                return False, None
+
     
     def on_fetch_complete(self, invoices, updated_at, original_id=None):
         # Re-enable button
@@ -134,6 +150,7 @@ class ButchersListWindow(QWidget):
             task_function=refresh_get_invoice_products,  # Direct call to your function
             on_complete=self.refresh_on_fetch_complete,
             on_error=self.refresh_on_fetch_error,
+            on_pause=self.handle_product_pause,
             loading_text="Fetching invoice data...",
             title="Loading Invoices",
             task_args=(self.date, selected_butchers_list,)
@@ -226,7 +243,4 @@ class ButchersListWindow(QWidget):
                     "quantity": product["quantity"]
                 })
         
-        return flattened
-    
-
- 
+        return flattened    

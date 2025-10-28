@@ -79,6 +79,7 @@ class MPPReport(QWidget):
             task_function=self.create_report,  # Direct call to your function
             on_complete=self.on_fetch_complete,
             on_error=self.on_fetch_error,
+            on_pause=self.handle_pause,
             loading_text="Fetching invoice data...",
             title="Loading Invoices",
             task_args=(self.date, chosen_date, self.report)
@@ -92,6 +93,7 @@ class MPPReport(QWidget):
             task_function=self.create_report,  # Direct call to your function
             on_complete=self.on_fetch_complete,
             on_error=self.on_fetch_error,
+            on_pause=self.handle_pause,
             loading_text="Fetching invoice data...",
             title="Loading Invoices",
             task_args=(self.date, self.previous_week, self.report)
@@ -127,6 +129,9 @@ class MPPReport(QWidget):
         # Show error message
         print(error_message)
         self.status_label.setText(f"Error fetching invoices: {error_message}")
+    
+    def handle_pause(self):
+        pass
 
     def export_detailed_report(self):
         """Export detailed report with all invoice items"""

@@ -5,9 +5,9 @@ import json
 from controllers.sage_controllers.invoice_products import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_todays_invoices, get_todays_new_invoices, refresh_get_todays_invoices
 from database.butchers_lists import fetch_all_butchers_lists_by_date, fetch_butchers_list_by_date
-from database.products import fetch_products_stock_code_fresh
+from database.products import fetch_products_stock_code_fresh, fetch_single_product_stock_code, insert_product
 
-def get_invoice_products(date):
+def get_invoice_products(date, on_pause=None):
     """
     Main function to retrieve and process invoice products for a specific date.
     Creates a new butchers list row in the database instead of updating a JSON blob.
@@ -34,7 +34,7 @@ def get_invoice_products(date):
         # Process invoices and create new butchers list
         invoice_items = get_invoice_items_id(invoices_ids)
 
-        processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'])
+        processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'], on_pause)
 
     return processed_data, "Not sure what to put here"
 
@@ -135,51 +135,6 @@ def get_or_create_customer(customer_name, customer_lookup, invoice_id, new_custo
     
     return customer_entry
 
-def process_invoice_items(invoice_products, customer_entry, fresh_products_codes, invoice_id):
-    """
-    Process items in an invoice and update customer's products.
-    All products are aggregated by their stock code and name.
-    """
-    has_fresh_products = False
-    
-    if not invoice_products:
-        return has_fresh_products
-    
-    # Convert invoice_ids to strings for comparison
-    invoice_ids_as_strings = [str(inv_id) for inv_id in customer_entry["invoice_ids"]]
-    
-    # Process each item once, checking if it belongs to any of this customer's invoices
-    for item in invoice_products:
-        product_invoice_number = item.get("invoiceNumber")
-        if product_invoice_number is not None:
-            product_invoice_number = str(product_invoice_number)
-        else:
-            product_invoice_number = ""
-        
-        # Check if this item belongs to any of this customer's invoices
-        if product_invoice_number == invoice_id:
-            code = item.get("stockCode", "")
-            if code is not None:
-                code = str(code).strip()
-            else:
-                code = ""
-                
-            if check_product_is_fresh(code, fresh_products_codes):
-                has_fresh_products = True
-                
-                name = item.get("description", "")
-                if name is not None:
-                    name = str(name).strip()
-                else:
-                    name = ""
-                    
-                qty = float(item.get("quantity", 0))
-                
-                # Aggregate quantities
-                product_key = (code, name)
-                customer_entry["product_dict"][product_key] += qty
-    return has_fresh_products
-
 def finalize_customer_products(butchers_list):
     """
     Finalize customer products by converting product_dict back to products list.
@@ -197,7 +152,7 @@ def finalize_customer_products(butchers_list):
         # Clean up the temporary product_dict
         customer.pop("product_dict", None)
 
-def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_list=[]):
+def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_list=[], on_pause=None):
     """
     Process invoices and update the butchers list with products from invoices,
     identifying customers by name only.
@@ -230,7 +185,7 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
           )
           
           # Process invoice items
-          has_fresh_products = process_invoice_items(invoices_items, customer_entry, fresh_products_codes, invoice_id)
+          has_fresh_products = process_invoice_items(invoices_items, customer_entry, fresh_products_codes, invoice_id, on_pause)
           
           # Track customers who have fresh products
           if has_fresh_products:
@@ -247,3 +202,78 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
     finalize_customer_products(butchers_list)
 
     return butchers_list
+
+def process_invoice_items(invoice_products, customer_entry, fresh_products_codes, invoice_id, on_pause=None):
+    """
+    Process items in an invoice and update customer's products.
+    All products are aggregated by their stock code and name.
+    """
+    has_fresh_products = False
+    
+    if not invoice_products:
+        return has_fresh_products
+    
+    # Convert invoice_ids to strings for comparison
+    invoice_ids_as_strings = [str(inv_id) for inv_id in customer_entry["invoice_ids"]]
+    
+    # Process each item once, checking if it belongs to any of this customer's invoices
+    for item in invoice_products:
+        product_invoice_number = item.get("invoiceNumber")
+        product_description = item.get("description")
+        sage_code = item.get("stockCode", "")
+        if product_invoice_number is not None:
+            product_invoice_number = str(product_invoice_number)
+        else:
+            product_invoice_number = ""
+        
+        # Check if this item belongs to any of this customer's invoices
+        if product_invoice_number == invoice_id:
+            if sage_code is not None:
+                sage_code = str(sage_code).strip()
+            else:
+                sage_code = ""
+                
+            if check_product_is_fresh(sage_code, fresh_products_codes):
+                has_fresh_products = True
+                
+                name = item.get("description", "")
+                if name is not None:
+                    name = str(name).strip()
+                else:
+                    name = ""
+                    
+                qty = float(item.get("quantity", 0))
+                
+                # Aggregate quantities
+                product_key = (sage_code, name)
+                customer_entry["product_dict"][product_key] += qty
+             
+            else:
+                # Pass on_pause callback to find_or_create_product
+                find_or_create_product(sage_code, product_description, on_pause)
+
+    return has_fresh_products
+
+def find_or_create_product(product_sage_code, product_description, on_pause=None):
+    # Search for product in database
+    product = fetch_single_product_stock_code(product_sage_code)
+    
+    if not product:
+        # Product not found - trigger pause if callback provided
+        if on_pause:
+            on_pause({
+                "type": "missing_product",
+                "description": product_description,
+                "sage_code": product_sage_code
+            })
+        return False
+    return True
+
+def add_product_supabase(name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as):
+    try:
+        insert_product(name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as)
+        return True
+    except Exception as e:
+      return e
+
+

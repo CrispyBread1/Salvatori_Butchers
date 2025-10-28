@@ -169,6 +169,7 @@ class EditProductWindow(QMainWindow):
             task_function=process_file,  # Direct call to your function
             on_complete=self.on_update_complete,
             on_error=self.on_update_error,
+            on_pause=self.handle_pause,
             loading_text="Updating product data...",
             title="Loading Prices",
             task_args=(input_file,)
@@ -214,3 +215,6 @@ class EditProductWindow(QMainWindow):
     
     def on_update_error(self, error_message):
         QMessageBox.critical(self, "Error", f"An error occurred while processing the file:\n{str(error_message)}")
+
+    def handle_pause(self):
+        pass

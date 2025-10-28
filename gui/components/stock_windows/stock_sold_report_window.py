@@ -128,6 +128,7 @@ class StockSoldReportWindow(QWidget):
           task_function=fetch_chosen_dates_invoice_items,  # Direct call to your function
           on_complete=self.on_fetch_complete,
           on_error=self.on_fetch_error,
+          on_pause=self.handle_pause,
           loading_text="Fetching invoice data...",
           title="Loading Invoices",
           task_args=(self.date, self.report_products,)
@@ -157,6 +158,9 @@ class StockSoldReportWindow(QWidget):
       # Show error message
       print(error_message)
       self.status_label.setText(f"Error fetching invoices: {error_message}")
+
+  def handle_pause(self):
+      pass
   
   def populate_table(self, product_sold_data=None):
       if product_sold_data:

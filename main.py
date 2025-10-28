@@ -20,7 +20,7 @@ def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    update()
+    # update()
     sys.exit(app.exec_())
 
 
