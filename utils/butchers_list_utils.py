@@ -38,7 +38,7 @@ def get_invoice_products(date, on_pause=None):
 
     return processed_data, "Not sure what to put here"
 
-def refresh_get_invoice_products(date, list_number):
+def refresh_get_invoice_products(date, list_number, on_pause=None):
     """
     Main function to refresh and process invoice products for a specific date.
     Creates a new butchers list row in the database instead of updating a JSON blob.
