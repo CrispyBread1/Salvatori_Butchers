@@ -99,7 +99,7 @@ class MPPReport(QWidget):
             task_args=(self.date, self.previous_week, self.report)
         )
 
-    def create_report(self, date, previous_week, report):
+    def create_report(self, date, previous_week, report, on_pause=None):
         invoices = get_the_last_weeks_invoices(date, previous_week)
         invoice_ids = self.get_customer_invoice_ids(invoices, report.customers)
         invoice_items_for_week = get_invoice_items_id(invoice_ids)
@@ -194,16 +194,19 @@ class MPPReport(QWidget):
                 # Only add rows for invoices that have items
                 if invoice.get('invoice_items'):
                     for item in invoice.get('invoice_items', []):
-                        row = {**location_info, **invoice_info}
-                        row.update({
-                            'product_code': item.get('product_code', ''),
-                            'product_description': item.get('product_description', ''),
-                            'unit_price': item.get('product_unit_price', 0),
-                            'quantity': item.get('amount', 0),
-                            'total_price': item.get('total_price', 0),
-                            'unit_of_measurement': item.get('unit_of_measurement', 0)
-                        })
-                        flattened.append(row)
+                        if item.get('product_code', '') == 'M':
+                            pass
+                        else:
+                          row = {**location_info, **invoice_info}
+                          row.update({
+                              'product_code': item.get('product_code', ''),
+                              'product_description': item.get('product_description', ''),
+                              'unit_price': item.get('product_unit_price', 0),
+                              'quantity': item.get('amount', 0),
+                              'total_price': item.get('total_price', 0),
+                              'unit_of_measurement': item.get('unit_of_measurement', 0)
+                          })
+                          flattened.append(row)
         
         return flattened
 
