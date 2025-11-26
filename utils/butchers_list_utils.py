@@ -258,7 +258,7 @@ def find_or_create_product(product_sage_code, product_description, on_pause=None
     # Search for product in database
     product = fetch_single_product_stock_code(product_sage_code)
     
-    if not product:
+    if not product or product_sage_code != 'M':
         # Product not found - trigger pause if callback provided
         if on_pause:
             on_pause({
