@@ -194,7 +194,7 @@ class MPPReport(QWidget):
                 # Only add rows for invoices that have items
                 if invoice.get('invoice_items'):
                     for item in invoice.get('invoice_items', []):
-                        if item.get('product_code', '') == 'M':
+                        if item.get('product_code', '') == 'M' or item.get('product_code', '') == 'HAMPER2':
                             pass
                         else:
                           row = {**location_info, **invoice_info}
