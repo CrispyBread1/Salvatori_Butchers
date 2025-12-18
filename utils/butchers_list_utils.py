@@ -5,7 +5,7 @@ import json
 from controllers.sage_controllers.invoice_products import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_todays_invoices, get_todays_new_invoices, refresh_get_todays_invoices
 from database.butchers_lists import fetch_all_butchers_lists_by_date, fetch_butchers_list_by_date
-from database.products import fetch_products_stock_code_fresh, fetch_single_product_stock_code, insert_product
+from database.products import fetch_products_stock_code_fresh, fetch_stock_codes, insert_product
 
 def get_invoice_products(date, on_pause=None):
     """
@@ -65,7 +65,7 @@ def refresh_get_invoice_products(date, list_number, on_pause=None):
                 invoices_ids.append(invoice['invoiceNumber'])
         
         invoice_items = get_invoice_items_id(invoices_ids)
-        processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'])
+        processed_data = process_invoices_products(invoice_items, fresh_products_codes, invoice_list['results'], on_pause)
     return processed_data, existing_butchers_lists[list_number].id
 
 def check_product_is_fresh(stock_code, fresh_products_codes):
@@ -166,6 +166,9 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
     customers_with_fresh_products = set()
     new_customers = []
     
+    # Dictionary to collect ALL missing products from all invoices
+    missing_products = {}
+    
     for invoice in invoice_list:
         # Get company name from the invoice
         company_name = invoice.get("name", "").strip()
@@ -184,8 +187,14 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
               customer_name, customer_lookup, invoice_id, new_customers
           )
           
-          # Process invoice items
-          has_fresh_products = process_invoice_items(invoices_items, customer_entry, fresh_products_codes, invoice_id, on_pause)
+          # Process invoice items and collect missing products
+          has_fresh_products = process_invoice_items(
+              invoices_items, 
+              customer_entry, 
+              fresh_products_codes, 
+              invoice_id, 
+              missing_products
+          )
           
           # Track customers who have fresh products
           if has_fresh_products:
@@ -201,12 +210,33 @@ def process_invoices_products(invoices_items, fresh_products_codes=[], invoice_l
     # Step 3: Finalize products for all customers
     finalize_customer_products(butchers_list)
 
+    # Step 4: Trigger pause for each missing product individually
+    # print(f"DEBUG: Total missing products collected: {len(missing_products)}")
+    # print(f"DEBUG: Missing products: {missing_products}")
+    # print(f"DEBUG: on_pause callback exists: {on_pause is not None}")
+    
+    if missing_products and on_pause:
+        # print(f"DEBUG: Triggering on_pause for {len(missing_products)} products")
+        for sage_code, product_info in missing_products.items():
+            print(f"DEBUG: Showing dialog for product: {sage_code}")
+            on_pause({
+                "type": "missing_product",  # Keep singular to match frontend
+                "sage_code": product_info["sage_code"],
+                "description": product_info["description"]
+            })
+    else:
+        if not missing_products:
+            print("DEBUG: No missing products to report")
+        if not on_pause:
+            print("DEBUG: No on_pause callback provided")
+
     return butchers_list
 
-def process_invoice_items(invoice_products, customer_entry, fresh_products_codes, invoice_id, on_pause=None):
+def process_invoice_items(invoice_products, customer_entry, fresh_products_codes, invoice_id, missing_products):
     """
     Process items in an invoice and update customer's products.
     All products are aggregated by their stock code and name.
+    Collects missing products in the missing_products dictionary.
     """
     has_fresh_products = False
     
@@ -249,24 +279,38 @@ def process_invoice_items(invoice_products, customer_entry, fresh_products_codes
                 customer_entry["product_dict"][product_key] += qty
              
             else:
-                # Pass on_pause callback to find_or_create_product
-                find_or_create_product(sage_code, product_description, on_pause)
+                # Check if product exists and add to missing_products if not
+                find_or_create_product(sage_code, product_description, missing_products)
 
     return has_fresh_products
 
-def find_or_create_product(product_sage_code, product_description, on_pause=None):
-    # Search for product in database
-    product = fetch_single_product_stock_code(product_sage_code)
+def find_or_create_product(product_sage_code, product_description, missing_products):
+    """
+    Search for product in database and add to missing_products dict if not found.
+    Uses sage_code as key to avoid duplicate entries.
+    """
+    print(f"DEBUG: Checking product - sage_code: '{product_sage_code}', description: '{product_description}'")
     
-    if not product or product_sage_code != 'M':
-        # Product not found - trigger pause if callback provided
-        if on_pause:
-            on_pause({
-                "type": "missing_product",
+    # Search for product in database
+    product = fetch_stock_codes()
+    
+    # print(f"DEBUG: Product found: {product is not None}, sage_code != 'M': {product_sage_code != 'M'}")
+    
+    # If product not found AND sage_code is not 'M', add to missing products
+    if not product and product_sage_code != 'M':
+        print(f"DEBUG: Adding to missing_products - {product_sage_code}")
+        # Use sage_code as key to prevent duplicates
+        if product_sage_code not in missing_products:
+            missing_products[product_sage_code] = {
                 "description": product_description,
                 "sage_code": product_sage_code
-            })
+            }
+            # print(f"DEBUG: Product added. Total missing products: {len(missing_products)}")
+        else:
+            print(f"DEBUG: Product already in missing_products")
         return False
+    
+    # print(f"DEBUG: Product exists or is 'M', not adding to missing")
     return True
 
 def add_product_supabase(name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as):
@@ -275,5 +319,3 @@ def add_product_supabase(name, cost, stock_count, product_value, stock_category,
         return True
     except Exception as e:
       return e
-
-
