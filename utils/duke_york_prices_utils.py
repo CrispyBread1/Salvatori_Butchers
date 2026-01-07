@@ -1,2 +1,4 @@
-def get_duke_york_prices():
-  pass
+def get_duke_york_prices(date):
+  invoice_list = []
+
+  
