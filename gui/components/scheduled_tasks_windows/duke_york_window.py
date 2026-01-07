@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from auth.userAuthentication import AuthService
 from gui.components.reusable.animations.loading_component import LoadingManager
-from gui.components.reusable.date_input_dialog import DateInputDialog
+from gui.components.reusable.month_input_dialog import MonthInputDialog
 from controllers.sage_controllers.invoices import *
 from resources.excel_exporter import ExcelExporter
 from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_add_new_product import AddProductDialog
@@ -67,7 +67,7 @@ class DukeYorkPricesWindow(QWidget):
           
     def update_ui(self):
         """Update UI elements without recreating the layout"""
-        self.title_label.setText(f"Kings Head Prices - {self.date}")
+        self.title_label.setText(f"Kings Head Prices - {self.date.strftime('%m-%Y')}")
         self.status_label.setText("")  # Clear previous status
         # if self.butchers_lists:
         #     self.refresh_butchers_list_button.show()
@@ -129,7 +129,7 @@ class DukeYorkPricesWindow(QWidget):
     
     def change_date(self):
         # Open date input dialog
-        dialog = DateInputDialog(self)
+        dialog = MonthInputDialog(self)
         if dialog.exec_():  # If user clicks OK
             self.date = dialog.get_just_date()
             # self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
