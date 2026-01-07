@@ -1,0 +1,141 @@
+from datetime import date, datetime, timedelta
+from PyQt5.QtWidgets import (
+    QWidget, QPushButton, QLabel, QMessageBox, QComboBox,
+    QVBoxLayout, QFormLayout, QHBoxLayout, QLineEdit, QDialog, QDialogButtonBox
+)
+from auth.userAuthentication import AuthService
+from gui.components.reusable.animations.loading_component import LoadingManager
+from gui.components.reusable.date_input_dialog import DateInputDialog
+from controllers.sage_controllers.invoices import *
+from resources.excel_exporter import ExcelExporter
+from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_add_new_product import AddProductDialog
+from utils.kings_head_rye_prices_utils import *
+
+
+class KingsHeadRyePricesWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.auth_service = AuthService()
+        self.user = self.auth_service.current_user
+
+        self.loading_manager = LoadingManager(self)
+        self.date = (date.today() + timedelta(days=1)).strftime('%m-%Y')
+
+        # Create main layout once
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+        
+        # Create title label that we'll update
+        self.title_label = QLabel()
+        self.title_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 15px;")
+        self.main_layout.addWidget(self.title_label)
+        
+        # Create button layout
+        self.button_layout = QHBoxLayout()
+        
+        self.pull_prices_button = QPushButton("Pull Prices", self)
+        self.pull_prices_button.clicked.connect(self.pull_kings_head_data)
+
+        # if self.butchers_lists:
+        #     self.refresh_butchers_list_button.show()
+        
+        self.change_date_button = QPushButton("Change Date", self)
+        self.change_date_button.clicked.connect(self.change_date)
+
+        # self.export_xl_button = QPushButton("Export to XL", self)
+        # self.export_xl_button.clicked.connect(self.export_to_xl)
+        
+        
+        self.button_layout.addWidget(self.change_date_button)
+        self.button_layout.addWidget(self.pull_prices_button)
+
+
+
+
+        # self.button_layout.addWidget(self.export_xl_button)
+        self.main_layout.addLayout(self.button_layout)
+        
+        # Status label to show results
+        self.status_label = QLabel("", self)
+        self.main_layout.addWidget(self.status_label)
+
+        
+        # Update UI with current date
+        self.update_ui()
+          
+    def update_ui(self):
+        """Update UI elements without recreating the layout"""
+        self.title_label.setText(f"Kings Head Prices - {self.date}")
+        self.status_label.setText("")  # Clear previous status
+        # if self.butchers_lists:
+        #     self.refresh_butchers_list_button.show()
+        
+
+    def pull_kings_head_data(self):
+        # Disable the button to prevent multiple clicks
+        self.pull_prices_button.setEnabled(False)  # Fixed: was using general_settings_button
+        
+        # Use the loading manager to run the get_invoice_products function with a loading animation
+        self.loading_manager.run_with_loading(
+            task_function=get_kings_head_prices,  # Direct call to your function
+            on_complete=self.on_fetch_complete,
+            on_error=self.on_fetch_error,
+            on_pause=self.handle_pause,
+            loading_text="Fetching invoice data...",
+            title="Loading Invoices",
+            task_args=(self.date,)
+        )
+
+    def handle_pause(self, data):
+        if data.get("type") == "missing_product":
+            sage_code = data.get("sage_code", "")
+            product_description = data.get("description")
+
+            dialog = AddProductDialog(sage_code=sage_code, product_description=product_description, parent=self)
+            if dialog.exec_():
+                # Success — dialog handled the DB insert itself
+                print("Added product:", dialog.product_data)
+                return True, dialog.product_data  # clean return value
+            else:
+                return False, None
+
+    
+    def on_fetch_complete(self, invoices, updated_at, original_id=None):
+        # Re-enable button
+        self.pull_prices_button.setEnabled(True)  # Fixed: was using general_settings_button
+        # Update status with results
+        if invoices:
+            self.status_label.setText(f"Successfully created {self.date} kings head rye prices.")
+            # Process invoices further as needed            
+            # insert_butchers_list(self.date, invoices, updated_at)
+            # self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
+            self.update_ui()
+        else:
+            self.status_label.setText("No invoices found for the selected date.")
+
+        # self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    def on_fetch_error(self, error_message):
+        # Re-enable button
+        self.pull_prices_button.setEnabled(True)  # Fixed: was using general_settings_button
+        
+        # Show error message
+        print(error_message)
+        self.status_label.setText(f"Error fetching invoices: {error_message}")
+    
+
+    
+    def change_date(self):
+        # Open date input dialog
+        dialog = DateInputDialog(self)
+        if dialog.exec_():  # If user clicks OK
+            self.date = dialog.get_just_date()
+            # self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
+            # Update the UI with the new date
+            self.update_ui()
+
+    def export_to_excel(self):
+        pass
+   
