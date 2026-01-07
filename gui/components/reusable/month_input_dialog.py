@@ -62,3 +62,4 @@ class MonthInputDialog(QDialog):
         year = int(self.year_combo.currentText())
         month = self.month_combo.currentIndex() + 1
         return f"{year}-{month:02d}"
+        
