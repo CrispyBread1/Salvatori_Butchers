@@ -9,10 +9,10 @@ from gui.components.reusable.date_input_dialog import DateInputDialog
 from controllers.sage_controllers.invoices import *
 from resources.excel_exporter import ExcelExporter
 from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_add_new_product import AddProductDialog
-from utils.kings_head_rye_prices_utils import *
+from utils.duke_york_prices_utils import *
 
 
-class KingsHeadRyePricesWindow(QWidget):
+class DukeYorkPricesWindow(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -36,7 +36,7 @@ class KingsHeadRyePricesWindow(QWidget):
         self.button_layout = QHBoxLayout()
         
         self.pull_prices_button = QPushButton("Pull Prices", self)
-        self.pull_prices_button.clicked.connect(self.pull_kings_head_data)
+        self.pull_prices_button.clicked.connect(self.pull_duke_york_data)
 
         # if self.butchers_lists:
         #     self.refresh_butchers_list_button.show()
@@ -73,13 +73,13 @@ class KingsHeadRyePricesWindow(QWidget):
         #     self.refresh_butchers_list_button.show()
         
 
-    def pull_kings_head_data(self):
+    def pull_duke_york_data(self):
         # Disable the button to prevent multiple clicks
         self.pull_prices_button.setEnabled(False)  # Fixed: was using general_settings_button
         
         # Use the loading manager to run the get_invoice_products function with a loading animation
         self.loading_manager.run_with_loading(
-            task_function=get_kings_head_prices,  # Direct call to your function
+            task_function=get_duke_york_prices,  # Direct call to your function
             on_complete=self.on_fetch_complete,
             on_error=self.on_fetch_error,
             on_pause=self.handle_pause,
