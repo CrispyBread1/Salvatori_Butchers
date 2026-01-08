@@ -117,9 +117,9 @@ class ButchersListWindow(QWidget):
         self.pull_orders_button.setEnabled(True)  # Fixed: was using general_settings_button
         # Update status with results
         if invoices:
-            self.status_label.setText(f"Successfully created {self.date} butchers list.")
             # Process invoices further as needed            
             insert_butchers_list(self.date, invoices, updated_at)
+            self.status_label.setText(f"Successfully created {self.date} butchers list.")
             self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
             self.update_ui()
         else:
