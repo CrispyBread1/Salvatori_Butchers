@@ -8,8 +8,8 @@ from database.duke_york_prices import insert_duke_york_prices
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.month_input_dialog import MonthInputDialog
 from controllers.sage_controllers.invoices import *
+from gui.components.scheduled_tasks_windows.duke_york_prices.duke_york_prices_table import DukeYorkPricesTable
 from resources.excel_exporter import ExcelExporter
-from gui.components.scheduled_tasks_windows.butchers_list.butchers_list_add_new_product import AddProductDialog
 from utils.duke_york_prices_utils import *
 
 
@@ -23,6 +23,8 @@ class DukeYorkPricesWindow(QWidget):
 
         self.loading_manager = LoadingManager(self)
         self.date = (date.today() + timedelta(days=1))
+
+        self.
 
         # Create main layout once
         self.main_layout = QVBoxLayout()
@@ -48,12 +50,8 @@ class DukeYorkPricesWindow(QWidget):
         # self.export_xl_button = QPushButton("Export to XL", self)
         # self.export_xl_button.clicked.connect(self.export_to_xl)
         
-        
         self.button_layout.addWidget(self.change_date_button)
         self.button_layout.addWidget(self.pull_prices_button)
-
-
-
 
         # self.button_layout.addWidget(self.export_xl_button)
         self.main_layout.addLayout(self.button_layout)
@@ -62,16 +60,19 @@ class DukeYorkPricesWindow(QWidget):
         self.status_label = QLabel("", self)
         self.main_layout.addWidget(self.status_label)
 
+        self.duke_york_prices_table = DukeYorkPricesTable(self)
+        self.main_layout.addWidget(self.duke_york_prices_table)
         
         # Update UI with current date
         self.update_ui()
           
     def update_ui(self):
         """Update UI elements without recreating the layout"""
-        self.title_label.setText(f"Kings Head Prices - {self.date.strftime('%m-%Y')}")
+        self.title_label.setText(f"Invoices - {self.date}")
         self.status_label.setText("")  # Clear previous status
-        # if self.butchers_lists:
-        #     self.refresh_butchers_list_button.show()
+        self.duke_york_prices_table.load_invoices(self.invoices)
+        # if self.invoices:
+        #     self.refresh_invoice_button.show()
         
 
     def pull_duke_york_data(self):
