@@ -69,7 +69,7 @@ def fetch_all_duke_york_prices_by_date(date):
     connection.close()
     return results
 
-def insert_duke_york_prices(date, data, updated_at):
+def insert_duke_york_prices(date, data):
     connection = None
     try:
         # Attempt to connect to the database
@@ -81,19 +81,19 @@ def insert_duke_york_prices(date, data, updated_at):
             try:
                 # Attempt to execute the insert query
                 cursor.execute("""
-                    INSERT INTO butchers_lists (date, data, updated_at) 
-                    VALUES (%s, %s, %s)
-                """, (date, json.dumps(data), updated_at))
+                    INSERT INTO duke_york_prices (date, data) 
+                    VALUES (%s, %s)
+                """, (date, json.dumps(data)))
                 
                 # Commit the transaction
                 connection.commit()
-                print(f"Butchers list {date} added successfully!")
+                print(f"Duke of York price calculations {date} added successfully!")
                 return True
                 
             except Exception as e:
                 # Roll back any changes if there was an error with the query
                 connection.rollback()
-                print(f"Error inserting Butchers list: {e}")
+                print(f"Error inserting Duke of York price calculations: {e}")
                 return False
                 
             finally:

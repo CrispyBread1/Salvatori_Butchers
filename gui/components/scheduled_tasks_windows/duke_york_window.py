@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFormLayout, QHBoxLayout, QLineEdit, QDialog, QDialogButtonBox
 )
 from auth.userAuthentication import AuthService
+from database.duke_york_prices import insert_duke_york_prices
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.month_input_dialog import MonthInputDialog
 from controllers.sage_controllers.invoices import *
@@ -89,27 +90,17 @@ class DukeYorkPricesWindow(QWidget):
         )
 
     def handle_pause(self, data):
-        if data.get("type") == "missing_product":
-            sage_code = data.get("sage_code", "")
-            product_description = data.get("description")
-
-            dialog = AddProductDialog(sage_code=sage_code, product_description=product_description, parent=self)
-            if dialog.exec_():
-                # Success — dialog handled the DB insert itself
-                print("Added product:", dialog.product_data)
-                return True, dialog.product_data  # clean return value
-            else:
-                return False, None
+        pass
 
     
-    def on_fetch_complete(self, invoices, updated_at, original_id=None):
+    def on_fetch_complete(self, invoices_data):
         # Re-enable button
         self.pull_prices_button.setEnabled(True)  # Fixed: was using general_settings_button
         # Update status with results
-        if invoices:
+        if invoices_data:
             self.status_label.setText(f"Successfully created {self.date} kings head rye prices.")
             # Process invoices further as needed            
-            # insert_butchers_list(self.date, invoices, updated_at)
+            insert_duke_york_prices(self.date, invoices_data)
             # self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
             self.update_ui()
         else:
