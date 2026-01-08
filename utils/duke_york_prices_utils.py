@@ -1,9 +1,16 @@
 import calendar
 from controllers.sage_controllers.invoice_products import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_customer_invoices_by_month
+from database.duke_york_prices import fetch_duke_york_prices_by_date_range
 
 duke_york_product_sage_codes = ['BE2', 'CHR93', 'CHR941', 'CHR31', 'CHR92', 'CHR921', 'CHR9201', 'SS111', 'BAC2', 'LA11', 'PO4', 'SSD2', 'PO5', 'BAC81', 'BAC3', 'BE4']
 duke_york_customer_sage_code = 'TFDUKEY'
+
+def get_duke_york_prices_complete(date):
+    start_month = date.replace(day=1).strftime("%Y-%m-%d %H:%M:%S")
+    last_day = calendar.monthrange(date.year, date.month)[1]
+    end_month = date.replace(day=last_day).strftime("%Y-%m-%d %H:%M:%S")
+    return fetch_duke_york_prices_by_date_range(start_month, end_month)
 
 def get_duke_york_prices(date,  on_pause=None):
   start_month = date.replace(day=1).strftime("%Y-%m-%d")
@@ -32,19 +39,13 @@ def process_duke_york_prices(invoice_list, invoice_items):
   processed_data = []
 
   for invoice in invoice_list:
-    print('process_duke_york_prices: inside')
     invoice_number = invoice.get("invoiceNumber")
     
     
     for invoice_item in invoice_items:
-      print('process_duke_york_prices: inside items')
       invoice_item_number = invoice_item.get("invoiceNumber")
-      print("invoice_number:", invoice_number, type(invoice_number))
-      print("invoice_item_number:", invoice_item_number, type(invoice_item_number))
-
 
       if str(invoice_number) == str(invoice_item_number):
-        print('process_duke_york_prices: match')
         invoice_item_cost = invoice_item.get("netAmount")
         invoice_item_sage_code = invoice_item.get("stockCode")
 

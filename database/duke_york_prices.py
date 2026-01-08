@@ -53,21 +53,20 @@ def fetch_duke_york_by_date(date):
     connection.close()
     return result
   
-def fetch_all_duke_york_prices_by_date(date):
-  connection = connect_db()
-  if connection:
-    cursor = connection.cursor()
-    cursor.execute(
-      "SELECT * FROM butchers_lists WHERE date = %s ORDER BY updated_at ASC",
-      (date,)
-    )
-    fetched_data = cursor.fetchall()
-    # print(fetched_data)
-    results = [DukeYorkPrices(*row) for row in fetched_data]
-    # results.sort(key=lambda x: x.updated_at, reverse=False)
-    cursor.close()
-    connection.close()
-    return results
+def fetch_duke_york_prices_by_date_range(start_date, end_date):
+    connection = connect_db()
+    if connection:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT * FROM duke_york_prices WHERE date BETWEEN %s AND %s",
+            (start_date, end_date)
+        )
+        fetched_data = cursor.fetchone()
+        print(fetched_data)
+        result = DukeYorkPrices(fetched_data[0],fetched_data[1],fetched_data[2],fetched_data[3])
+        cursor.close()
+        connection.close()
+        return result
 
 def insert_duke_york_prices(date, data):
     connection = None

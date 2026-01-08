@@ -24,7 +24,7 @@ class DukeYorkPricesWindow(QWidget):
         self.loading_manager = LoadingManager(self)
         self.date = (date.today() + timedelta(days=1))
 
-        self.
+        self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
 
         # Create main layout once
         self.main_layout = QVBoxLayout()
@@ -70,7 +70,7 @@ class DukeYorkPricesWindow(QWidget):
         """Update UI elements without recreating the layout"""
         self.title_label.setText(f"Invoices - {self.date}")
         self.status_label.setText("")  # Clear previous status
-        self.duke_york_prices_table.load_invoices(self.invoices)
+        self.duke_york_prices_table.load_invoices(self.current_duke_york_prices.data)
         # if self.invoices:
         #     self.refresh_invoice_button.show()
         
@@ -125,7 +125,7 @@ class DukeYorkPricesWindow(QWidget):
         dialog = MonthInputDialog(self)
         if dialog.exec_():  # If user clicks OK
             self.date = dialog.get_just_date()
-            # self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
+            self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
             # Update the UI with the new date
             self.update_ui()
 
