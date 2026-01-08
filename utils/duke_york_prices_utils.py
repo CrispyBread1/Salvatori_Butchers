@@ -28,4 +28,31 @@ def get_duke_york_prices(date,  on_pause=None):
   
 
 def process_duke_york_prices(invoice_list, invoice_items):
+  # [{invoice_number: '', invoice_date: '', product_description: '', product_sage_code: '', cost_price: '', exact_price: ''},],
+
+  processed_data = []
+
+  for invoice in invoice_list:
+    invoice_number = invoice.get("invoiceNumber")
     
+    
+    for invoice_item in invoice_items:
+      invoice_item_number = invoice_item.get("invoiceNumber")
+
+      if invoice_number == invoice_item_number:
+        invoice_item_cost = invoice_item.get("netAmount")
+        invoice_item_sage_code = invoice_item.get("stockCode")
+
+        processed_invoice_item_data = {
+          'invoice_number': invoice_item_number, 
+          'invoice_date': invoice.get("invoiceDate"), 
+          'product_description': invoice_item.get("description"), 
+          'product_sage_code': invoice_item_sage_code, 
+          'cost_price': invoice_item_cost, 
+          'exact_price': get_exact_item_price(invoice_item_sage_code, invoice_item_cost)
+         }
+        
+        processed_data.append(processed_invoice_item_data)
+
+def get_exact_item_price(invoice_item_sage_code, invoice_item_cost):
+  pass   
