@@ -93,10 +93,11 @@ class DukeYorkPricesWindow(QWidget):
         pass
 
     
-    def on_fetch_complete(self, invoices_data):
+    def on_fetch_complete(self, invoices_data, updated_at, original_id=None):
         # Re-enable button
         self.pull_prices_button.setEnabled(True)  # Fixed: was using general_settings_button
         # Update status with results
+        print(f"on_fetch_complete: {invoices_data}")
         if invoices_data:
             self.status_label.setText(f"Successfully created {self.date} kings head rye prices.")
             # Process invoices further as needed            

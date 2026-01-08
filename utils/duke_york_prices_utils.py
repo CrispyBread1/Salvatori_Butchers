@@ -13,18 +13,17 @@ def get_duke_york_prices(date,  on_pause=None):
   invoice_list = get_customer_invoices_by_month(duke_york_customer_sage_code, start_month, end_month)['results']
   invoices_ids = []
 
-
+  
   if invoice_list:
-    if invoice_list and 'results' in invoice_list and invoice_list['results']:
-          for invoice in invoice_list['results']:
-              if 'invoiceNumber' in invoice:
-                  invoices_ids.append(invoice['invoiceNumber'])
+    for invoice in invoice_list:
+        if 'invoiceNumber' in invoice:
+            invoices_ids.append(invoice['invoiceNumber'])
           
     invoice_items = get_invoice_items_id(invoices_ids)
 
     processed_data = process_duke_york_prices(invoice_list, invoice_items)
 
-    return
+    return processed_data
   
 
 def process_duke_york_prices(invoice_list, invoice_items):
@@ -33,13 +32,19 @@ def process_duke_york_prices(invoice_list, invoice_items):
   processed_data = []
 
   for invoice in invoice_list:
+    print('process_duke_york_prices: inside')
     invoice_number = invoice.get("invoiceNumber")
     
     
     for invoice_item in invoice_items:
+      print('process_duke_york_prices: inside items')
       invoice_item_number = invoice_item.get("invoiceNumber")
+      print("invoice_number:", invoice_number, type(invoice_number))
+      print("invoice_item_number:", invoice_item_number, type(invoice_item_number))
 
-      if invoice_number == invoice_item_number:
+
+      if str(invoice_number) == str(invoice_item_number):
+        print('process_duke_york_prices: match')
         invoice_item_cost = invoice_item.get("netAmount")
         invoice_item_sage_code = invoice_item.get("stockCode")
 
