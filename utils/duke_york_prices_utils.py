@@ -53,6 +53,15 @@ def process_duke_york_prices(invoice_list, invoice_items):
          }
         
         processed_data.append(processed_invoice_item_data)
+  return processed_data
 
 def get_exact_item_price(invoice_item_sage_code, invoice_item_cost):
-  pass   
+  if invoice_item_sage_code in duke_york_product_sage_codes:
+    percentage = 18
+    difference = (percentage / 100) * invoice_item_cost
+    return invoice_item_cost - difference
+  
+  else:
+    percentage = 28.5
+    difference = (percentage / 100) * invoice_item_cost
+    return invoice_item_cost - difference
