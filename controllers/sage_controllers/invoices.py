@@ -190,7 +190,7 @@ def get_todays_new_invoices(date, previous_fetch):
         print(f"Error fetching invoices: {e}")
         return None
     
-def get_customer_invoices_by_month(customer_code, month):
+def get_customer_invoices_by_month(customer_code, start_month, end_month):
     """
     Fetch all invoices for a specific date from the Sage API.
     """
@@ -201,14 +201,19 @@ def get_customer_invoices_by_month(customer_code, month):
 
     payload = json.dumps([
       {
-        "field": "INVOICE_DATE",
+        "field": "ACCOUNT_REF",
         "type": "eq",
-        "value": date
+        "value": customer_code
+      },
+      {
+        "field": "INVOICE_DATE",
+        "type": "gte",
+        "value": start_month
       },
       {
         "field": "RECORD_CREATE_DATE",
-        "type": "gt",
-        "value": previous_fetch
+        "type": "lt",
+        "value": end_month
       }
     ])
     headers = {

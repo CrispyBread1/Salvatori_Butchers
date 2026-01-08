@@ -21,7 +21,7 @@ class DukeYorkPricesWindow(QWidget):
         self.user = self.auth_service.current_user
 
         self.loading_manager = LoadingManager(self)
-        self.date = (date.today() + timedelta(days=1)).strftime('%m-%Y')
+        self.date = (date.today() + timedelta(days=1))
 
         # Create main layout once
         self.main_layout = QVBoxLayout()
