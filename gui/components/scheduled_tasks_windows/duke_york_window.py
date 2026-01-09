@@ -73,9 +73,11 @@ class DukeYorkPricesWindow(QWidget):
         
         if self.current_duke_york_prices and hasattr(self.current_duke_york_prices, 'data'):
             self.duke_york_prices_table.load_invoices(self.current_duke_york_prices.data)
+            self.pull_prices_button.setEnabled(False)
         else:
             # Load empty table if no data
             self.duke_york_prices_table.load_invoices([])
+            self.pull_prices_button.setEnabled(True)
         
         
 
