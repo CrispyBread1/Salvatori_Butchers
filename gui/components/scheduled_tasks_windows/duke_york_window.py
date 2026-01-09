@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFormLayout, QHBoxLayout, QLineEdit, QDialog, QDialogButtonBox
 )
 from auth.userAuthentication import AuthService
-from database.duke_york_prices import insert_duke_york_prices
+from database.duke_york_prices import deactivate_duke_york_prices, insert_duke_york_prices
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.month_input_dialog import MonthInputDialog
 from controllers.sage_controllers.invoices import *
@@ -40,18 +40,19 @@ class DukeYorkPricesWindow(QWidget):
         
         self.pull_prices_button = QPushButton("Pull Prices", self)
         self.pull_prices_button.clicked.connect(self.pull_duke_york_data)
-
-        # if self.butchers_lists:
-        #     self.refresh_butchers_list_button.show()
         
         self.change_date_button = QPushButton("Change Date", self)
         self.change_date_button.clicked.connect(self.change_date)
+
+        self.archive_duke_york_price_list_button = QPushButton("Delete Record", self)
+        self.archive_duke_york_price_list_button.clicked.connect(self.archive_duke_york_price_list)
 
         # self.export_xl_button = QPushButton("Export to XL", self)
         # self.export_xl_button.clicked.connect(self.export_to_xl)
         
         self.button_layout.addWidget(self.change_date_button)
         self.button_layout.addWidget(self.pull_prices_button)
+        self.button_layout.addWidget(self.archive_duke_york_price_list_button)
 
         # self.button_layout.addWidget(self.export_xl_button)
         self.main_layout.addLayout(self.button_layout)
@@ -73,11 +74,13 @@ class DukeYorkPricesWindow(QWidget):
         
         if self.current_duke_york_prices and hasattr(self.current_duke_york_prices, 'data'):
             self.duke_york_prices_table.load_invoices(self.current_duke_york_prices.data)
+            self.archive_duke_york_price_list_button.show()
             self.pull_prices_button.setEnabled(False)
         else:
             # Load empty table if no data
             self.duke_york_prices_table.load_invoices([])
             self.pull_prices_button.setEnabled(True)
+            self.archive_duke_york_price_list_button.hide()
         
         
 
@@ -142,5 +145,9 @@ class DukeYorkPricesWindow(QWidget):
           self.update_ui()
 
     def export_to_excel(self):
-        pass
+      pass
+    
+    def archive_duke_york_price_list(self):
+      deactivate_duke_york_prices(self.current_duke_york_prices.id)
+      self.update_ui()
    
