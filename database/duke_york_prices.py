@@ -112,3 +112,48 @@ def insert_duke_york_prices(date, data):
         # Ensure connection is closed even if an exception occurs
         if connection:
             connection.close()
+
+def deactivate_duke_york_prices(price_list_id):
+    """
+    Set the active column to False for a specific duke_york_prices record.
+    
+    Args:
+        price_id: The ID of the record to deactivate
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    connection = None
+    try:
+        connection = connect_db()
+        
+        if connection:
+            cursor = connection.cursor()
+            
+            try:
+                cursor.execute("""
+                    UPDATE duke_york_prices 
+                    SET active = FALSE 
+                    WHERE id = %s
+                """, (price_list_id,))
+                
+                connection.commit()
+                
+            except Exception as e:
+                connection.rollback()
+                print(f"Error deactivating Duke York prices: {e}")
+                return False
+                
+            finally:
+                cursor.close()
+        else:
+            print("Failed to connect to database")
+            return False
+            
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return False
+        
+    finally:
+        if connection:
+            connection.close()
