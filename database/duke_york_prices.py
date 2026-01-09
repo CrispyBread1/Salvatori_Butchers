@@ -58,7 +58,7 @@ def fetch_duke_york_prices_by_date_range(start_date, end_date):
     if connection:
         cursor = connection.cursor()
         cursor.execute(
-            "SELECT * FROM duke_york_prices WHERE date::date BETWEEN %s AND %s",
+            "SELECT * FROM duke_york_prices WHERE date::date BETWEEN %s AND %s AND active = TRUE",
             (start_date, end_date)
         )
         fetched_data = cursor.fetchone()

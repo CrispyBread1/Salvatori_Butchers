@@ -149,5 +149,6 @@ class DukeYorkPricesWindow(QWidget):
     
     def archive_duke_york_price_list(self):
       deactivate_duke_york_prices(self.current_duke_york_prices.id)
+      self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
       self.update_ui()
    
