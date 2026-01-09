@@ -45,6 +45,9 @@ class DukeYorkPricesWindow(QWidget):
         self.change_date_button = QPushButton("Change Date", self)
         self.change_date_button.clicked.connect(self.change_date)
 
+        self.update_prices_products_button = QPushButton("Update Prices/Products", self)
+        self.update_prices_products_button.clicked.connect(self.update_prices_products)
+
         self.archive_duke_york_price_list_button = QPushButton("Delete Record", self)
         self.archive_duke_york_price_list_button.clicked.connect(self.archive_duke_york_price_list)
 
@@ -52,6 +55,7 @@ class DukeYorkPricesWindow(QWidget):
         # self.export_xl_button.clicked.connect(self.export_to_xl)
         
         self.button_layout.addWidget(self.change_date_button)
+        self.button_layout.addWidget(self.update_prices_products_button)
         self.button_layout.addWidget(self.pull_prices_button)
         self.button_layout.addWidget(self.archive_duke_york_price_list_button)
 
@@ -147,9 +151,13 @@ class DukeYorkPricesWindow(QWidget):
 
     def export_to_excel(self):
       pass
+
+    def update_prices_products(self):
+      pass
     
     def archive_duke_york_price_list(self):
       deactivate_duke_york_prices(self.current_duke_york_prices.id)
       self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
       self.update_ui()
+
    
