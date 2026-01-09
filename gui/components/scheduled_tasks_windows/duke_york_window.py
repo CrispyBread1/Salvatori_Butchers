@@ -25,6 +25,7 @@ class DukeYorkPricesWindow(QWidget):
         self.date = (date.today() + timedelta(days=1))
 
         self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
+        self.report = get_duke_york_prices(3)
 
         # Create main layout once
         self.main_layout = QVBoxLayout()
@@ -96,7 +97,7 @@ class DukeYorkPricesWindow(QWidget):
             on_pause=self.handle_pause,
             loading_text="Fetching invoice data...",
             title="Loading Invoices",
-            task_args=(self.date,)
+            task_args=(self.date, self.report)
         )
 
     def handle_pause(self, data):

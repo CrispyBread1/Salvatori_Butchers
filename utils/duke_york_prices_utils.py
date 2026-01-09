@@ -5,20 +5,15 @@ from controllers.sage_controllers.invoices import get_customer_invoices_by_month
 from database.duke_york_prices import fetch_duke_york_prices_by_date_range
 from database.reports import fetch_report_by_id
 
-report = fetch_report_by_id(3)
-duke_york_product_sage_codes = report.products
-duke_york_customer_sage_code = report.customers
-percentages = json.loads(report.description)
-duke_york_column1_percentage = percentages["column1"]
-duke_york_column2_percentage = percentages["column2"]
-
 def get_duke_york_prices_complete(date):
     start_month = date.replace(day=1).strftime("%Y-%m-%d %H:%M:%S")
     last_day = calendar.monthrange(date.year, date.month)[1]
     end_month = date.replace(day=last_day).strftime("%Y-%m-%d %H:%M:%S")
     return fetch_duke_york_prices_by_date_range(start_month, end_month)
 
-def get_duke_york_prices(date,  on_pause=None):
+def get_duke_york_prices(date, report, on_pause=None):
+  duke_york_customer_sage_code = report.customers
+
   start_month = date.replace(day=1).strftime("%Y-%m-%d")
   last_day = calendar.monthrange(date.year, date.month)[1]
   end_month = date.replace(day=last_day).strftime("%Y-%m-%d %H:%M:%S")
@@ -34,12 +29,12 @@ def get_duke_york_prices(date,  on_pause=None):
           
     invoice_items = get_invoice_items_id(invoices_ids)
 
-    processed_data = process_duke_york_prices(invoice_list, invoice_items)
+    processed_data = process_duke_york_prices(invoice_list, invoice_items, report)
 
     return processed_data
   
 
-def process_duke_york_prices(invoice_list, invoice_items):
+def process_duke_york_prices(invoice_list, invoice_items, report):
   # [{invoice_number: '', invoice_date: '', product_description: '', product_sage_code: '', cost_price: '', exact_price: ''},],
 
   processed_data = []
@@ -61,13 +56,18 @@ def process_duke_york_prices(invoice_list, invoice_items):
           'product_description': invoice_item.get("description"), 
           'product_sage_code': invoice_item_sage_code, 
           'cost_price': invoice_item_cost, 
-          'exact_price': get_exact_item_price(invoice_item_sage_code, invoice_item_cost)
+          'exact_price': get_exact_item_price(invoice_item_sage_code, invoice_item_cost, report)
          }
         
         processed_data.append(processed_invoice_item_data)
   return processed_data
 
-def get_exact_item_price(invoice_item_sage_code, invoice_item_cost):
+def get_exact_item_price(invoice_item_sage_code, invoice_item_cost, report):
+  duke_york_product_sage_codes = report.products
+  percentages = json.loads(report.description)
+  duke_york_column1_percentage = percentages["column1"]
+  duke_york_column2_percentage = percentages["column2"]
+
   if invoice_item_sage_code in duke_york_product_sage_codes:
     difference = (duke_york_column1_percentage / 100) * invoice_item_cost
     return invoice_item_cost - difference
