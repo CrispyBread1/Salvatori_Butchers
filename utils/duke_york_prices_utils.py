@@ -1,10 +1,16 @@
 import calendar
+import json
 from controllers.sage_controllers.invoice_products import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_customer_invoices_by_month
 from database.duke_york_prices import fetch_duke_york_prices_by_date_range
+from database.reports import fetch_report_by_id
 
-duke_york_product_sage_codes = ['BE2', 'CHR93', 'CHR941', 'CHR31', 'CHR92', 'CHR921', 'CHR9201', 'SS111', 'BAC2', 'LA11', 'PO4', 'SSD2', 'PO5', 'BAC81', 'BAC3', 'BE4']
-duke_york_customer_sage_code = 'TFDUKEY'
+report = fetch_report_by_id(3)
+duke_york_product_sage_codes = report.products
+duke_york_customer_sage_code = report.customers
+percentages = json.loads(report.description)
+duke_york_column1_percentage = percentages["column1"]
+duke_york_column2_percentage = percentages["column2"]
 
 def get_duke_york_prices_complete(date):
     start_month = date.replace(day=1).strftime("%Y-%m-%d %H:%M:%S")
@@ -63,11 +69,9 @@ def process_duke_york_prices(invoice_list, invoice_items):
 
 def get_exact_item_price(invoice_item_sage_code, invoice_item_cost):
   if invoice_item_sage_code in duke_york_product_sage_codes:
-    percentage = 18
-    difference = (percentage / 100) * invoice_item_cost
+    difference = (duke_york_column1_percentage / 100) * invoice_item_cost
     return invoice_item_cost - difference
   
   else:
-    percentage = 28.5
-    difference = (percentage / 100) * invoice_item_cost
+    difference = (duke_york_column2_percentage / 100) * invoice_item_cost
     return invoice_item_cost - difference

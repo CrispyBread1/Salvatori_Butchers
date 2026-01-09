@@ -68,11 +68,15 @@ class DukeYorkPricesWindow(QWidget):
           
     def update_ui(self):
         """Update UI elements without recreating the layout"""
-        self.title_label.setText(f"Invoices - {self.date}")
+        self.title_label.setText(f"Duke York Prices - {self.date}")
         self.status_label.setText("")  # Clear previous status
-        self.duke_york_prices_table.load_invoices(self.current_duke_york_prices.data)
-        # if self.invoices:
-        #     self.refresh_invoice_button.show()
+        
+        if self.current_duke_york_prices and hasattr(self.current_duke_york_prices, 'data'):
+            self.duke_york_prices_table.load_invoices(self.current_duke_york_prices.data)
+        else:
+            # Load empty table if no data
+            self.duke_york_prices_table.load_invoices([])
+        
         
 
     def pull_duke_york_data(self):
@@ -103,7 +107,7 @@ class DukeYorkPricesWindow(QWidget):
             self.status_label.setText(f"Successfully created {self.date} kings head rye prices.")
             # Process invoices further as needed            
             insert_duke_york_prices(self.date, invoices_data)
-            # self.butchers_lists = fetch_all_butchers_lists_by_date(self.date)
+            self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
             self.update_ui()
         else:
             self.status_label.setText("No invoices found for the selected date.")
@@ -121,13 +125,19 @@ class DukeYorkPricesWindow(QWidget):
 
     
     def change_date(self):
-        # Open date input dialog
-        dialog = MonthInputDialog(self)
-        if dialog.exec_():  # If user clicks OK
-            self.date = dialog.get_just_date()
-            self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
-            # Update the UI with the new date
-            self.update_ui()
+      # Open date input dialog
+      dialog = MonthInputDialog(self)
+      if dialog.exec_():  # If user clicks OK
+          date_string = dialog.get_just_date()
+          # Convert string to date object if it's a string
+          if isinstance(date_string, str):
+              self.date = datetime.strptime(date_string, "%Y-%m-%d").date()
+          else:
+              self.date = date_string
+          
+          self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
+          # Update the UI with the new date
+          self.update_ui()
 
     def export_to_excel(self):
         pass
