@@ -55,7 +55,7 @@ class DukeYorkPricesWindow(QWidget):
         # self.export_xl_button.clicked.connect(self.export_to_xl)
         
         self.button_layout.addWidget(self.change_date_button)
-        self.button_layout.addWidget(self.update_prices_products_button)
+        # self.button_layout.addWidget(self.update_prices_products_button)
         self.button_layout.addWidget(self.pull_prices_button)
         self.button_layout.addWidget(self.archive_duke_york_price_list_button)
 
