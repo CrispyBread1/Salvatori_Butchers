@@ -45,10 +45,14 @@ def process_duke_york_prices(invoice_list, invoice_items, report):
     
     for invoice_item in invoice_items:
       invoice_item_number = invoice_item.get("invoiceNumber")
+      invoice_item_sage_code = invoice_item.get("stockCode")
 
-      if str(invoice_number) == str(invoice_item_number):
+      # Skip items with sage code 'M'
+      if invoice_item_sage_code == 'M':
+        continue
+
+      if (str(invoice_number) == str(invoice_item_number)):
         invoice_item_cost = invoice_item.get("netAmount")
-        invoice_item_sage_code = invoice_item.get("stockCode")
 
         processed_invoice_item_data = {
           'invoice_number': invoice_item_number, 
@@ -60,6 +64,9 @@ def process_duke_york_prices(invoice_list, invoice_items, report):
          }
         
         processed_data.append(processed_invoice_item_data)
+
+      # elif (str(invoice_number) == str(invoice_item_number)) and (len(invoice_number) == 7 ):
+
   return processed_data
 
 def get_exact_item_price(invoice_item_sage_code, invoice_item_cost, report):

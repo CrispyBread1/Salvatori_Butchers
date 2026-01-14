@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 from gui.components.reusable.table import DynamicTableWidget
 
 class DukeYorkPricesTable(QWidget):
@@ -31,28 +32,46 @@ class DukeYorkPricesTable(QWidget):
         
         # Prepare data rows
         data = []
+        total_cost = 0
+        total_exact = 0
+        
         for invoice in invoices:
+            invoice_number = str(invoice.get("invoice_number", ""))
+            cost_price = invoice.get('cost_price', 0)
+            exact_price = invoice.get('exact_price', 0)
+            
+            # Check if it's a credit invoice (7 digits)
+            is_credit = len(invoice_number) == 7
+            
+            # If credit invoice, make values negative
+            if is_credit:
+                cost_price = -cost_price
+                exact_price = -exact_price
+            
+            # Add to totals
+            total_cost += cost_price
+            total_exact += exact_price
+            
             row = [
-                invoice.get("invoice_number", ""),
+                invoice_number,
                 self._format_date(invoice.get("invoice_date", "")),
                 invoice.get("product_description", ""),
                 invoice.get("product_sage_code", ""),
-                f"£{invoice.get('cost_price', 0):.2f}",
-                f"£{invoice.get('exact_price', 0):.2f}"
+                f"£{cost_price:.2f}",
+                f"£{exact_price:.2f}",
+                is_credit  # Store credit flag for formatting
             ]
             data.append(row)
         
         # Add totals row
-        total_cost = sum(item.get("cost_price", 0) for item in invoices)
-        total_exact = sum(item.get("exact_price", 0) for item in invoices)
-        
         data.append([
             "",
             "",
             "TOTAL",
             "",
             f"£{total_cost:.2f}",
-            f"£{total_exact:.2f}"
+            f"£{total_exact:.2f}",
+            False  # Not a credit row
         ])
         
         # Populate table
@@ -97,5 +116,22 @@ class DukeYorkPricesTable(QWidget):
             font = item.font()
             font.setBold(True)
             item.setFont(font)
+        
+        # Color credit invoices red (check if last column is True)
+        if col_idx < 6:  # Don't check the flag column itself
+            try:
+                # Get the credit flag from the last column
+                row_data = []
+                for col in range(self.table.table.columnCount()):
+                    cell_item = self.table.table.item(row_idx, col)
+                    if cell_item:
+                        row_data.append(cell_item.text())
+                
+                # Check if invoice number is 7 digits (credit)
+                invoice_num = self.table.table.item(row_idx, 0)
+                if invoice_num and len(invoice_num.text()) == 7:
+                    item.setForeground(QColor(200, 0, 0))  # Red color for credits
+            except:
+                pass
         
         return item

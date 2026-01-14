@@ -25,7 +25,7 @@ class DukeYorkPricesWindow(QWidget):
         self.date = (date.today() + timedelta(days=1))
 
         self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
-        self.report = get_duke_york_prices(3)
+        self.report = fetch_report_by_id(3)
 
         # Create main layout once
         self.main_layout = QVBoxLayout()
@@ -45,8 +45,8 @@ class DukeYorkPricesWindow(QWidget):
         self.change_date_button = QPushButton("Change Date", self)
         self.change_date_button.clicked.connect(self.change_date)
 
-        self.update_prices_products_button = QPushButton("Update Prices/Products", self)
-        self.update_prices_products_button.clicked.connect(self.update_prices_products)
+        # self.update_prices_products_button = QPushButton("Update Prices/Products", self)
+        # self.update_prices_products_button.clicked.connect(self.update_prices_products)
 
         self.archive_duke_york_price_list_button = QPushButton("Delete Record", self)
         self.archive_duke_york_price_list_button.clicked.connect(self.archive_duke_york_price_list)
