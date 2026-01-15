@@ -211,7 +211,7 @@ def get_customer_invoices_by_month(customer_code, start_month, end_month):
         "value": start_month
       },
       {
-        "field": "RECORD_CREATE_DATE",
+        "field": "INVOICE_DATE",
         "type": "lt",
         "value": end_month
       }
