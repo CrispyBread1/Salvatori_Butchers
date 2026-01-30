@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 from gui.components.scheduled_tasks_windows.dashboard_window import DashboardWindow
 from gui.components.scheduled_tasks_windows.butchers_list_window import ButchersListWindow
 from gui.components.scheduled_tasks_windows.report_window import ReportWindow
+from gui.components.scheduled_tasks_windows.duke_york_window import DukeYorkPricesWindow
 
 
 class ScheduledTasks(QMainWindow):
@@ -31,6 +32,9 @@ class ScheduledTasks(QMainWindow):
         
         self.reports_button = QPushButton("Reports", self)
         self.reports_button.clicked.connect(self.show_reports)
+
+        self.duke_york_pricing_button = QPushButton("Duke of York Pricing", self)
+        self.duke_york_pricing_button.clicked.connect(self.show_duke_york_pricing)
         
         self.back_button = QPushButton("Back to Dashboard", self)
         self.back_button.clicked.connect(self.show_dashboard)
@@ -39,6 +43,7 @@ class ScheduledTasks(QMainWindow):
         # Add buttons to navigation Dashboard
         self.nav_dashboard_layout.addWidget(self.butchers_list_button)
         self.nav_dashboard_layout.addWidget(self.reports_button)
+        self.nav_dashboard_layout.addWidget(self.duke_york_pricing_button)
         self.nav_dashboard_layout.addStretch(1)  # Add stretch to push buttons to the left
         self.nav_dashboard_layout.addWidget(self.back_button)
         
@@ -49,11 +54,13 @@ class ScheduledTasks(QMainWindow):
         self.dashboard_window = DashboardWindow()
         self.butchers_list_window = ButchersListWindow()
         self.report_window = ReportWindow()
+        self.duke_york_prices_window = DukeYorkPricesWindow()
         
         # Add windows to stacked widget
         self.stacked_widget.addWidget(self.dashboard_window)
         self.stacked_widget.addWidget(self.butchers_list_window)
         self.stacked_widget.addWidget(self.report_window)
+        self.stacked_widget.addWidget(self.duke_york_prices_window)
         
         # Add components to the main layout
         main_layout.addLayout(self.nav_dashboard_layout)
@@ -69,6 +76,7 @@ class ScheduledTasks(QMainWindow):
         # Hide Dashboard navigation buttons when in a specific section
         self.butchers_list_button.hide()
         self.reports_button.hide()
+        self.duke_york_pricing_button.hide()
     
     def show_reports(self):
         """Switch to reports window"""
@@ -77,6 +85,16 @@ class ScheduledTasks(QMainWindow):
         # Hide Dashboard navigation buttons when in a specific section
         self.butchers_list_button.hide()
         self.reports_button.hide()
+        self.duke_york_pricing_button.hide()
+
+    def show_duke_york_pricing(self):
+        """Switch to reports window"""
+        self.back_button.show()  # Show back button when viewing a subpage
+        self.stacked_widget.setCurrentWidget(self.duke_york_prices_window)
+        # Hide Dashboard navigation buttons when in a specific section
+        self.butchers_list_button.hide()
+        self.reports_button.hide()
+        self.duke_york_pricing_button.hide()
     
     def show_dashboard(self):
         """Switch back to Dashboard window"""
@@ -85,3 +103,4 @@ class ScheduledTasks(QMainWindow):
         # Show Dashboard navigation buttons on main Dashboard
         self.butchers_list_button.show()
         self.reports_button.show()
+        self.duke_york_pricing_button.show()
