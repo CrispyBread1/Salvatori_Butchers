@@ -1,6 +1,15 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton
-from models.product import Product
+from PyQt5.QtWidgets import (
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QTableWidget,
+    QTableWidgetItem,
+    QPushButton,
+    QMessageBox
+)
+
 from database.products import fetch_products
+from resources.excel_exporter import ExcelExporter
 
 class ProductWindow(QWidget):
     rows = []
@@ -29,6 +38,10 @@ class ProductWindow(QWidget):
         self.table_button.clicked.connect(lambda: self.reload_list())
 
         self.table.itemChanged.connect(self.collect_changes)
+
+        self.export_button = QPushButton("Export All Products to Excel", self)
+        self.export_button.clicked.connect(self.export_products)
+        layout.addWidget(self.export_button)
 
         # Set up layout for product window
         self.setLayout(layout)
@@ -85,3 +98,58 @@ class ProductWindow(QWidget):
           product.stock_category = item.text()
       elif col_idx == 5: 
           product.product_value = float(item.text())
+
+    def export_products(self):
+      try:
+          products = fetch_products()
+
+          if not products:
+              QMessageBox.information(
+                  self,
+                  "No Products",
+                  "There are no products to export."
+              )
+              return
+
+          data = []
+
+          for product in products:
+              data.append({
+                  "ID": product.id,
+                  "Name": product.name,
+                  "Cost": product.cost,
+                  "Stock Count": product.stock_count,
+                  "Product Value": product.product_value,
+                  "Stock Category": product.stock_category,
+                  "Product Category": product.product_category,
+                  "Sage Code": product.sage_code,
+                  "Supplier": product.supplier,
+                  "Sold As": product.sold_as
+              })
+
+          exporter = ExcelExporter(parent=self)
+
+          exporter.export(
+              data=data,
+              sheet_name="Products",
+              title="All Products",
+              headers=[
+                  "ID",
+                                "Name",
+                  "Cost",
+                  "Stock Count",
+                  "Product Value",
+                  "Stock Category",
+                  "Product Category",
+                  "Sage Code",
+                  "Supplier",
+                  "Sold As"
+              ]
+          )
+
+      except Exception as error:
+          QMessageBox.critical(
+              self,
+              "Export Failed",
+              f"The products could not be exported:\n{error}"
+          )
