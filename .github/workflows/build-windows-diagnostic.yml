@@ -1,0 +1,76 @@
+name: Build Windows Diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-diagnostic:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install pyqt5 psycopg2-binary requests PyQtWebEngine python-dotenv openpyxl pandas matplotlib
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (Test-Path requirements.txt) {
+            python -m pip install -r requirements.txt
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          python -m pip install pyinstaller==6.20.0
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Write production configuration
+        shell: python
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SAGE_API_URL: ${{ secrets.SAGE_API_URL }}
+          SAGE_API_URL_INTERNAL: ${{ secrets.SAGE_API_URL_INTERNAL }}
+          SAGE_API_TOKEN: ${{ secrets.SAGE_API_TOKEN }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+        run: |
+          import os
+          from pathlib import Path
+          from dotenv import set_key
+          keys = ["SUPABASE_URL","SUPABASE_ANON_KEY","SUPABASE_SERVICE_ROLE_KEY","SAGE_API_URL","SAGE_API_URL_INTERNAL","SAGE_API_TOKEN","DB_USER","DB_PORT","DB_PASSWORD","DB_NAME","DB_HOST"]
+          Path(".env").write_text("", encoding="utf-8")
+          set_key(".env", "APP_ENV", "production", quote_mode="always")
+          for key in keys:
+              set_key(".env", key, os.environ.get(key, ""), quote_mode="always")
+          print("Production configuration written; values are not displayed.")
+
+      - name: Build diagnostic executable
+        run: python -m PyInstaller --clean --noconfirm diagnostic.spec
+
+      - name: Upload diagnostic executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ManageMeStock-Diagnostic
+          path: dist/ManageMeStock-Diagnostic.exe
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Remove temporary configuration
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path .env) { Remove-Item .env -Force }
+
