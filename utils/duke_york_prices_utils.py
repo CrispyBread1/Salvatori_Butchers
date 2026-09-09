@@ -1,6 +1,6 @@
 import calendar
 import json
-from controllers.sage_controllers.invoice_products import get_invoice_items_id
+from controllers.sage_controllers.invoice_items import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_customer_invoices_by_month
 from database.duke_york_prices import fetch_duke_york_prices_by_date_range
 from database.reports import fetch_report_by_id
