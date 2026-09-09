@@ -1,124 +1,138 @@
 # ManageMeStock
 
-Salvatori Butchers desktop administration application.
+ManageMeStock is the Salvatori Butchers desktop administration application.
 
-This README contains the main commands required to run the application in production or development, manage the Python virtual environment, and manage the local Supabase development database.
+The application is built with Python and PyQt5 and connects to services including:
+
+* Supabase / PostgreSQL
+* Sage
+* Internal Salvatori services
+* Excel/reporting tools
+* Dibal scale integrations
+
+The project supports separate **development** and **production** environments so changes can be developed without modifying live Salvatori data.
 
 ---
 
-# Running the Application
+# Environments
 
-## Production
-
-Production uses the real Salvatori data and live services.
-
-If you are **not inside the virtual environment**, the application can be run normally with:
-
-```bash
-python3 main.py
-```
-
-The launcher command is:
-
-```bash
-./manage.sh prod
-```
-
-### Important: Virtual Environment
-
-If your terminal currently looks like this:
+ManageMeStock currently uses:
 
 ```text
-(.venv) ➜ salvaotri_admin_app
+development
+production
 ```
 
-then the Python virtual environment is currently active.
-
-Running:
-
-```bash
-python3 main.py
-```
-
-while `.venv` is active will use the Python installation and packages from `.venv`.
-
-To leave the virtual environment first, run:
-
-```bash
-deactivate
-```
-
-Your terminal should then no longer show:
+The active application environment is controlled by:
 
 ```text
-(.venv)
+APP_ENV
 ```
 
-You can then run production normally:
+The Git branch and Python virtual environment do **not** determine which application environment is being used.
 
-```bash
-python3 main.py
-```
-
-or:
-
-```bash
-./manage.sh prod
-```
-
-### If Production Does Not Connect to Supabase
-
-The production application also uses direct Supabase/Postgres credentials from the production `.env`.
-
-If the Supabase database password has been reset, make sure the production `.env` contains the current:
+For example, being on:
 
 ```text
-DB_PASSWORD
-DB_USER
-DB_HOST
-DB_PORT
-DB_NAME
+development_environment
 ```
 
-An error such as:
+does not automatically put the application into development mode.
+
+Likewise, activating:
 
 ```text
-password authentication failed for user
+.venv
 ```
 
-is a database credential problem rather than a development/local-Supabase problem.
+only changes the Python installation and dependencies being used.
+
+The application environment itself is controlled by `APP_ENV`.
 
 ---
 
 # Development Environment
 
-Development is isolated from the live Salvatori Supabase database.
-
-It uses:
-
-* `.venv` for isolated Python packages
-* Local Supabase
-* A local copy of the database schema
-* A local copy of production data for development
-* `APP_ENV=development`
-
-## Start Development
-
-The normal development command is:
+The preferred way to run development is:
 
 ```bash
 ./manage.sh dev
 ```
 
-This starts ManageMeStock in development mode and uses the Python virtual environment and local Supabase instance.
+This starts ManageMeStock with:
+
+```text
+APP_ENV=development
+```
+
+Development currently uses:
+
+* Python `.venv`
+* Local Supabase through Docker
+* Local PostgreSQL database
+* Local copy of production Supabase data
+* Dummy Sage products
+* Dummy Sage invoices
+* Dummy Sage invoice items
+* Dummy Sage customer structure
+* No live Sage API requests
+
+When development starts correctly, the terminal should show:
+
+```text
+ManageMeStock environment: development
+```
+
+---
+
+# Production Environment
+
+Production uses:
+
+* Production Supabase
+* Production PostgreSQL
+* Real Sage API
+* Real Salvatori data and services
+
+Preferred command:
+
+```bash
+./manage.sh prod
+```
+
+The application can also be started directly with:
+
+```bash
+python3 main.py
+```
+
+If `APP_ENV` has not been explicitly set, ManageMeStock defaults to:
+
+```text
+production
+```
+
+The terminal should therefore show:
+
+```text
+ManageMeStock environment: production
+```
+
+when running against live services.
+
+Always check the startup environment before performing operations that may modify data.
 
 ---
 
 # Python Virtual Environment
 
-## Activate Manually
+The development Python environment is stored in:
 
-If required:
+```text
+.venv/
+```
+
+Activate it manually with:
 
 ```bash
 source .venv/bin/activate
@@ -130,462 +144,550 @@ The terminal should then show:
 (.venv)
 ```
 
-## Leave the Virtual Environment
+Deactivate it with:
 
 ```bash
 deactivate
 ```
 
-## Install Application Dependencies
+Install project dependencies with:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Install Development/Test Dependencies
-
-```bash
-pip install -r requirements-dev.txt
-```
-
-`requirements-dev.txt` includes the normal requirements plus development tools such as:
-
-* pytest
-* pytest-cov
-* pytest-qt
-* watchdog
-
-The `.venv` directory is local only and must not be committed to Git.
-
 ---
 
-# Local Supabase Development Database
+# Running Development Manually
 
-Local Supabase runs through Docker and is completely separate from the live Supabase database.
-
-## Start Docker
-
-Docker Desktop needs to be running before local Supabase can start.
-
-Manually open it with:
-
-```bash
-open -a Docker
-```
-
-Check Docker with:
-
-```bash
-docker info
-```
-
----
-
-## Start Local Supabase
-
-```bash
-supabase start
-```
-
-The local services currently use addresses similar to:
-
-```text
-Supabase API:
-http://127.0.0.1:54321
-
-Supabase Studio:
-http://127.0.0.1:54323
-
-Postgres:
-127.0.0.1:54322
-```
-
-The exact values can always be checked using:
-
-```bash
-supabase status
-```
-
----
-
-## Open Local Supabase Studio
-
-Open:
-
-```text
-http://127.0.0.1:54323
-```
-
-This allows the local database to be viewed and edited through the Supabase Studio interface.
-
----
-
-## Check Local Supabase Status
-
-Using the project launcher:
-
-```bash
-./manage.sh status
-```
-
-or directly:
-
-```bash
-supabase status
-```
-
----
-
-## Stop Local Supabase
-
-Using the launcher:
-
-```bash
-./manage.sh stop
-```
-
-or:
-
-```bash
-supabase stop
-```
-
----
-
-# Resetting the Local Database
-
-The local database can be completely rebuilt from the stored migration and local seed data.
-
-Run:
-
-```bash
-./manage.sh reset-db
-```
-
-or directly:
-
-```bash
-supabase db reset
-```
-
-This will:
-
-1. Delete the current **local** database contents.
-2. Recreate the local database.
-3. Apply the migrations in:
-
-```text
-supabase/migrations/
-```
-
-4. Load:
-
-```text
-supabase/seed.sql
-```
-
-The result is a fresh local development database.
-
-### Important
-
-Use:
-
-```bash
-supabase db reset
-```
-
-Do **not** use:
-
-```bash
-supabase db reset --linked
-```
-
-for development.
-
-`--linked` refers to the remote Supabase project and should not be used when resetting the development database.
-
----
-
-# Local Database Structure
-
-The production Supabase schema is stored as migrations in:
-
-```text
-supabase/migrations/
-```
-
-The initial production schema was pulled using:
-
-```bash
-supabase db pull
-```
-
-This copied the database **structure**, including:
-
-* Tables
-* Columns
-* Functions
-* Sequences
-* RLS configuration
-* Policies
-* Permissions
-
-It does not itself copy the table data.
-
----
-
-# Local Development Data
-
-The current production table data was copied separately into:
-
-```text
-supabase/seed.sql
-```
-
-using:
-
-```bash
-supabase db dump --data-only --linked > supabase/seed.sql
-```
-
-`seed.sql` contains real production data and therefore:
-
-**DO NOT COMMIT `supabase/seed.sql` TO GIT.**
-
-It should remain listed in:
-
-```text
-supabase/.gitignore
-```
-
----
-
-# Updating the Local Database From Production
-
-If the production Supabase database changes in the future, the local development copy can be refreshed.
-
-There are two different situations.
-
-## Production Data Changed, but Database Structure Did Not
-
-For example:
-
-* New products
-* New stock takes
-* New reports
-* Changed product information
-* New deliveries
-
-Download a fresh copy of the production data:
-
-```bash
-supabase db dump --data-only --linked > supabase/seed.sql
-```
-
-Then rebuild the local database:
-
-```bash
-supabase db reset
-```
-
-The local database will now contain the newly downloaded production data.
-
----
-
-## Production Database Structure Changed
-
-For example:
-
-* New table
-* New column
-* New database function
-* New RLS policy
-* Changed constraint
-
-First pull the latest production schema:
-
-```bash
-supabase db pull
-```
-
-If Supabase asks:
-
-```text
-Update remote migration history table? [Y/n]
-```
-
-check that the migration represents the existing remote schema before accepting it.
-
-Then download the latest production data:
-
-```bash
-supabase db dump --data-only --linked > supabase/seed.sql
-```
-
-Finally rebuild the local database:
-
-```bash
-supabase db reset
-```
-
-The process is therefore:
-
-```text
-Production Supabase
-        ↓
-supabase db pull
-        ↓
-Updated local migrations
-        ↓
-supabase db dump --data-only --linked
-        ↓
-Updated seed.sql
-        ↓
-supabase db reset
-        ↓
-Fresh local development database
-```
-
----
-
-# Useful Supabase Commands
-
-Start Supabase:
-
-```bash
-supabase start
-```
-
-Check status:
-
-```bash
-supabase status
-```
-
-Stop Supabase:
-
-```bash
-supabase stop
-```
-
-Reset the local database:
-
-```bash
-supabase db reset
-```
-
-Pull production schema changes:
-
-```bash
-supabase db pull
-```
-
-Download the current production data:
-
-```bash
-supabase db dump --data-only --linked > supabase/seed.sql
-```
-
-Show migrations:
-
-```bash
-supabase migration list
-```
-
----
-
-# Development Files That Must Not Be Committed
-
-The following should stay local:
-
-```text
-.venv/
-.env
-.env.development
-.env.test
-supabase/seed.sql
-```
-
-The following Supabase files **should** be committed:
-
-```text
-supabase/config.toml
-supabase/migrations/
-supabase/.gitignore
-```
-
-This allows another development machine or GitHub Actions to recreate the database structure without committing production data or secrets.
-
----
-
-# Current Everyday Workflow
-
-## Working on Development
+Normally use:
 
 ```bash
 ./manage.sh dev
 ```
 
-Work against the local Supabase database.
-
-When development is finished:
+If required, development can also be launched manually with:
 
 ```bash
-./manage.sh stop
+APP_ENV=development .venv/bin/python3 main.py
 ```
 
-if the local Supabase services are no longer needed.
+This explicitly starts the application using:
 
-## Running Production
+```text
+APP_ENV=development
+```
 
-If `.venv` is active:
+---
+
+# manage.sh Commands
+
+Start development:
 
 ```bash
-deactivate
+./manage.sh dev
 ```
 
-Then:
-
-```bash
-python3 main.py
-```
-
-or:
+Start production:
 
 ```bash
 ./manage.sh prod
 ```
 
-Always remember that production uses **live Salvatori data**.
+Check local Supabase status:
+
+```bash
+./manage.sh status
+```
+
+Reset the local development database:
+
+```bash
+./manage.sh reset-db
+```
+
+Stop local Supabase:
+
+```bash
+./manage.sh stop
+```
 
 ---
 
-# Future Testing Setup
+# Local Supabase
 
-The next development stage will add automated testing.
+Development uses a local Supabase instance running through Docker.
 
-The intended workflow will eventually be:
+Docker Desktop must be available.
 
-```text
-Development
-    ↓
-Local Supabase
-    ↓
-pytest
-    ↓
-GitHub Actions
-    ↓
-Fresh temporary Supabase
-    ↓
-automated tests
-    ↓
-PR allowed to merge
-```
-
-Additional commands such as:
+Start Docker manually if required:
 
 ```bash
-./manage.sh test
+open -a Docker
 ```
 
-can be added to this README as the testing environment is built.
+Check Docker:
+
+```bash
+docker info
+```
+
+Start local Supabase:
+
+```bash
+supabase start
+```
+
+Check its status:
+
+```bash
+supabase status
+```
+
+Local Supabase Studio is normally available at:
+
+```text
+http://127.0.0.1:54323
+```
+
+The local Supabase API is normally:
+
+```text
+http://127.0.0.1:54321
+```
+
+The local PostgreSQL database is normally:
+
+```text
+127.0.0.1:54322
+```
+
+---
+
+# Resetting the Development Database
+
+Reset the local database using:
+
+```bash
+supabase db reset
+```
+
+or:
+
+```bash
+./manage.sh reset-db
+```
+
+This recreates the local database using the Supabase migrations and local seed data.
+
+Do **not** run:
+
+```bash
+supabase db reset --linked
+```
+
+for normal development work.
+
+The linked Supabase project is the live hosted project.
+
+---
+
+# Supabase Schema
+
+The Supabase schema is stored as migrations under:
+
+```text
+supabase/migrations/
+```
+
+To pull the latest production schema:
+
+```bash
+supabase db pull
+```
+
+If the production schema has changed, refresh development with:
+
+```bash
+supabase db pull
+supabase db dump --data-only --linked > supabase/seed.sql
+supabase db reset
+```
+
+---
+
+# Refreshing Local Production Data
+
+Development currently uses a local copy of production database data.
+
+If only production data has changed:
+
+```bash
+supabase db dump --data-only --linked > supabase/seed.sql
+supabase db reset
+```
+
+If both the production schema and data have changed:
+
+```bash
+supabase db pull
+supabase db dump --data-only --linked > supabase/seed.sql
+supabase db reset
+```
+
+This updates the local development environment without requiring the application to work directly against the live database.
+
+---
+
+# Important: seed.sql
+
+The file:
+
+```text
+supabase/seed.sql
+```
+
+contains a copy of real Salvatori production data.
+
+It must **never be committed to GitHub**.
+
+It should be ignored through:
+
+```text
+supabase/.gitignore
+```
+
+---
+
+# Sage Development Setup
+
+Production uses the real Sage API.
+
+Development uses local dummy Sage data instead.
+
+This allows Sage-related functionality to be developed without sending requests to the live Salvatori Sage system.
+
+Shared Sage connection logic is stored in:
+
+```text
+controllers/sage_controllers/sage_connection.py
+```
+
+This contains common Sage functionality such as:
+
+* checking whether dummy Sage should be used
+* internal network detection
+* Sage API URL selection
+* Sage API token loading
+* Sage configuration validation
+
+This prevents the same connection code being duplicated across each Sage controller.
+
+---
+
+# Sage Controllers
+
+Sage controllers are stored under:
+
+```text
+controllers/sage_controllers/
+```
+
+Current controllers include:
+
+```text
+products.py
+invoices.py
+invoice_items.py
+customers.py
+```
+
+Individual controllers should contain the functionality for their specific Sage resource.
+
+Shared connection and environment behaviour should remain inside:
+
+```text
+sage_connection.py
+```
+
+rather than being duplicated between controllers.
+
+---
+
+# Dummy Sage Data
+
+Dummy Sage data is stored under:
+
+```text
+controllers/sage_controllers/dummy_data/
+```
+
+The current structure is:
+
+```text
+controllers/
+└── sage_controllers/
+    ├── sage_connection.py
+    ├── products.py
+    ├── invoices.py
+    ├── invoice_items.py
+    ├── customers.py
+    └── dummy_data/
+        ├── __init__.py
+        ├── products.py
+        ├── invoices.py
+        ├── invoice_items.py
+        └── customers.py
+```
+
+---
+
+# Dummy Sage Products
+
+Dummy products are stored in:
+
+```text
+controllers/sage_controllers/dummy_data/products.py
+```
+
+The current dummy product structure includes fields such as:
+
+```text
+STOCK_CODE
+DESCRIPTION
+```
+
+The product controller uses this data instead of calling the live Sage API while in development.
+
+---
+
+# Dummy Sage Invoices
+
+Dummy invoices are stored in:
+
+```text
+controllers/sage_controllers/dummy_data/invoices.py
+```
+
+The current dummy invoice data contains fields required by the existing Sage invoice functionality, including:
+
+```text
+INVOICE_NUMBER
+ACCOUNT_REF
+INVOICE_DATE
+RECORD_CREATE_DATE
+```
+
+The dummy invoice structure mirrors the existing Sage response format:
+
+```python
+{
+    "results": [
+        ...
+    ]
+}
+```
+
+This is important because existing application code expects invoice responses to contain a `results` collection.
+
+---
+
+# Dummy Sage Invoice Items
+
+Dummy invoice items are stored in:
+
+```text
+controllers/sage_controllers/dummy_data/invoice_items.py
+```
+
+The current structure includes fields such as:
+
+```text
+INVOICE_NUMBER
+STOCK_CODE
+QUANTITY
+RECORD_CREATE_DATE
+```
+
+Invoice numbers and stock codes correspond with the dummy invoice and product datasets so the development data remains consistent.
+
+---
+
+# Dummy Sage Customers
+
+Dummy customer data is stored in:
+
+```text
+controllers/sage_controllers/dummy_data/customers.py
+```
+
+There is currently no Sage customer-fetching functionality in the application.
+
+The customer dummy-data file therefore currently exists as scaffolding and can be expanded once customer functionality is added.
+
+---
+
+# Sage Development Behaviour
+
+When ManageMeStock is running with:
+
+```text
+APP_ENV=development
+```
+
+the Sage controllers use their dummy datasets.
+
+They do not retrieve the real Sage API configuration or make requests to the production Sage service.
+
+When ManageMeStock is running with:
+
+```text
+APP_ENV=production
+```
+
+the controllers use the real Sage configuration through:
+
+```text
+controllers/sage_controllers/sage_connection.py
+```
+
+and continue using the existing live Sage API functionality.
+
+---
+
+# Environment Configuration
+
+Development configuration is stored in:
+
+```text
+.env.development
+```
+
+Production configuration is stored in:
+
+```text
+.env
+```
+
+Environment files containing credentials should not be committed to GitHub.
+
+Important files that should remain ignored include:
+
+```text
+.env
+.env.development
+.venv/
+supabase/seed.sql
+```
+
+---
+
+# Files That Should Be Committed
+
+The following development-environment files should normally be committed:
+
+```text
+requirements.txt
+requirements-dev.txt
+manage.sh
+supabase/config.toml
+supabase/migrations/
+supabase/.gitignore
+controllers/sage_controllers/
+README.md
+```
+
+---
+
+# Files That Should Not Be Committed
+
+Do not commit:
+
+```text
+.venv/
+.env
+.env.development
+supabase/seed.sql
+```
+
+Always check before committing:
+
+```bash
+git status
+```
+
+---
+
+# Recommended Development Workflow
+
+Start the development environment:
+
+```bash
+./manage.sh dev
+```
+
+Confirm:
+
+```text
+ManageMeStock environment: development
+```
+
+Make development changes.
+
+Check files before committing:
+
+```bash
+git status
+```
+
+Stage changes:
+
+```bash
+git add .
+```
+
+Commit:
+
+```bash
+git commit -m "Description of changes"
+```
+
+Push the development branch:
+
+```bash
+git push
+```
+
+---
+
+# Safety Rule
+
+Development work must not modify live Salvatori production data.
+
+Before using the application for development, confirm the terminal shows:
+
+```text
+ManageMeStock environment: development
+```
+
+If the application unexpectedly reports:
+
+```text
+ManageMeStock environment: production
+```
+
+stop before performing development actions.
+
+Development should use:
+
+```text
+Local Supabase
+Dummy Sage
+```
+
+while production uses:
+
+```text
+Production Supabase
+Real Sage
+```
