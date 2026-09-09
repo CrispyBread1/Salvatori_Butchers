@@ -2,12 +2,8 @@ import json
 import os
 import psycopg2
 from psycopg2 import sql
-from dotenv import load_dotenv
 
 from models.stock_sold_report import StockSoldReport
-
-# Load environment variables from .env file
-load_dotenv()
 
 DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')

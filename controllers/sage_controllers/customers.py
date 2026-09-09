@@ -3,13 +3,9 @@ import os
 import socket
 import requests
 import urllib3  # Add this import
-from dotenv import load_dotenv
 
 # Disable InsecureRequestWarning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# Load environment variables from .env
-load_dotenv()
 
 def is_internal_network():
     """

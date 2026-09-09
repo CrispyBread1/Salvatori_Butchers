@@ -1,0 +1,591 @@
+# ManageMeStock
+
+Salvatori Butchers desktop administration application.
+
+This README contains the main commands required to run the application in production or development, manage the Python virtual environment, and manage the local Supabase development database.
+
+---
+
+# Running the Application
+
+## Production
+
+Production uses the real Salvatori data and live services.
+
+If you are **not inside the virtual environment**, the application can be run normally with:
+
+```bash
+python3 main.py
+```
+
+The launcher command is:
+
+```bash
+./manage.sh prod
+```
+
+### Important: Virtual Environment
+
+If your terminal currently looks like this:
+
+```text
+(.venv) ➜ salvaotri_admin_app
+```
+
+then the Python virtual environment is currently active.
+
+Running:
+
+```bash
+python3 main.py
+```
+
+while `.venv` is active will use the Python installation and packages from `.venv`.
+
+To leave the virtual environment first, run:
+
+```bash
+deactivate
+```
+
+Your terminal should then no longer show:
+
+```text
+(.venv)
+```
+
+You can then run production normally:
+
+```bash
+python3 main.py
+```
+
+or:
+
+```bash
+./manage.sh prod
+```
+
+### If Production Does Not Connect to Supabase
+
+The production application also uses direct Supabase/Postgres credentials from the production `.env`.
+
+If the Supabase database password has been reset, make sure the production `.env` contains the current:
+
+```text
+DB_PASSWORD
+DB_USER
+DB_HOST
+DB_PORT
+DB_NAME
+```
+
+An error such as:
+
+```text
+password authentication failed for user
+```
+
+is a database credential problem rather than a development/local-Supabase problem.
+
+---
+
+# Development Environment
+
+Development is isolated from the live Salvatori Supabase database.
+
+It uses:
+
+* `.venv` for isolated Python packages
+* Local Supabase
+* A local copy of the database schema
+* A local copy of production data for development
+* `APP_ENV=development`
+
+## Start Development
+
+The normal development command is:
+
+```bash
+./manage.sh dev
+```
+
+This starts ManageMeStock in development mode and uses the Python virtual environment and local Supabase instance.
+
+---
+
+# Python Virtual Environment
+
+## Activate Manually
+
+If required:
+
+```bash
+source .venv/bin/activate
+```
+
+The terminal should then show:
+
+```text
+(.venv)
+```
+
+## Leave the Virtual Environment
+
+```bash
+deactivate
+```
+
+## Install Application Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Install Development/Test Dependencies
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+`requirements-dev.txt` includes the normal requirements plus development tools such as:
+
+* pytest
+* pytest-cov
+* pytest-qt
+* watchdog
+
+The `.venv` directory is local only and must not be committed to Git.
+
+---
+
+# Local Supabase Development Database
+
+Local Supabase runs through Docker and is completely separate from the live Supabase database.
+
+## Start Docker
+
+Docker Desktop needs to be running before local Supabase can start.
+
+Manually open it with:
+
+```bash
+open -a Docker
+```
+
+Check Docker with:
+
+```bash
+docker info
+```
+
+---
+
+## Start Local Supabase
+
+```bash
+supabase start
+```
+
+The local services currently use addresses similar to:
+
+```text
+Supabase API:
+http://127.0.0.1:54321
+
+Supabase Studio:
+http://127.0.0.1:54323
+
+Postgres:
+127.0.0.1:54322
+```
+
+The exact values can always be checked using:
+
+```bash
+supabase status
+```
+
+---
+
+## Open Local Supabase Studio
+
+Open:
+
+```text
+http://127.0.0.1:54323
+```
+
+This allows the local database to be viewed and edited through the Supabase Studio interface.
+
+---
+
+## Check Local Supabase Status
+
+Using the project launcher:
+
+```bash
+./manage.sh status
+```
+
+or directly:
+
+```bash
+supabase status
+```
+
+---
+
+## Stop Local Supabase
+
+Using the launcher:
+
+```bash
+./manage.sh stop
+```
+
+or:
+
+```bash
+supabase stop
+```
+
+---
+
+# Resetting the Local Database
+
+The local database can be completely rebuilt from the stored migration and local seed data.
+
+Run:
+
+```bash
+./manage.sh reset-db
+```
+
+or directly:
+
+```bash
+supabase db reset
+```
+
+This will:
+
+1. Delete the current **local** database contents.
+2. Recreate the local database.
+3. Apply the migrations in:
+
+```text
+supabase/migrations/
+```
+
+4. Load:
+
+```text
+supabase/seed.sql
+```
+
+The result is a fresh local development database.
+
+### Important
+
+Use:
+
+```bash
+supabase db reset
+```
+
+Do **not** use:
+
+```bash
+supabase db reset --linked
+```
+
+for development.
+
+`--linked` refers to the remote Supabase project and should not be used when resetting the development database.
+
+---
+
+# Local Database Structure
+
+The production Supabase schema is stored as migrations in:
+
+```text
+supabase/migrations/
+```
+
+The initial production schema was pulled using:
+
+```bash
+supabase db pull
+```
+
+This copied the database **structure**, including:
+
+* Tables
+* Columns
+* Functions
+* Sequences
+* RLS configuration
+* Policies
+* Permissions
+
+It does not itself copy the table data.
+
+---
+
+# Local Development Data
+
+The current production table data was copied separately into:
+
+```text
+supabase/seed.sql
+```
+
+using:
+
+```bash
+supabase db dump --data-only --linked > supabase/seed.sql
+```
+
+`seed.sql` contains real production data and therefore:
+
+**DO NOT COMMIT `supabase/seed.sql` TO GIT.**
+
+It should remain listed in:
+
+```text
+supabase/.gitignore
+```
+
+---
+
+# Updating the Local Database From Production
+
+If the production Supabase database changes in the future, the local development copy can be refreshed.
+
+There are two different situations.
+
+## Production Data Changed, but Database Structure Did Not
+
+For example:
+
+* New products
+* New stock takes
+* New reports
+* Changed product information
+* New deliveries
+
+Download a fresh copy of the production data:
+
+```bash
+supabase db dump --data-only --linked > supabase/seed.sql
+```
+
+Then rebuild the local database:
+
+```bash
+supabase db reset
+```
+
+The local database will now contain the newly downloaded production data.
+
+---
+
+## Production Database Structure Changed
+
+For example:
+
+* New table
+* New column
+* New database function
+* New RLS policy
+* Changed constraint
+
+First pull the latest production schema:
+
+```bash
+supabase db pull
+```
+
+If Supabase asks:
+
+```text
+Update remote migration history table? [Y/n]
+```
+
+check that the migration represents the existing remote schema before accepting it.
+
+Then download the latest production data:
+
+```bash
+supabase db dump --data-only --linked > supabase/seed.sql
+```
+
+Finally rebuild the local database:
+
+```bash
+supabase db reset
+```
+
+The process is therefore:
+
+```text
+Production Supabase
+        ↓
+supabase db pull
+        ↓
+Updated local migrations
+        ↓
+supabase db dump --data-only --linked
+        ↓
+Updated seed.sql
+        ↓
+supabase db reset
+        ↓
+Fresh local development database
+```
+
+---
+
+# Useful Supabase Commands
+
+Start Supabase:
+
+```bash
+supabase start
+```
+
+Check status:
+
+```bash
+supabase status
+```
+
+Stop Supabase:
+
+```bash
+supabase stop
+```
+
+Reset the local database:
+
+```bash
+supabase db reset
+```
+
+Pull production schema changes:
+
+```bash
+supabase db pull
+```
+
+Download the current production data:
+
+```bash
+supabase db dump --data-only --linked > supabase/seed.sql
+```
+
+Show migrations:
+
+```bash
+supabase migration list
+```
+
+---
+
+# Development Files That Must Not Be Committed
+
+The following should stay local:
+
+```text
+.venv/
+.env
+.env.development
+.env.test
+supabase/seed.sql
+```
+
+The following Supabase files **should** be committed:
+
+```text
+supabase/config.toml
+supabase/migrations/
+supabase/.gitignore
+```
+
+This allows another development machine or GitHub Actions to recreate the database structure without committing production data or secrets.
+
+---
+
+# Current Everyday Workflow
+
+## Working on Development
+
+```bash
+./manage.sh dev
+```
+
+Work against the local Supabase database.
+
+When development is finished:
+
+```bash
+./manage.sh stop
+```
+
+if the local Supabase services are no longer needed.
+
+## Running Production
+
+If `.venv` is active:
+
+```bash
+deactivate
+```
+
+Then:
+
+```bash
+python3 main.py
+```
+
+or:
+
+```bash
+./manage.sh prod
+```
+
+Always remember that production uses **live Salvatori data**.
+
+---
+
+# Future Testing Setup
+
+The next development stage will add automated testing.
+
+The intended workflow will eventually be:
+
+```text
+Development
+    ↓
+Local Supabase
+    ↓
+pytest
+    ↓
+GitHub Actions
+    ↓
+Fresh temporary Supabase
+    ↓
+automated tests
+    ↓
+PR allowed to merge
+```
+
+Additional commands such as:
+
+```bash
+./manage.sh test
+```
+
+can be added to this README as the testing environment is built.

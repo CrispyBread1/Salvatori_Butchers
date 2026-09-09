@@ -2,9 +2,7 @@
 from env_loader import ensure_environment_variables
 
 # Load environment variables before anything else
-env_loaded = ensure_environment_variables()
-if not env_loaded:
-    print("WARNING: Using fallback environment values!")
+ensure_environment_variables()
 
 import sys
 from PyQt5.QtWidgets import QApplication
