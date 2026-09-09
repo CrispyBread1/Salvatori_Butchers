@@ -2,6 +2,9 @@
 import atexit
 import faulthandler
 import os
+
+# Process-local VMware OpenGL workaround; apply before loading Qt.
+os.environ['SVGA_ALLOW_LLVMPIPE'] = '0'
 from pathlib import Path
 import sys
 import tempfile
@@ -93,7 +96,7 @@ atexit.register(_finish)
 # Diagnostic-only graphics trial. Set before Qt is imported or initialized.
 os.environ['QT_DEBUG_PLUGINS'] = '1'
 os.environ['QT_OPENGL'] = 'software'
-print('Qt diagnostic hook v2: plugin logging enabled; software OpenGL requested.')
+print('Qt diagnostic hook v3: SVGA_ALLOW_LLVMPIPE=0; software OpenGL requested.')
 print('Loading QtCore...', flush=True)
 from PyQt5 import QtCore
 
