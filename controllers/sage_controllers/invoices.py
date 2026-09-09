@@ -2,13 +2,13 @@ import json
 
 import requests
 
-from resources.sage_connection import (
+from controllers.sage_controllers.resources.sage_connection import (
     get_sage_config,
     is_internal_network,
     use_dummy_sage,
 )
 
-from sage_controllers.dummy_data.invoices import DUMMY_INVOICES
+from controllers.sage_controllers.dummy_data.invoices import DUMMY_INVOICES
 
 
 def get_todays_invoices(date):

@@ -1,26 +1,18 @@
 from itertools import chain
-
 import json
-
 import requests
-
 from datetime import date, datetime
-
 from collections import defaultdict
-
 from database.butchers_lists import fetch_butchers_list_by_date
-
 from database.products import fetch_products_stock_code_fresh
-
 from models.butchers_list import ButchersList
-
-from resources.sage_connection import (
+from controllers.sage_controllers.resources.sage_connection import (
     get_sage_config,
     is_internal_network,
     use_dummy_sage,
 )
 
-from sage_controllers.dummy_data.products import DUMMY_PRODUCTS
+from controllers.sage_controllers.dummy_data.products import DUMMY_PRODUCTS
 
 
 def get_product_by_code(sage_code):

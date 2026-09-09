@@ -2,13 +2,13 @@ import json
 
 import requests
 
-from resources.sage_connection import (
+from controllers.sage_controllers.resources.sage_connection import (
     get_sage_config,
     is_internal_network,
     use_dummy_sage,
 )
 
-from sage_controllers.dummy_data.invoice_items import DUMMY_INVOICE_ITEMS
+from controllers.sage_controllers.dummy_data.invoice_items import DUMMY_INVOICE_ITEMS
 
 
 def get_invoice_items_id(invoices_ids):

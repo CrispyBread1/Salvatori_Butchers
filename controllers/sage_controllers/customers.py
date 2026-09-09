@@ -5,4 +5,4 @@ from controllers.sage_controllers.resources.sage_connection import (
     is_development,
 )
 
-from sage_controllers.dummy_data.customers import DUMMY_CUSTOMERS
+from controllers.sage_controllers.dummy_data.customers import DUMMY_CUSTOMERS
