@@ -13,6 +13,9 @@ build/
 .env.test
 .env.production
 
+# Development Environment Variables
+.venv/
+
 # Python
 __pycache__/
 *.py[cod]

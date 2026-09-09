@@ -1,10 +1,6 @@
 import os
 import requests
-from dotenv import load_dotenv
 from database.users import *
-
-# Load environment variables from .env file
-load_dotenv()
 
 class AuthService:
     def __init__(self):

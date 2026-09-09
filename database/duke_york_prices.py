@@ -5,11 +5,6 @@ import psycopg2
 from psycopg2 import sql
 from models.duke_york_prices import DukeYorkPrices
 
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
 DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 DB_NAME = os.getenv('DB_NAME')

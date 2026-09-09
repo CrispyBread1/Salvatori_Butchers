@@ -5,10 +5,6 @@ import psycopg2
 from psycopg2 import sql
 from models.delivery import Delivery
 from models.report import Report
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')

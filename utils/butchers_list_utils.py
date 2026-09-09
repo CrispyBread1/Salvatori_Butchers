@@ -2,7 +2,7 @@ from itertools import chain
 from collections import defaultdict
 import json
 
-from controllers.sage_controllers.invoice_products import get_invoice_items_id
+from controllers.sage_controllers.invoice_items import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_todays_invoices, get_todays_new_invoices, refresh_get_todays_invoices
 from database.butchers_lists import fetch_all_butchers_lists_by_date, fetch_butchers_list_by_date
 from database.products import fetch_products_stock_code_fresh, fetch_stock_codes, insert_product

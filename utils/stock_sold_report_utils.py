@@ -1,5 +1,5 @@
 import json
-from controllers.sage_controllers.invoice_products import get_invoice_items_id
+from controllers.sage_controllers.invoice_items import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_todays_invoices
 from database.reports import update_report
 
