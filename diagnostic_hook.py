@@ -88,3 +88,26 @@ def _finish():
 
 
 atexit.register(_finish)
+
+
+# Diagnostic-only graphics trial. Set before Qt is imported or initialized.
+os.environ['QT_DEBUG_PLUGINS'] = '1'
+os.environ['QT_OPENGL'] = 'software'
+print('Qt diagnostic hook v2: plugin logging enabled; software OpenGL requested.')
+print('Loading QtCore...', flush=True)
+from PyQt5 import QtCore
+
+
+def _qt_message(message_type, context, message):
+    # Use Python output so the existing tee also saves native Qt messages.
+    try:
+        print('[Qt {}] {}'.format(int(message_type), message), flush=True)
+    except Exception:
+        pass
+
+
+QtCore.qInstallMessageHandler(_qt_message)
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseSoftwareOpenGL)
+print('Qt version:', QtCore.qVersion())
+print('PyQt version:', QtCore.PYQT_VERSION_STR)
+print('QtCore ready; continuing to main.py.', flush=True)
