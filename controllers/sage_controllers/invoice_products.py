@@ -2,57 +2,6 @@ import json
 import os
 import socket
 import requests
-import urllib3  # Add this import
-
-
-# Disable InsecureRequestWarning
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-def is_internal_network():
-    """
-    Check if we're likely running on the internal network by testing if we can
-    resolve the internal hostname quickly.
-    """
-    try:
-        # Try to resolve the internal server hostname with a short timeout
-        socket.getaddrinfo('server69.cw-direct.co.uk', 50027)
-        return True
-    except (socket.gaierror, socket.timeout):
-        return False
-    finally:
-        # Reset socket timeout to default
-        socket.setdefaulttimeout(None)
-
-
-def get_api_url():
-    """
-    Function to get the API URL with fallback support.
-    Detects whether we're on internal or external network to choose 
-    the appropriate connection route.
-    """
-    # Get configured URLs from environment
-    internal_url = os.getenv("SAGE_API_URL_INTERNAL") or os.environ.get("SAGE_API_URL_INTERNAL")
-    external_url = os.getenv("SAGE_API_URL") or os.environ.get("SAGE_API_URL")
-    
-    # Define direct internal server connection as backup option
-    # direct_internal = "https://10.0.0.69:50027"  # Direct IP to SERVER69
-    
-    # If we're likely on the internal network, prioritize internal connections
-    if is_internal_network():
-        print("Detected internal network, prioritizing direct internal connection")
-        return internal_url
-    else:
-        print("Detected external network, prioritizing external connection")
-        return external_url
-
-
-API_URL = get_api_url()
-API_TOKEN = os.getenv("SAGE_API_TOKEN")
-
-
-if not API_TOKEN:
-    API_TOKEN = os.environ.get("API_TOKEN")
-
 
 def get_invoice_items_id(invoices_ids):
     """
