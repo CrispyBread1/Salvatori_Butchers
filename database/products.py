@@ -19,26 +19,35 @@ PRODUCT_FIELDS = (
     "supplier",
     "sold_as"
 )
-
 PRODUCT_COLUMNS = ",".join(PRODUCT_FIELDS)
 
 
 def create_product_table():
+
     # Tables are managed through Supabase migrations.
+
     pass
 
 
 def convert_to_product_objects(products):
+
     """Convert API rows or existing tuple rows into Product objects."""
 
     results = []
 
     for product in products:
+
         if isinstance(product, dict):
+
             results.append(
-                Product(*[product[field] for field in PRODUCT_FIELDS])
+                Product(*[
+                    product[field]
+                    for field in PRODUCT_FIELDS
+                ])
             )
+
         else:
+
             results.append(Product(*product))
 
     return results
@@ -55,9 +64,11 @@ def insert_product(
     supplier,
     sold_as
 ):
+
     """Insert a product using the logged-in user's permissions."""
 
     try:
+
         rows = request_database(
             "POST",
             "products",
@@ -78,18 +89,24 @@ def insert_product(
         )
 
         if not rows:
+
             print("Product insert did not return a record.")
+
             return False
 
         print(f"Product {name} added successfully!")
+
         return True
 
     except Exception as e:
+
         print(f"Error inserting product: {e}")
+
         return False
 
 
 def fetch_products():
+
     """Return all products ordered by name."""
 
     rows = fetch_rows(
@@ -104,6 +121,7 @@ def fetch_products():
 
 
 def fetch_products_stock_take(category):
+
     """Return products grouped under the requested stock category."""
 
     rows = fetch_rows(
@@ -121,6 +139,7 @@ def fetch_products_stock_take(category):
 
 
 def fetch_products_stock_code_fresh():
+
     """Return the set of Sage codes for fresh products."""
 
     rows = fetch_rows(
@@ -136,6 +155,7 @@ def fetch_products_stock_code_fresh():
 
 
 def fetch_stock_codes():
+
     """Return all Sage codes, or None when there are no products."""
 
     rows = fetch_rows(
@@ -152,16 +172,19 @@ def fetch_stock_codes():
 
 
 def fetch_products_by_ids(product_ids):
+
     """Return matching products, batching IDs to limit URL length."""
 
     product_ids = list(dict.fromkeys(product_ids))
 
     if not product_ids:
+
         return []
 
     results = []
 
     for offset in range(0, len(product_ids), 100):
+
         batch = product_ids[offset:offset + 100]
 
         rows = fetch_rows(
@@ -173,7 +196,9 @@ def fetch_products_by_ids(product_ids):
             ]
         )
 
-        results.extend(convert_to_product_objects(rows))
+        results.extend(
+            convert_to_product_objects(rows)
+        )
 
     return results
 
@@ -190,6 +215,7 @@ def update_product(
     supplier=None,
     sold_as=None
 ):
+
     """Update supplied fields. None leaves the existing value unchanged."""
 
     values = {
@@ -211,6 +237,7 @@ def update_product(
     }
 
     if not data:
+
         return False
 
     rows = request_database(
@@ -224,6 +251,7 @@ def update_product(
     )
 
     if not rows:
+
         raise RuntimeError(
             "Product was not updated. It may not exist, "
             "or your account may not have permission."
