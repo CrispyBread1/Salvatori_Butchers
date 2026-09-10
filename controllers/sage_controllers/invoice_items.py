@@ -17,7 +17,7 @@ def get_invoice_items_id(invoices_ids):
     """
 
     if use_dummy_sage():
-        return DUMMY_INVOICE_ITEMS
+        return DUMMY_INVOICE_ITEMS['results']
 
     API_URL, API_TOKEN = get_sage_config()
 
@@ -81,7 +81,7 @@ def get_invoice_items_date_sage_code(date, product_sage_codes):
     """
 
     if use_dummy_sage():
-        return DUMMY_INVOICE_ITEMS
+        return DUMMY_INVOICE_ITEMS['results']
 
     API_URL, API_TOKEN = get_sage_config()
 
@@ -150,7 +150,7 @@ def get_invoice_items_between_time_frame(date, previous_week_date):
     """
 
     if use_dummy_sage():
-        return DUMMY_INVOICE_ITEMS
+        return DUMMY_INVOICE_ITEMS['results']
 
     API_URL, API_TOKEN = get_sage_config()
 
