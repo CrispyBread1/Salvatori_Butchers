@@ -1,32 +1,34 @@
-from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QStackedWidget, QHBoxLayout, QFrame, QMessageBox, QSizePolicy
+from PyQt5.QtWidgets import (
+    QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton,
+    QStackedWidget, QHBoxLayout, QFrame, QMessageBox, QSizePolicy
+)
 from PyQt5.QtGui import QPalette, QColor
+
 from database.users import get_pending_users
 from gui.components.reusable.buttons.notifications import NotificationButton
-from gui.product_value_window import ProductWindow   
 from gui.scheduled_tasks import ScheduledTasks
-from gui.stock_window import StockWindow 
+from gui.stock_window import StockWindow
 from gui.edit_product_window import EditProductWindow
-from auth.userAuthentication import AuthService  
-from gui.components.user_accounts.loginComponent import LoginComponent  
+from auth.userAuthentication import AuthService
+from gui.components.user_accounts.loginComponent import LoginComponent
 from gui.components.user_accounts.signUpComponent import SignUpComponent
 from gui.settings_window import SettingsWindow
 
+
 class MainWindow(QMainWindow):
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Salvatori Admin')
 
-        # Set application background color
+        self.setWindowTitle("Salvatori Admin")
         self.set_application_style()
 
-        # Initialize auth service
+        # Login and database requests share this authentication service.
         self.auth_service = AuthService()
 
-        # Set up the central widget layout
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
 
-        # Create stacked widget to switch between views
         self.stacked_widget = QStackedWidget(self.central_widget)
         self.stacked_widget.setStyleSheet("""
             QStackedWidget {
@@ -36,15 +38,14 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # Main content layout for welcome screen
+        # Home page.
         self.content_layout = QVBoxLayout()
-        
-        self.user_label = QLabel("Please log in, or Sign up to continue", self)
+
+        self.user_label = QLabel(
+            "Please log in or sign up to continue.",
+            self
+        )
         self.content_layout.addWidget(self.user_label)
-        
-        main_content = QWidget()
-        main_content.setLayout(self.content_layout)
-        self.stacked_widget.addWidget(main_content)
 
         self.login_button = QPushButton("Log In", self)
         self.login_button.clicked.connect(self.show_login)
@@ -54,30 +55,42 @@ class MainWindow(QMainWindow):
         self.sign_up_button.clicked.connect(self.show_sign_up)
         self.content_layout.addWidget(self.sign_up_button)
 
-        # Auth components
+        self.home_page = QWidget()
+        self.home_page.setLayout(self.content_layout)
+        self.stacked_widget.addWidget(self.home_page)
+
+        # Authentication pages.
         self.login_component = LoginComponent(self.auth_service)
-        self.login_component.login_successful.connect(self.on_login_successful)
-        self.login_component.login_failed.connect(self.on_login_failed)
-        self.login_component.back_button.clicked.connect(self.show_home)
+        self.login_component.login_successful.connect(
+            self.on_login_successful
+        )
+        self.login_component.login_failed.connect(
+            self.on_login_failed
+        )
+        self.login_component.back_button.clicked.connect(
+            self.show_home
+        )
         self.stacked_widget.addWidget(self.login_component)
 
         self.sign_up_component = SignUpComponent(self.auth_service)
-        self.sign_up_component.sign_up_successful.connect(self.on_sign_up_successful)
-        self.sign_up_component.sign_up_failed.connect(lambda msg: None)
-        self.sign_up_component.back_button.clicked.connect(self.show_home)
+        self.sign_up_component.sign_up_successful.connect(
+            self.on_sign_up_successful
+        )
+        self.sign_up_component.sign_up_failed.connect(
+            lambda msg: None
+        )
+        self.sign_up_component.back_button.clicked.connect(
+            self.show_home
+        )
         self.stacked_widget.addWidget(self.sign_up_component)
 
-        # Other windows
-        self.scheduled_tasks_window = ScheduledTasks()
-        self.stock_window = StockWindow()
-        self.edit_product_window = EditProductWindow()
-        self.settings_window = SettingsWindow()
-        self.stacked_widget.addWidget(self.scheduled_tasks_window)
-        self.stacked_widget.addWidget(self.stock_window)
-        self.stacked_widget.addWidget(self.edit_product_window)
-        self.stacked_widget.addWidget(self.settings_window)
+        # Feature pages are created when first opened after login.
+        self.scheduled_tasks_window = None
+        self.stock_window = None
+        self.edit_product_window = None
+        self.settings_window = None
 
-        # Nav buttons
+        # Navigation buttons.
         self.nav_button_1 = QPushButton("Home", self)
         self.nav_button_1.clicked.connect(self.show_home)
 
@@ -85,10 +98,14 @@ class MainWindow(QMainWindow):
         self.nav_button_2.clicked.connect(self.show_settings)
 
         self.nav_button_3 = QPushButton("Scheduled Tasks", self)
-        self.nav_button_3.clicked.connect(self.open_scheduled_tasks_window)
+        self.nav_button_3.clicked.connect(
+            self.open_scheduled_tasks_window
+        )
 
         self.nav_button_4 = QPushButton("Edit Products", self)
-        self.nav_button_4.clicked.connect(self.open_edit_product_window)
+        self.nav_button_4.clicked.connect(
+            self.open_edit_product_window
+        )
 
         self.nav_button_5 = QPushButton("Stock", self)
         self.nav_button_5.clicked.connect(self.open_stock_window)
@@ -96,33 +113,39 @@ class MainWindow(QMainWindow):
         self.logout_button = QPushButton("Log Out", self)
         self.logout_button.clicked.connect(self.handle_logout)
 
-        # Create top navigation bar layout
         self.nav_bar = QHBoxLayout()
         self.nav_bar.setContentsMargins(10, 6, 10, 10)
         self.nav_bar.setSpacing(20)
 
-        # Left side - Home
         self.nav_button_1.setFixedSize(80, 28)
+
         left_nav = QHBoxLayout()
         left_nav.addWidget(self.nav_button_1)
         left_nav.addStretch()
 
-        # Right side - other buttons
         right_nav = QHBoxLayout()
-        for btn in [self.nav_button_2, self.nav_button_3, self.nav_button_4, self.nav_button_5, self.logout_button]:
-            btn.setFixedHeight(28)
-            btn.setMinimumWidth(100)
-            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            btn.setStyleSheet("padding: 5px 15px;")
-            right_nav.addWidget(btn)
+
+        for button in (
+            self.nav_button_2,
+            self.nav_button_3,
+            self.nav_button_4,
+            self.nav_button_5,
+            self.logout_button
+        ):
+            button.setFixedHeight(28)
+            button.setMinimumWidth(100)
+            button.setSizePolicy(
+                QSizePolicy.Expanding,
+                QSizePolicy.Fixed
+            )
+            button.setStyleSheet("padding: 5px 15px;")
+            right_nav.addWidget(button)
 
         right_nav.addStretch()
 
-        # Combine both sides into the nav bar
         self.nav_bar.addLayout(left_nav, stretch=1)
         self.nav_bar.addLayout(right_nav, stretch=5)
 
-        # Create the top nav bar as a frame
         self.top_bar = QFrame(self.central_widget)
         self.top_bar.setLayout(self.nav_bar)
         self.top_bar.setFixedHeight(40)
@@ -142,39 +165,23 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # Main layout with top nav and stacked content
         main_layout = QVBoxLayout(self.central_widget)
         main_layout.addWidget(self.top_bar)
         main_layout.addWidget(self.stacked_widget)
 
-        # Set window geometry
         self.setGeometry(100, 100, 1400, 800)
-
-        # Set initial auth state
         self.update_auth_state()
-        
 
     def set_application_style(self):
-        """Set global application style and colors"""
-        # Create a palette with the desired background color
+        """Set application colours and styling."""
+
         palette = self.palette()
-        
-        # Set a light blue background (you can change this to your preferred color)
-        # Example: #fafaff - light blue, #f5f5f5 - light gray, #f0fff0 - honeydew (light green)
-        background_color = QColor("#fafaff")
-        
-        # Apply the background color to all color roles that affect the background
-        palette.setColor(QPalette.Window, background_color)
-        palette.setColor(QPalette.Base, QColor("#ffffff"))  # Keep input fields white
-        
-        # Set text colors
+        palette.setColor(QPalette.Window, QColor("#fafaff"))
+        palette.setColor(QPalette.Base, QColor("#ffffff"))
         palette.setColor(QPalette.WindowText, QColor("#222222"))
         palette.setColor(QPalette.Text, QColor("#222222"))
-        
-        # Apply the palette to the application
         self.setPalette(palette)
-        
-        # Additional global application styling
+
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #fafaff;
@@ -199,111 +206,215 @@ class MainWindow(QMainWindow):
         """)
 
     def update_auth_state(self):
-        """Update the UI based on authentication state"""
+        """Update navigation based on the current session."""
+
         is_logged_in = self.auth_service.is_logged_in()
         user = self.auth_service.current_user
 
-        # Enable navigation only for approved users
-        for btn in [self.nav_button_2, self.nav_button_3, 
-                    self.nav_button_4, self.nav_button_5]:
-            btn.setVisible(is_logged_in and user.approved)
+        is_approved = bool(
+            is_logged_in
+            and user is not None
+            and user.approved is True
+        )
 
-        # Always show logout if user is logged in
+        for button in (
+            self.nav_button_2,
+            self.nav_button_3,
+            self.nav_button_4,
+            self.nav_button_5
+        ):
+            button.setVisible(is_approved)
+
         self.logout_button.setVisible(is_logged_in)
-
-        # Hide login/signup if logged in
         self.login_button.setVisible(not is_logged_in)
         self.sign_up_button.setVisible(not is_logged_in)
 
-        # Update welcome message
-        if is_logged_in:
-            if user.approved:
-                self.user_label.setText("Welcome! You are logged in.")
-            else:
-                self.user_label.setText("Thanks for signing in. An admin is reviewing your profile.")
+        if is_approved:
+            self.user_label.setText("Welcome! You are logged in.")
+        elif is_logged_in:
+            self.user_label.setText(
+                "Thanks for signing in. "
+                "An admin is reviewing your profile."
+            )
         else:
-            self.user_label.setText("Please log in or sign up to continue.")
+            self.user_label.setText(
+                "Please log in or sign up to continue."
+            )
+            self.nav_button_2.set_notification_count(0)
 
         self.show_home()
 
     def on_login_successful(self, user_data):
-        """Handle successful login"""
-        self.settings_window.setup_ui(user_data)
-        self.stock_window.setup_ui(user_data)
-        self.edit_product_window.setup_ui(user_data)
+        """Update navigation without constructing feature pages."""
+
         self.update_auth_state()
-        self.show_home()
 
     def on_login_failed(self, error_message):
-        """Handle failed login"""
-        # Error message is displayed by the login component
+        # The login component displays the error message.
         pass
-  
+
     def on_sign_up_successful(self, user_data):
-        self.user_label.setText("Thank you for Signin up, an Admin is checking your Profile")
-        self.logout_button.setVisible(True)
-        self.login_button.setVisible(False)
-        self.sign_up_button.setVisible(False)
-        self.show_home()
-        
-    def handle_logout(self):
-        """Handle logout button click"""
-        if self.auth_service.logout_user():
+        """Signup does not automatically create an approved session."""
+
+        self.update_auth_state()
+        self.user_label.setText(
+            "Account created. Confirm your email if required, "
+            "then wait for admin approval before logging in."
+        )
+
+    def open_authenticated_page(
+        self,
+        attribute_name,
+        window_class,
+        setup_with_user=False,
+        user_in_constructor=False
+    ):
+        """Create and open a page after checking authentication."""
+
+        if not self.auth_service.is_logged_in():
             self.update_auth_state()
-            QMessageBox.information(self, "Logged Out", "You have been logged out successfully.")
-        else:
-            QMessageBox.warning(self, "Error", "There was a problem logging out.")
+            QMessageBox.warning(
+                self,
+                "Authentication Required",
+                "Please log in to access this feature."
+            )
+            self.show_login()
+            return
+
+        user = self.auth_service.current_user
+
+        if user is None or user.approved is not True:
+            QMessageBox.warning(
+                self,
+                "Approval Required",
+                "Your account needs admin approval."
+            )
+            return
+
+        window = getattr(self, attribute_name)
+        creating_window = window is None
+
+        try:
+            if creating_window:
+                if user_in_constructor:
+                    # StockWindow builds its UI using this user.
+                    window = window_class(user=user)
+                else:
+                    window = window_class()
+
+                    # Preserve the existing setup for these pages.
+                    if setup_with_user:
+                        window.setup_ui(user)
+
+                self.stacked_widget.addWidget(window)
+                setattr(self, attribute_name, window)
+
+            self.stacked_widget.setCurrentWidget(window)
+
+        except Exception as e:
+            if creating_window and window is not None:
+                self.stacked_widget.removeWidget(window)
+                window.deleteLater()
+                setattr(self, attribute_name, None)
+
+            QMessageBox.warning(
+                self,
+                "Unable to Open Page",
+                str(e)
+            )
 
     def open_scheduled_tasks_window(self):
-        # Check authentication before allowing access
-        user = self.auth_service.current_user
-        if not user.approved:
-            QMessageBox.warning(self, "Authentication Required", 
-                               "Please log in to access this feature.")
-            self.show_login()
-            return
-            
-        self.stacked_widget.setCurrentWidget(self.scheduled_tasks_window)
+        self.open_authenticated_page(
+            "scheduled_tasks_window",
+            ScheduledTasks
+        )
 
     def open_stock_window(self):
-        # Check authentication before allowing access
-        user = self.auth_service.current_user
-        if not user.approved:
-            QMessageBox.warning(self, "Authentication Required", 
-                               "Please log in to access this feature.")
-            self.show_login()
-            return
-            
-        self.stacked_widget.setCurrentWidget(self.stock_window)
+        self.open_authenticated_page(
+            "stock_window",
+            StockWindow,
+            user_in_constructor=True
+        )
 
     def open_edit_product_window(self):
-        # Check authentication before allowing access
-        user = self.auth_service.current_user
-        if not user.approved:
-            QMessageBox.warning(self, "Authentication Required", 
-                               "Please log in to access this feature.")
-            self.show_login()
-            return
-            
-        self.stacked_widget.setCurrentWidget(self.edit_product_window)
-
-    def show_home(self):
-        """Switch to home page"""
-        self.stacked_widget.setCurrentIndex(0)
+        self.open_authenticated_page(
+            "edit_product_window",
+            EditProductWindow,
+            setup_with_user=True
+        )
 
     def show_settings(self):
-        """Switch to settings page"""
-        self.stacked_widget.setCurrentWidget(self.settings_window)
+        self.open_authenticated_page(
+            "settings_window",
+            SettingsWindow,
+            setup_with_user=True
+        )
+
+    def handle_logout(self):
+        """Clear the session and discard pages containing user data."""
+
+        logout_successful = self.auth_service.logout_user()
+
+        self.show_home()
+
+        for attribute_name in (
+            "scheduled_tasks_window",
+            "stock_window",
+            "edit_product_window",
+            "settings_window"
+        ):
+            window = getattr(self, attribute_name)
+
+            if window is not None:
+                self.stacked_widget.removeWidget(window)
+                window.deleteLater()
+                setattr(self, attribute_name, None)
+
+        self.nav_button_2.set_notification_count(0)
+        self.update_auth_state()
+
+        if logout_successful:
+            QMessageBox.information(
+                self,
+                "Logged Out",
+                "You have been logged out successfully."
+            )
+        else:
+            QMessageBox.warning(
+                self,
+                "Logged Out Locally",
+                "You have been logged out on this computer, "
+                "but the server logout request could not be completed."
+            )
+
+    def show_home(self):
+        self.stacked_widget.setCurrentWidget(self.home_page)
 
     def show_login(self):
-        """Switch to login page"""
         self.stacked_widget.setCurrentWidget(self.login_component)
 
     def show_sign_up(self):
-        """Switch to sign up page"""
         self.stacked_widget.setCurrentWidget(self.sign_up_component)
 
     def update_pending_users_notification(self):
-        """Update the notification count on the New Users button"""
-        count = len(get_pending_users())
-        self.nav_button_2.set_notification_count(count)
+        """Load the notification count only for an approved admin."""
+
+        self.nav_button_2.set_notification_count(0)
+
+        if not self.auth_service.is_logged_in():
+            return
+
+        user = self.auth_service.current_user
+
+        if (
+            user is None
+            or user.approved is not True
+            or user.admin is not True
+        ):
+            return
+
+        try:
+            count = len(get_pending_users())
+            self.nav_button_2.set_notification_count(count)
+        except Exception as e:
+            print(f"Could not load pending user notification: {e}")
