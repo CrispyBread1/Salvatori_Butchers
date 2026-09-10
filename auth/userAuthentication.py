@@ -97,9 +97,20 @@ class AuthService:
 
         if not response.ok:
             if response.status_code in (400, 401, 403, 422):
+                try:
+                    error_data = response.json()
+                except ValueError:
+                    error_data = {}
+
+                error_message = (
+                    error_data.get("error_description")
+                    or error_data.get("msg")
+                    or error_data.get("message")
+                    or "Authentication failed."
+                )
+
                 raise RuntimeError(
-                    "Authentication failed. Check your details "
-                    "and confirm your email if required."
+                    f"{error_message} (HTTP {response.status_code})"
                 )
 
             if response.status_code == 429:
