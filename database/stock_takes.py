@@ -17,6 +17,7 @@ if not DB_HOST or not DB_PORT or not DB_NAME or not DB_USER or not DB_PASSWORD:
     DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
 def connect_db():
+  return None
   try:
       # Establish the connection
       connection = psycopg2.connect(
@@ -34,6 +35,7 @@ def connect_db():
 
 
 def create_stock_take_table():
+  return None
   connection = connect_db()
   if connection:
       cursor = connection.cursor()
@@ -51,6 +53,7 @@ def create_stock_take_table():
       connection.close()
 
 def insert_stock_take(take, product_categories, date):
+  return False
   connection = connect_db()
   category = ""
   for product_category in product_categories:
@@ -78,6 +81,7 @@ def insert_stock_take(take, product_categories, date):
 #       return rows
     
 def fetch_most_recent_stock_take(categories):
+  return {}
   connection = connect_db()
   results = {}
   if connection:
@@ -95,6 +99,7 @@ def fetch_most_recent_stock_take(categories):
     return results
   
 def fetch_stock_takes_in_date_range_with_category(category, start_date, end_date):
+    return []
     connection = connect_db()
     results = {}
     if connection:
@@ -114,6 +119,7 @@ def fetch_stock_takes_in_date_range_with_category(category, start_date, end_date
     return results  
   
 def fetch_stock_takes_in_date_range(start_date, end_date):
+    return []
     connection = connect_db()
     results = {}
     if connection:
@@ -136,6 +142,7 @@ def fetch_stock_takes_in_date_range(start_date, end_date):
 
   
 def convert_to_stock_take_objects(stock_takes):
+  return []
   return [StockTake(*stock_take) for stock_take in stock_takes]
       
 # def convert_to_product_objects(products):

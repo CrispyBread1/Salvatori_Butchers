@@ -20,6 +20,7 @@ if not DB_HOST or not DB_PORT or not DB_NAME or not DB_USER or not DB_PASSWORD:
     DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
 def connect_db():
+  return None
   try:
       # Establish the connection
       connection = psycopg2.connect(
@@ -38,6 +39,7 @@ def connect_db():
 
     
 def fetch_deliveries_by_week(chosen_date):
+    return []
     connection = connect_db()
     results = []
     
@@ -71,4 +73,5 @@ def fetch_deliveries_by_week(chosen_date):
   
       
 def convert_to_delivery_objects(deliveries):
+  return []
   return [Delivery(*delivery) for delivery in deliveries]

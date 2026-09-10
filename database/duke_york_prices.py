@@ -19,6 +19,7 @@ if not DB_HOST or not DB_PORT or not DB_NAME or not DB_USER or not DB_PASSWORD:
     DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
 def connect_db():
+  return None
   try:
       # Establish the connection
       connection = psycopg2.connect(
@@ -35,6 +36,7 @@ def connect_db():
       return None
 
 def fetch_duke_york_by_date(date):
+  return None
   connection = connect_db()
   if connection:
     cursor = connection.cursor()
@@ -49,6 +51,7 @@ def fetch_duke_york_by_date(date):
     return result
   
 def fetch_duke_york_prices_by_date_range(start_date, end_date):
+    return None
     connection = connect_db()
     if connection:
         cursor = connection.cursor()
@@ -66,6 +69,7 @@ def fetch_duke_york_prices_by_date_range(start_date, end_date):
         return None
 
 def insert_duke_york_prices(date, data):
+    return False
     connection = None
     try:
         # Attempt to connect to the database
@@ -109,6 +113,7 @@ def insert_duke_york_prices(date, data):
             connection.close()
 
 def deactivate_duke_york_prices(price_list_id):
+    return False
     """
     Set the active column to False for a specific duke_york_prices record.
     
