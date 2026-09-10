@@ -57,7 +57,24 @@ def convert_date(value):
     if len(value) == 10:
         return date.fromisoformat(value)
 
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    value = value.replace("Z", "+00:00")
+
+    if "." in value:
+        timestamp, fraction = value.split(".", 1)
+
+        timezone = ""
+
+        for separator in ("+", "-"):
+            if separator in fraction:
+                fraction, timezone = fraction.split(separator, 1)
+                timezone = separator + timezone
+                break
+
+        fraction = fraction[:6].ljust(6, "0")
+
+        value = f"{timestamp}.{fraction}{timezone}"
+
+    return datetime.fromisoformat(value)
 
 
 def convert_json(value):
