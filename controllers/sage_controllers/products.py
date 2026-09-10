@@ -28,7 +28,7 @@ def get_product_by_code(sage_code):
 
     if use_dummy_sage():
 
-        for product in DUMMY_PRODUCTS:
+        for product in DUMMY_PRODUCTS['results']:
 
             if product["STOCK_CODE"] == sage_code:
 
@@ -90,7 +90,7 @@ def get_products_by_codes(sage_codes):
 
         return [
             product
-            for product in DUMMY_PRODUCTS
+            for product in DUMMY_PRODUCTS['results']
             if product["STOCK_CODE"] in sage_codes
         ]
 

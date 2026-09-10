@@ -19,6 +19,7 @@ if not DB_HOST or not DB_PORT or not DB_NAME or not DB_USER or not DB_PASSWORD:
     DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
 def connect_db():
+  return None
   try:
       # Establish the connection
       connection = psycopg2.connect(
@@ -37,6 +38,7 @@ def connect_db():
 
     
 def fetch_stock_sold_report_by_date(date):
+  return []
   connection = connect_db()
   results = {}
   if connection:
@@ -53,6 +55,7 @@ def fetch_stock_sold_report_by_date(date):
   
       
 def convert_to_stock_sold_report_objects(report):
+  return []
   return StockSoldReport(*report)
 
 
@@ -88,6 +91,7 @@ def update_stock_sold_report(report_id, data, updated_at):
         return False
     
 def insert_stock_sold_report(date, data):
+    return False
     connection = None
     try:
         # Attempt to connect to the database

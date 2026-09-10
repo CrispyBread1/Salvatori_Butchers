@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QMessageBox, QComboBox,
     QVBoxLayout, QFormLayout, QHBoxLayout, QLineEdit, QDialog, QDialogButtonBox
 )
-from auth.userAuthentication import AuthService
 from database.butchers_lists import combine_butchers_lists, fetch_all_butchers_lists_by_date, insert_butchers_list, update_butchers_list
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.date_input_dialog import DateInputDialog
@@ -19,9 +18,6 @@ class ButchersListWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-
-        self.auth_service = AuthService()
-        self.user = self.auth_service.current_user
 
         self.loading_manager = LoadingManager(self)
         self.date = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')

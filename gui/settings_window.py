@@ -72,7 +72,7 @@ class SettingsWindow(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.general_settings_component)
         
         # Check for pending users and update notification
-        self.update_pending_users_notification()
+        # self.update_pending_users_notification()
     
     def show_user_approval(self):
         """Switch to user approval component"""

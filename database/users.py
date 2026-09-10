@@ -1,116 +1,139 @@
-import os
-import psycopg2
-from psycopg2 import sql
 from models.user import User
 
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT')
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
+from database.supabase_client import (
+    request_database,
+    fetch_rows,
+    convert_date
+)
 
-if not DB_HOST or not DB_PORT or not DB_NAME or not DB_USER or not DB_PASSWORD:
-    DB_HOST = os.environ.get("DB_HOST")
-    DB_PORT = os.environ.get("DB_PORT")
-    DB_NAME = os.environ.get("DB_NAME")
-    DB_USER = os.environ.get("DB_USER")
-    DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
-def connect_db():
-  try:
-      # Establish the connection
-      connection = psycopg2.connect(
-          host=DB_HOST,
-          port=DB_PORT,
-          dbname=DB_NAME,
-          user=DB_USER,
-          password=DB_PASSWORD
-      )
-      # print("Connection to database successful")
-      return connection
-  except Exception as e:
-      print(f"Failed to connect to database: {e}")
-      return None
+USER_COLUMNS = (
+    "id,created_at,name,department,permissions,"
+    "email,approved,admin"
+)
 
 
 def create_users_table():
-   pass
+    # Tables are managed through Supabase migrations.
+    pass
+
+
+def convert_to_user_object(row):
+    if not row:
+        return None
+
+    return User(
+        row["id"],
+        convert_date(row["created_at"]),
+        row["name"],
+        row["department"],
+        row["permissions"],
+        row["email"],
+        row["approved"],
+        row["admin"],
+        None
+    )
+
 
 def fetch_user(id):
-  connection = connect_db()
-  if connection:
-    cursor = connection.cursor()
-    cursor.execute(
-      "SELECT * FROM users WHERE id = %s",
-      (id,)
+    rows = request_database(
+        "GET",
+        "users",
+        params=[
+            ("select", USER_COLUMNS),
+            ("id", f"eq.{id}"),
+            ("limit", "1")
+        ]
     )
-    # print(cursor.fetchone())
-    result = cursor.fetchone()
-    if result:
-      result = User(*result)
-    cursor.close()
-    connection.close()
-    return result
-  
+
+    if rows:
+        return convert_to_user_object(rows[0])
+
+    return None
+
+
 def insert_user(id, name, email):
-  connection = connect_db()
-  if connection:
-      cursor = connection.cursor()
-      cursor.execute("""
-          INSERT INTO users (id, name, email) 
-          VALUES (%s, %s, %s)
-      """, (id, name, email))
-      connection.commit()
-      print(f"User {name} added successfully!")
-      cursor.close()
-      connection.close()
+    # Signup now creates the profile through our database trigger.
+    # Keep this function for any remaining callers.
+    user = fetch_user(id)
+
+    if user is None:
+        raise RuntimeError(
+            "Staff profile is missing. "
+            "Check the signup database trigger."
+        )
+
+    return True
+
 
 def get_pending_users():
-    approved = False
-    connection = connect_db()
-    results = {}
-    if connection:
-      cursor = connection.cursor()
-      cursor.execute(
-          "SELECT * FROM users WHERE approved = %s",
-          (approved,)
-      )
-      fetched_data = cursor.fetchall()  # Fetch all matching rows
-      if fetched_data:
-        results = [User(*row) for row in fetched_data]
-      else:
-        results = []  # Store empty list if no stock takes found
+    rows = fetch_rows(
+        "users",
+        params=[
+            ("select", USER_COLUMNS),
+            ("approved", "eq.false"),
+            ("order", "created_at.asc,id.asc")
+        ]
+    )
 
-      cursor.close()
-      connection.close()
-    return results  
+    return [convert_to_user_object(row) for row in rows]
+
 
 def approve_user(user_id):
-    """Update the details of an existing product in the database."""
-    connection = connect_db()
-    if connection:
-        cursor = connection.cursor()
-        
-        # Prepare the SQL statement
-        update_query = sql.SQL(""" UPDATE users SET approved = %s WHERE id = %s """)
-        
-        # Execute the query with parameters
-        cursor.execute(update_query, (True, user_id,))
-        connection.commit()  # Commit the changes
+    """Approve a staff account. Supabase enforces admin access."""
 
-        cursor.close()
-        connection.close()
+    try:
+        rows = request_database(
+            "PATCH",
+            "users",
+            params=[
+                ("id", f"eq.{user_id}"),
+                ("select", "id")
+            ],
+            data={
+                "approved": True
+            }
+        )
+
+        if not rows:
+            print(
+                "User not approved: account not found "
+                "or insufficient permission."
+            )
+            return False
+
         return True
-    else:
-        print("Failed to connect to the database, user not updated.")
+
+    except Exception as e:
+        print(f"Error approving user: {e}")
         return False
 
+
 def reject_user(user_id):
-   return False
-  
+    """Remove staff approval without deleting the Auth account."""
 
-  
+    try:
+        rows = request_database(
+            "PATCH",
+            "users",
+            params=[
+                ("id", f"eq.{user_id}"),
+                ("select", "id")
+            ],
+            data={
+                "approved": False
+            }
+        )
 
+        if not rows:
+            print(
+                "User not updated: account not found "
+                "or insufficient permission."
+            )
+            return False
 
-if __name__ == "__main__":
-  create_users_table()
+        return True
+
+    except Exception as e:
+        print(f"Error rejecting user: {e}")
+        return False

@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QMessageBox, QComboBox,
     QVBoxLayout, QFormLayout, QHBoxLayout, QLineEdit, QDialog, QDialogButtonBox
 )
-from auth.userAuthentication import AuthService
 from database.duke_york_prices import deactivate_duke_york_prices, insert_duke_york_prices
 from gui.components.reusable.animations.loading_component import LoadingManager
 from gui.components.reusable.month_input_dialog import MonthInputDialog
@@ -17,9 +16,6 @@ class DukeYorkPricesWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-
-        self.auth_service = AuthService()
-        self.user = self.auth_service.current_user
 
         self.loading_manager = LoadingManager(self)
         self.excel_exporter = ExcelExporter(self)

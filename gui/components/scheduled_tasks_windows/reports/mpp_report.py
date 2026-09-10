@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
 from matplotlib.dates import relativedelta
-from auth.userAuthentication import AuthService
 from controllers.sage_controllers.invoice_items import get_invoice_items_between_time_frame, get_invoice_items_id
 from database.products import fetch_products
 from database.reports import fetch_report_by_id
@@ -18,9 +17,6 @@ class MPPReport(QWidget):
 
     def __init__(self):
         super().__init__()
-
-        self.auth_service = AuthService()
-        self.user = self.auth_service.current_user
 
         self.loading_manager = LoadingManager(self)
         self.excel_exporter = ExcelExporter(self)  # Initialize Excel exporter
