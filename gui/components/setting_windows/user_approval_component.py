@@ -12,7 +12,6 @@ class UserApprovalComponent(QWidget):
     def __init__(self):
         super().__init__()
         self.setup_ui()
-        self.load_pending_users()
         
     def setup_ui(self):
         layout = QVBoxLayout()
