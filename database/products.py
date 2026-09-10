@@ -1,212 +1,232 @@
-import os
-import psycopg2
-from psycopg2 import sql
 from models.product import Product
 
+from database.supabase_client import (
+    request_database,
+    fetch_rows,
+    id_list
+)
 
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT')
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
 
-if not DB_HOST or not DB_PORT or not DB_NAME or not DB_USER or not DB_PASSWORD:
-    DB_HOST = os.environ.get("DB_HOST")
-    DB_PORT = os.environ.get("DB_PORT")
-    DB_NAME = os.environ.get("DB_NAME")
-    DB_USER = os.environ.get("DB_USER")
-    DB_PASSWORD = os.environ.get("DB_PASSWORD")
+PRODUCT_FIELDS = (
+    "id",
+    "name",
+    "cost",
+    "stock_count",
+    "product_value",
+    "stock_category",
+    "product_category",
+    "sage_code",
+    "supplier",
+    "sold_as"
+)
 
-def connect_db():
-  try:
-      # Establish the connection
-      connection = psycopg2.connect(
-          host=DB_HOST,
-          port=DB_PORT,
-          dbname=DB_NAME,
-          user=DB_USER,
-          password=DB_PASSWORD
-      )
-      # print("Connection to database successful")
-      return connection
-  except Exception as e:
-      print(f"Failed to connect to database: {e}")
-      return None
+PRODUCT_COLUMNS = ",".join(PRODUCT_FIELDS)
 
 
 def create_product_table():
-  connection = connect_db()
-  if connection:
-      cursor = connection.cursor()
-      cursor.execute("""
-          CREATE TABLE IF NOT EXISTS products (
-              id SERIAL PRIMARY KEY,
-              name TEXT NOT NULL,
-              cost REAL,
-              stock_count REAL,
-              product_value REAL,
-              stock_category TEXT NOT NULL,
-              product_category TEXT NOT NULL,
-              sage_code TEXT,
-              supplier TEXT,
-              sold_as TEXT NOT NULL
-          )
-      """)
-      connection.commit()
-      print("Table 'products' created successfully.")
-      cursor.close()
-      connection.close()
+    # Tables are managed through Supabase migrations.
+    pass
 
-def insert_product(name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as):
-    connection = None
-    try:
-        # Attempt to connect to the database
-        connection = connect_db()
-        
-        if connection:
-            cursor = connection.cursor()
-            
-            try:
-                # Attempt to execute the insert query
-                cursor.execute("""
-                    INSERT INTO products (name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (name, cost, stock_count, product_value, stock_category, product_category, sage_code, supplier, sold_as))
-                
-                # Commit the transaction
-                connection.commit()
-                print(f"Product {name} added successfully!")
-                return True
-                
-            except Exception as e:
-                # Roll back any changes if there was an error with the query
-                connection.rollback()
-                print(f"Error inserting product: {e}")
-                return False
-                
-            finally:
-                # Close cursor regardless of success or failure
-                cursor.close()
+
+def convert_to_product_objects(products):
+    """Convert API rows or existing tuple rows into Product objects."""
+
+    results = []
+
+    for product in products:
+        if isinstance(product, dict):
+            results.append(
+                Product(*[product[field] for field in PRODUCT_FIELDS])
+            )
         else:
-            print("Failed to connect to database")
+            results.append(Product(*product))
+
+    return results
+
+
+def insert_product(
+    name,
+    cost,
+    stock_count,
+    product_value,
+    stock_category,
+    product_category,
+    sage_code,
+    supplier,
+    sold_as
+):
+    """Insert a product using the logged-in user's permissions."""
+
+    try:
+        rows = request_database(
+            "POST",
+            "products",
+            params=[
+                ("select", "id")
+            ],
+            data={
+                "name": name,
+                "cost": cost,
+                "stock_count": stock_count,
+                "product_value": product_value,
+                "stock_category": stock_category,
+                "product_category": product_category,
+                "sage_code": sage_code,
+                "supplier": supplier,
+                "sold_as": sold_as
+            }
+        )
+
+        if not rows:
+            print("Product insert did not return a record.")
             return False
-            
+
+        print(f"Product {name} added successfully!")
+        return True
+
     except Exception as e:
-        print(f"Database connection error: {e}")
+        print(f"Error inserting product: {e}")
         return False
-        
-    finally:
-        # Ensure connection is closed even if an exception occurs
-        if connection:
-            connection.close()
+
 
 def fetch_products():
-  connection = connect_db()
-  rows = []
-  if connection:
-      cursor = connection.cursor()
-      cursor.execute("SELECT * FROM products ORDER BY name ASC")
-      rows = convert_to_product_objects(cursor.fetchall())
-      cursor.close()
-      connection.close()
-      return rows
-    
+    """Return all products ordered by name."""
+
+    rows = fetch_rows(
+        "products",
+        params=[
+            ("select", PRODUCT_COLUMNS),
+            ("order", "name.asc,id.asc")
+        ]
+    )
+
+    return convert_to_product_objects(rows)
+
+
 def fetch_products_stock_take(category):
-  connection = connect_db()
-  results = {}
-  if connection:
-    cursor = connection.cursor()
-    cursor.execute(f"SELECT * FROM products WHERE stock_category = '{category}' ")
-    results[category] = convert_to_product_objects(cursor.fetchall())
+    """Return products grouped under the requested stock category."""
 
-    cursor.close()
-    connection.close()
-    return results
-  
+    rows = fetch_rows(
+        "products",
+        params=[
+            ("select", PRODUCT_COLUMNS),
+            ("stock_category", f"eq.{category}"),
+            ("order", "name.asc,id.asc")
+        ]
+    )
+
+    return {
+        category: convert_to_product_objects(rows)
+    }
+
+
 def fetch_products_stock_code_fresh():
-  connection = connect_db()
-  results = {}
-  if connection:
-    cursor = connection.cursor()
-    cursor.execute("SELECT sage_code FROM products WHERE stock_category = 'fresh'")
-    results = {row[0] for row in cursor.fetchall()} 
+    """Return the set of Sage codes for fresh products."""
 
-    cursor.close()
-    connection.close()
-    return results
-  
+    rows = fetch_rows(
+        "products",
+        params=[
+            ("select", "id,sage_code"),
+            ("stock_category", "eq.fresh"),
+            ("order", "id.asc")
+        ]
+    )
+
+    return {row["sage_code"] for row in rows}
+
+
 def fetch_stock_codes():
-    connection = connect_db()
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT sage_code FROM products")
-        results = {row[0] for row in cursor.fetchall()} 
-        cursor.close()
-        connection.close()
-        if results:
-            return results
-        return None
+    """Return all Sage codes, or None when there are no products."""
 
-  
+    rows = fetch_rows(
+        "products",
+        params=[
+            ("select", "id,sage_code"),
+            ("order", "id.asc")
+        ]
+    )
+
+    results = {row["sage_code"] for row in rows}
+
+    return results if results else None
+
+
 def fetch_products_by_ids(product_ids):
-  connection = connect_db()
-  results = {}
-  if connection:
-      cursor = connection.cursor()
-      
-      # Create placeholders for the IN clause
-      placeholders = ','.join(['%s'] * len(product_ids))
-      query = f"SELECT * FROM products WHERE id IN ({placeholders})"
-      
-      cursor.execute(query, product_ids)
-      results = convert_to_product_objects(cursor.fetchall())
+    """Return matching products, batching IDs to limit URL length."""
 
-      cursor.close()
-      connection.close()
-      return results
-      
-def convert_to_product_objects(products):
-  return [Product(*product) for product in products]
+    product_ids = list(dict.fromkeys(product_ids))
 
-def update_product(product_id, name=None, cost=None, stock_count=None, 
-                   product_value=None, stock_category=None, product_category=None, 
-                   sage_code=None, supplier=None, sold_as=None):
-    """Update the details of an existing product in the database."""
-    
-    # Create a connection to the database
-    connection = connect_db()
-    
-    if connection:
-        cursor = connection.cursor()
-        
-        # Prepare the SQL statement
-        update_query = sql.SQL("""
-            UPDATE products
-            SET 
-                name = COALESCE(%s, name),
-                cost = COALESCE(%s, cost),
-                stock_count = COALESCE(%s, stock_count),
-                product_value = COALESCE(%s, product_value),
-                stock_category = COALESCE(%s, stock_category),
-                product_category = COALESCE(%s, product_category),
-                sage_code = COALESCE(%s, sage_code),
-                supplier = COALESCE(%s, supplier),
-                sold_as = COALESCE(%s, sold_as)
-            WHERE id = %s
-        """)
-        
-        # Execute the query with parameters
-        cursor.execute(update_query, (name, cost, stock_count, product_value, 
-                                      stock_category, product_category, sage_code, 
-                                      supplier, sold_as, product_id))
-        
-        connection.commit()  # Commit the changes
-        # print(f"Product with ID {product_id} updated successfully!")
-        
-        cursor.close()
-        connection.close()
-    else:
-        print("Failed to connect to the database, product not updated.")
+    if not product_ids:
+        return []
 
-if __name__ == "__main__":
-  create_product_table()
+    results = []
+
+    for offset in range(0, len(product_ids), 100):
+        batch = product_ids[offset:offset + 100]
+
+        rows = fetch_rows(
+            "products",
+            params=[
+                ("select", PRODUCT_COLUMNS),
+                ("id", f"in.{id_list(batch)}"),
+                ("order", "id.asc")
+            ]
+        )
+
+        results.extend(convert_to_product_objects(rows))
+
+    return results
+
+
+def update_product(
+    product_id,
+    name=None,
+    cost=None,
+    stock_count=None,
+    product_value=None,
+    stock_category=None,
+    product_category=None,
+    sage_code=None,
+    supplier=None,
+    sold_as=None
+):
+    """Update supplied fields. None leaves the existing value unchanged."""
+
+    values = {
+        "name": name,
+        "cost": cost,
+        "stock_count": stock_count,
+        "product_value": product_value,
+        "stock_category": stock_category,
+        "product_category": product_category,
+        "sage_code": sage_code,
+        "supplier": supplier,
+        "sold_as": sold_as
+    }
+
+    data = {
+        field: value
+        for field, value in values.items()
+        if value is not None
+    }
+
+    if not data:
+        return False
+
+    rows = request_database(
+        "PATCH",
+        "products",
+        params=[
+            ("id", f"eq.{product_id}"),
+            ("select", "id")
+        ],
+        data=data
+    )
+
+    if not rows:
+        raise RuntimeError(
+            "Product was not updated. It may not exist, "
+            "or your account may not have permission."
+        )
+
+    return True
