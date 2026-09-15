@@ -1,14 +1,13 @@
-import json
-
-import requests
-from database.supabase_client import request_function
 from controllers.sage_controllers.resources.sage_connection import (
-    get_sage_config,
-    is_internal_network,
     use_dummy_sage,
 )
 
-from controllers.sage_controllers.dummy_data.invoices import DUMMY_INVOICES
+from controllers.sage_controllers.dummy_data.invoices import (
+    DUMMY_INVOICES
+)
+
+from database.supabase_client import request_function
+
 
 
 def get_todays_invoices(date):
@@ -28,6 +27,7 @@ def get_todays_invoices(date):
         invoices = request_function(
             "sage-invoices",
             {
+                "action": "todays",
                 "date": date
             }
         )
@@ -49,76 +49,46 @@ def get_todays_invoices(date):
         return None
 
 
+
 def get_todays_new_invoices(date, previous_fetch):
+
     """
-    Fetch all invoices for a specific date from the Sage API.
+
+    Fetch new invoices for a specific date from Sage.
+
     """
 
     if use_dummy_sage():
+
         return DUMMY_INVOICES
-
-    API_URL, API_TOKEN = get_sage_config()
-
-    url = f"{API_URL}/api/searchInvoice"
-
-    payload = json.dumps([
-        {
-            "field": "INVOICE_DATE",
-            "type": "eq",
-            "value": date
-        },
-        {
-            "field": "RECORD_CREATE_DATE",
-            "type": "gt",
-            "value": previous_fetch
-        }
-    ])
-
-    headers = {
-        'Content-Type': 'application/json',
-        'AuthToken': API_TOKEN
-    }
 
     try:
 
-        if is_internal_network():
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90),
-                verify=False
-            )
-
-        else:
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90)
-            )
-
-        response.raise_for_status()
-        response.raise_for_status()
-
-        invoices = response.json()
+        invoices = request_function(
+            "sage-invoices",
+            {
+                "action": "todays_new",
+                "date": date,
+                "previous_fetch": previous_fetch
+            }
+        )
 
         print(
+
             f"Fetch in controller completed successfully: "
+
             f"{len(invoices['results'])}"
+
         )
 
         return invoices
 
-    except requests.RequestException as e:
+    except RuntimeError as e:
 
         print(f"Error fetching invoices: {e}")
 
         return None
+
 
 
 def get_customer_invoices_by_month(
@@ -126,80 +96,45 @@ def get_customer_invoices_by_month(
     start_month,
     end_month
 ):
+
     """
-    Fetch all invoices for a specific date from the Sage API.
+
+    Fetch invoices for a customer between two dates from Sage.
+
     """
 
     if use_dummy_sage():
+
         return DUMMY_INVOICES
-
-    API_URL, API_TOKEN = get_sage_config()
-
-    url = f"{API_URL}/api/searchInvoice"
-
-    payload = json.dumps([
-        {
-            "field": "ACCOUNT_REF",
-            "type": "eq",
-            "value": customer_code
-        },
-        {
-            "field": "INVOICE_DATE",
-            "type": "gte",
-            "value": start_month
-        },
-        {
-            "field": "INVOICE_DATE",
-            "type": "lt",
-            "value": end_month
-        }
-    ])
-
-    headers = {
-        'Content-Type': 'application/json',
-        'AuthToken': API_TOKEN
-    }
 
     try:
 
-        if is_internal_network():
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90),
-                verify=False
-            )
-
-        else:
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90)
-            )
-
-        response.raise_for_status()
-        response.raise_for_status()
-
-        invoices = response.json()
+        invoices = request_function(
+            "sage-invoices",
+            {
+                "action": "customer_month",
+                "customer_code": customer_code,
+                "start_month": start_month,
+                "end_month": end_month
+            }
+        )
 
         print(
+
             f"Fetch in controller completed successfully: "
+
             f"{len(invoices['results'])}"
+
         )
 
         return invoices
 
-    except requests.RequestException as e:
+    except RuntimeError as e:
 
         print(f"Error fetching invoices: {e}")
 
         return None
+
 
 
 def refresh_get_todays_invoices(
@@ -207,163 +142,81 @@ def refresh_get_todays_invoices(
     original_fetch,
     previous_fetch
 ):
+
     """
-    Fetch all invoices for a specific date from the Sage API.
+
+    Fetch invoices for a specific Butchers List refresh period.
+
     """
 
     if use_dummy_sage():
+
         return DUMMY_INVOICES
-
-    API_URL, API_TOKEN = get_sage_config()
-
-    url = f"{API_URL}/api/searchInvoice"
-
-    if previous_fetch:
-
-        payload = json.dumps([
-            {
-                "field": "INVOICE_DATE",
-                "type": "eq",
-                "value": date
-            },
-            {
-                "field": "RECORD_CREATE_DATE",
-                "type": "lte",
-                "value": original_fetch
-            },
-            {
-                "field": "RECORD_CREATE_DATE",
-                "type": "gte",
-                "value": previous_fetch
-            }
-        ])
-
-    else:
-
-        payload = json.dumps([
-            {
-                "field": "INVOICE_DATE",
-                "type": "eq",
-                "value": date
-            },
-            {
-                "field": "RECORD_CREATE_DATE",
-                "type": "lte",
-                "value": original_fetch
-            }
-        ])
-
-    headers = {
-        'Content-Type': 'application/json',
-        'AuthToken': API_TOKEN
-    }
 
     try:
 
-        if is_internal_network():
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90),
-                verify=False
-            )
-
-        else:
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90)
-            )
-
-        response.raise_for_status()
-
-        invoices = response.json()
+        invoices = request_function(
+            "sage-invoices",
+            {
+                "action": "refresh",
+                "date": date,
+                "original_fetch": original_fetch,
+                "previous_fetch": previous_fetch
+            }
+        )
 
         print(
+
             f"Fetch in controller completed successfully: "
+
             f"{len(invoices['results'])}"
+
         )
 
         return invoices
 
-    except requests.RequestException as e:
+    except RuntimeError as e:
 
         print(f"Error fetching invoices: {e}")
 
         return None
 
 
+
 def get_the_last_weeks_invoices(date, date_week_ago):
+
     """
-    Fetch all invoices for a specific date from the Sage API.
+
+    Fetch invoices between two dates from Sage.
+
     """
 
     if use_dummy_sage():
+
         return DUMMY_INVOICES["results"]
-
-    API_URL, API_TOKEN = get_sage_config()
-
-    url = f"{API_URL}/api/searchInvoice"
-
-    payload = json.dumps([
-        {
-            "field": "INVOICE_DATE",
-            "type": "lte",
-            "value": date
-        },
-        {
-            "field": "INVOICE_DATE",
-            "type": "gte",
-            "value": date_week_ago
-        }
-    ])
-
-    headers = {
-        'Content-Type': 'application/json',
-        'AuthToken': API_TOKEN
-    }
 
     try:
 
-        if is_internal_network():
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90),
-                verify=False
-            )
-
-        else:
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90)
-            )
-
-        response.raise_for_status()
-
-        invoices = response.json()
-
-        print(
-            f"Fetch in controller completed successfully: "
-            f"{len(invoices['results'])}"
+        invoices = request_function(
+            "sage-invoices",
+            {
+                "action": "last_week",
+                "date": date,
+                "date_week_ago": date_week_ago
+            }
         )
 
-        return invoices['results']
+        print(
 
-    except requests.RequestException as e:
+            f"Fetch in controller completed successfully: "
+
+            f"{len(invoices['results'])}"
+
+        )
+
+        return invoices["results"]
+
+    except RuntimeError as e:
 
         print(f"Error fetching invoices: {e}")
 

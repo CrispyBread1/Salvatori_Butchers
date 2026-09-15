@@ -17,11 +17,9 @@ export default {
 
 
       const supabaseUrl = Deno.env.get("SUPABASE_URL")
-
       const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
 
       const sageApiUrl = Deno.env.get("SAGE_API_URL")
-
       const sageApiToken = Deno.env.get("SAGE_API_TOKEN")
 
 
@@ -149,30 +147,198 @@ export default {
       }
 
 
-      const date = body.date
+      const action = body.action || "todays"
+
+      let payload
 
 
-      if (!date) {
+      if (action === "todays") {
+
+          if (!body.date) {
+
+              return Response.json(
+                  {
+                      success: false,
+                      message: "Date is required."
+                  },
+                  {
+                      status: 400
+                  }
+              )
+          }
+
+
+          payload = [
+              {
+                  field: "INVOICE_DATE",
+                  type: "eq",
+                  value: body.date
+              }
+          ]
+
+      } else if (action === "todays_new") {
+
+          if (!body.date || !body.previous_fetch) {
+
+              return Response.json(
+                  {
+                      success: false,
+                      message: "Date and previous fetch are required."
+                  },
+                  {
+                      status: 400
+                  }
+              )
+          }
+
+
+          payload = [
+              {
+                  field: "INVOICE_DATE",
+                  type: "eq",
+                  value: body.date
+              },
+              {
+                  field: "RECORD_CREATE_DATE",
+                  type: "gt",
+                  value: body.previous_fetch
+              }
+          ]
+
+      } else if (action === "customer_month") {
+
+          if (
+              !body.customer_code ||
+              !body.start_month ||
+              !body.end_month
+          ) {
+
+              return Response.json(
+                  {
+                      success: false,
+                      message:
+                          "Customer code, start month and end month " +
+                          "are required."
+                  },
+                  {
+                      status: 400
+                  }
+              )
+          }
+
+
+          payload = [
+              {
+                  field: "ACCOUNT_REF",
+                  type: "eq",
+                  value: body.customer_code
+              },
+              {
+                  field: "INVOICE_DATE",
+                  type: "gte",
+                  value: body.start_month
+              },
+              {
+                  field: "INVOICE_DATE",
+                  type: "lt",
+                  value: body.end_month
+              }
+          ]
+
+      } else if (action === "refresh") {
+
+          if (!body.date || !body.original_fetch) {
+
+              return Response.json(
+                  {
+                      success: false,
+                      message: "Date and original fetch are required."
+                  },
+                  {
+                      status: 400
+                  }
+              )
+          }
+
+
+          if (body.previous_fetch) {
+
+              payload = [
+                  {
+                      field: "INVOICE_DATE",
+                      type: "eq",
+                      value: body.date
+                  },
+                  {
+                      field: "RECORD_CREATE_DATE",
+                      type: "lte",
+                      value: body.original_fetch
+                  },
+                  {
+                      field: "RECORD_CREATE_DATE",
+                      type: "gte",
+                      value: body.previous_fetch
+                  }
+              ]
+
+          } else {
+
+              payload = [
+                  {
+                      field: "INVOICE_DATE",
+                      type: "eq",
+                      value: body.date
+                  },
+                  {
+                      field: "RECORD_CREATE_DATE",
+                      type: "lte",
+                      value: body.original_fetch
+                  }
+              ]
+          }
+
+      } else if (action === "last_week") {
+
+          if (!body.date || !body.date_week_ago) {
+
+              return Response.json(
+                  {
+                      success: false,
+                      message:
+                          "Date and previous date are required."
+                  },
+                  {
+                      status: 400
+                  }
+              )
+          }
+
+
+          payload = [
+              {
+                  field: "INVOICE_DATE",
+                  type: "lte",
+                  value: body.date
+              },
+              {
+                  field: "INVOICE_DATE",
+                  type: "gte",
+                  value: body.date_week_ago
+              }
+          ]
+
+      } else {
 
           return Response.json(
               {
                   success: false,
-                  message: "Date is required."
+                  message: "Unknown Sage invoice action."
               },
               {
                   status: 400
               }
           )
       }
-
-
-      const payload = [
-          {
-              field: "INVOICE_DATE",
-              type: "eq",
-              value: date
-          }
-      ]
 
 
       try {
@@ -193,7 +359,8 @@ export default {
           if (!sageResponse.ok) {
 
               console.error(
-                  `Sage request failed: HTTP ${sageResponse.status}`
+                  `Sage invoice request failed for ${action}: ` +
+                  `HTTP ${sageResponse.status}`
               )
 
               return Response.json(
@@ -211,6 +378,12 @@ export default {
           const sageData = await sageResponse.json()
 
 
+          console.log(
+              `Sage invoice action ${action}: ` +
+              `${sageData?.results?.length ?? 0} invoices`
+          )
+
+
           return Response.json(
               sageData,
               {
@@ -221,7 +394,7 @@ export default {
       } catch (error) {
 
           console.error(
-              "Unable to connect to Sage:",
+              `Unable to complete Sage invoice action ${action}:`,
               error
           )
 
