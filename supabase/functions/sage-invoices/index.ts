@@ -314,18 +314,145 @@ export default {
           }
 
 
-          payload = [
-              {
-                  field: "INVOICE_DATE",
-                  type: "lte",
-                  value: body.date
-              },
-              {
-                  field: "INVOICE_DATE",
-                  type: "gte",
-                  value: body.date_week_ago
+          const startDate = new Date(
+              `${body.date_week_ago}T00:00:00Z`
+          )
+
+          const endDate = new Date(
+              `${body.date}T00:00:00Z`
+          )
+
+
+          if (
+              Number.isNaN(startDate.getTime()) ||
+              Number.isNaN(endDate.getTime()) ||
+              startDate > endDate
+          ) {
+
+              return Response.json(
+                  {
+                      success: false,
+                      message: "Invalid invoice date range."
+                  },
+                  {
+                      status: 400
+                  }
+              )
+          }
+
+
+          const invoices = []
+
+
+          try {
+
+              const currentDate = new Date(startDate)
+
+
+              while (currentDate <= endDate) {
+
+                  const invoiceDate = currentDate
+                      .toISOString()
+                      .slice(0, 10)
+
+
+                  const dailyPayload = [
+                      {
+                          field: "INVOICE_DATE",
+                          type: "eq",
+                          value: invoiceDate
+                      }
+                  ]
+
+
+                  const sageResponse = await fetch(
+                      `${sageApiUrl.replace(/\/$/, "")}/api/searchInvoice`,
+                      {
+                          method: "POST",
+                          headers: {
+                              "Content-Type": "application/json",
+                              "AuthToken": sageApiToken
+                          },
+                          body: JSON.stringify(dailyPayload)
+                      }
+                  )
+
+
+                  if (!sageResponse.ok) {
+
+                      console.error(
+                          `Sage request failed for ${invoiceDate}: ` +
+                          `HTTP ${sageResponse.status}`
+                      )
+
+                      return Response.json(
+                          {
+                              success: false,
+                              message: "Sage request failed."
+                          },
+                          {
+                              status: 502
+                          }
+                      )
+                  }
+
+
+                  const sageData = await sageResponse.json()
+
+                  const results = Array.isArray(sageData.results)
+                      ? sageData.results
+                      : []
+
+
+                  console.log(
+                      `${invoiceDate}: ${results.length} invoices`
+                  )
+
+
+                  invoices.push(...results)
+
+
+                  currentDate.setUTCDate(
+                      currentDate.getUTCDate() + 1
+                  )
               }
-          ]
+
+
+              console.log(
+                  `Last week total: ${invoices.length} invoices`
+              )
+
+
+              return Response.json(
+                  {
+                      results: invoices,
+                      success: true,
+                      code: 200,
+                      response: null,
+                      message: null
+                  },
+                  {
+                      status: 200
+                  }
+              )
+
+          } catch (error) {
+
+              console.error(
+                  "Unable to fetch last week's Sage invoices:",
+                  error
+              )
+
+              return Response.json(
+                  {
+                      success: false,
+                      message: "Unable to connect to Sage."
+                  },
+                  {
+                      status: 502
+                  }
+              )
+          }
 
       } else {
 
