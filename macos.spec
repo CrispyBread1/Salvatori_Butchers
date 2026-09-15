@@ -1,71 +1,135 @@
 # -*- mode: python ; coding: utf-8 -*-
+
 import os
+
 from PyInstaller.utils.hooks import collect_submodules
 
-# Print working directory to debug
-print(f"Current working directory: {os.getcwd()}")
 
-# Collect necessary modules
+print(
+    f"Current working directory: "
+    f"{os.getcwd()}"
+)
+
+
 hiddenimports = []
-try:
-    hiddenimports.extend(collect_submodules("psycopg2"))
-    print("Added psycopg2 modules")
-except Exception as e:
-    print(f"Warning: Could not collect psycopg2 modules: {e}")
+
 
 try:
-    hiddenimports.extend(collect_submodules("dotenv"))
+
+    hiddenimports.extend(
+        collect_submodules("dotenv")
+    )
+
     print("Added dotenv modules")
+
 except Exception as e:
-    print(f"Warning: Could not collect dotenv modules: {e}")
+
+    print(
+        f"Warning: Could not collect dotenv modules: {e}"
+    )
+
 
 try:
-    hiddenimports.extend(collect_submodules("openpyxl"))
+
+    hiddenimports.extend(
+        collect_submodules("openpyxl")
+    )
+
     print("Added openpyxl modules")
+
 except Exception as e:
-    print(f"Warning: Could not collect openpyxl modules: {e}")
 
-# Optional modules - only include if they exist
-for module in ["gui", "database", "resources"]:
+    print(
+        f"Warning: Could not collect openpyxl modules: {e}"
+    )
+
+
+for module in [
+    "gui"
+]:
+
     try:
-        hiddenimports.extend(collect_submodules(module))
-        print(f"Added {module} modules")
-    except Exception as e:
-        print(f"Note: Module {module} not added: {e}")
 
-# Data files with explicit existence checks
+        hiddenimports.extend(
+            collect_submodules(module)
+        )
+
+        print(
+            f"Added {module} modules"
+        )
+
+    except Exception as e:
+
+        print(
+            f"Note: Module {module} not added: {e}"
+        )
+
+
 datas = []
 
-# Add .env file if it exists
-env_file = os.path.join(os.getcwd(), '.env')
-if os.path.exists(env_file):
-    datas.append((env_file, '.'))
-    print(f"Adding .env file: {env_file}")
-else:
-    print(f"Warning: .env file not found at {env_file}")
 
-# MODIFIED: Better handling for assets directory
-assets_dir = os.path.join(os.getcwd(), 'assets')
-if os.path.exists(assets_dir) and os.path.isdir(assets_dir):
-    datas.append((assets_dir, 'assets'))
-    print(f"Adding assets directory: {assets_dir}")
-else:
-    print(f"Warning: assets directory not found at {assets_dir}")
-    # Optionally create empty directory if needed
-    # os.makedirs(assets_dir, exist_ok=True)
-    # datas.append((assets_dir, 'assets'))
-    # print(f"Created empty assets directory")
+assets_dir = os.path.join(
+    os.getcwd(),
+    "assets"
+)
 
-# Handle templates directory similarly
-templates_dir = os.path.join(os.getcwd(), 'templates')
-if os.path.exists(templates_dir) and os.path.isdir(templates_dir):
-    datas.append((templates_dir, 'templates'))
-    print(f"Adding templates directory: {templates_dir}")
+if (
+    os.path.exists(assets_dir)
+    and os.path.isdir(assets_dir)
+):
+
+    datas.append(
+        (
+            assets_dir,
+            "assets"
+        )
+    )
+
+    print(
+        f"Adding assets directory: "
+        f"{assets_dir}"
+    )
+
 else:
-    print(f"Warning: templates directory not found at {templates_dir}")
+
+    print(
+        f"Warning: assets directory not found at "
+        f"{assets_dir}"
+    )
+
+
+templates_dir = os.path.join(
+    os.getcwd(),
+    "templates"
+)
+
+if (
+    os.path.exists(templates_dir)
+    and os.path.isdir(templates_dir)
+):
+
+    datas.append(
+        (
+            templates_dir,
+            "templates"
+        )
+    )
+
+    print(
+        f"Adding templates directory: "
+        f"{templates_dir}"
+    )
+
+else:
+
+    print(
+        f"Warning: templates directory not found at "
+        f"{templates_dir}"
+    )
+
 
 a = Analysis(
-    ['main.py'],
+    ["main.py"],
     pathex=[],
     binaries=[],
     datas=datas,
@@ -80,14 +144,20 @@ a = Analysis(
     noarchive=False,
 )
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=None)
+
+pyz = PYZ(
+    a.pure,
+    a.zipped_data,
+    cipher=None
+)
+
 
 exe = EXE(
     pyz,
     a.scripts,
     [],
     exclude_binaries=True,
-    name='ManageMeStock',
+    name="ManageMeStock",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -100,6 +170,7 @@ exe = EXE(
     entitlements_file=None,
 )
 
+
 coll = COLLECT(
     exe,
     a.binaries,
@@ -108,17 +179,18 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='ManageMeStock',
+    name="ManageMeStock",
 )
+
 
 app = BUNDLE(
     coll,
-    name='ManageMeStock.app',
+    name="ManageMeStock.app",
     icon=None,
-    bundle_identifier='com.managemestock.app',
+    bundle_identifier="com.managemestock.app",
     info_plist={
-        'CFBundleShortVersionString': '1.0.0',
-        'CFBundleVersion': '1.0.0',
-        'NSHighResolutionCapable': 'True',
+        "CFBundleShortVersionString": "1.0.0",
+        "CFBundleVersion": "1.0.0",
+        "NSHighResolutionCapable": "True",
     },
 )

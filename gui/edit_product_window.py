@@ -1,5 +1,3 @@
-import os
-
 from datetime import datetime
 
 from PyQt5.QtCore import Qt
@@ -26,8 +24,6 @@ from gui.components.reusable.table import DynamicTableWidget
 from gui.components.edit_product_windows.product_detail_window import (
     ProductDetailWindow
 )
-
-from resources.update_supplier_excel import process_file, save_output_file
 
 from resources.excel_exporter import ExcelExporter
 
@@ -390,119 +386,15 @@ class EditProductWindow(QMainWindow):
     def update_supplier_sheet(self):
 
         """
-        Update price columns on the supplier Excel or CSV sheet
-        from Sage data.
+        Supplier sheet updating is temporarily disabled while
+        Sage access is moved to the secure backend.
         """
 
-        # Ask user to select input file
-
-        input_file, _ = QFileDialog.getOpenFileName(
+        QMessageBox.information(
             self,
-            "Select Supplier Sheet",
-            "",
+            "Under Maintenance",
             (
-                "Spreadsheet Files (*.xlsx *.xls *.csv);;"
-                "Excel Files (*.xlsx *.xls);;"
-                "CSV Files (*.csv);;"
-                "All Files (*)"
+                "Updating supplier prices is currently "
+                "under maintenance."
             )
         )
-
-        if not input_file:
-
-            return
-
-        self.loading_manager.run_with_loading(
-            task_function=process_file,
-            on_complete=self.on_update_complete,
-            on_error=self.on_update_error,
-            on_pause=self.handle_pause,
-            loading_text="Updating product data...",
-            title="Loading Prices",
-            task_args=(input_file,)
-        )
-
-    def on_update_complete(self, result, updated_at):
-
-        """Handle completion of the price update operation."""
-
-        # Extract just the DataFrame from the tuple result
-
-        if isinstance(result, tuple) and len(result) == 2:
-
-            updated_df = result[0]
-
-            input_file = result[1]
-
-        else:
-
-            updated_df = result
-
-            input_file = None
-
-        if updated_df is not None and not updated_df.empty:
-
-            # Get the base and extension from the original input file
-
-            if input_file:
-
-                base, ext = os.path.splitext(input_file)
-
-            else:
-
-                base = "updated_data"
-
-                ext = ".xlsx"
-
-            default_output = f"{base}_updated{ext}"
-
-            if ext.lower() in [".xlsx", ".xls"]:
-
-                file_type = "Excel Files (*.xlsx)"
-
-            else:
-
-                file_type = "CSV Files (*.csv)"
-
-            output_file, _ = QFileDialog.getSaveFileName(
-                self,
-                "Save Updated File",
-                default_output,
-                f"{file_type};;All Files (*)"
-            )
-
-            if output_file:
-
-                save_output_file(updated_df, output_file)
-
-                QMessageBox.information(
-                    self,
-                    "Success",
-                    (
-                        "File updated successfully and saved to:\n"
-                        f"{output_file}"
-                    )
-                )
-
-        else:
-
-            QMessageBox.information(
-                self,
-                "No Data",
-                "No invoices were found for the selected date."
-            )
-
-    def on_update_error(self, error_message):
-
-        QMessageBox.critical(
-            self,
-            "Error",
-            (
-                "An error occurred while processing the file:\n"
-                f"{str(error_message)}"
-            )
-        )
-
-    def handle_pause(self):
-
-        pass

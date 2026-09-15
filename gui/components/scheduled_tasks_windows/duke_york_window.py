@@ -21,8 +21,8 @@ class DukeYorkPricesWindow(QWidget):
         self.excel_exporter = ExcelExporter(self)
         self.date = (date.today() + timedelta(days=1))
 
-        self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
-        self.report = fetch_report_by_id(3)
+        # self.current_duke_york_prices = get_duke_york_prices_complete(self.date)
+        # self.report = fetch_report_by_id(3)
 
         # Create main layout once
         self.main_layout = QVBoxLayout()

@@ -1,7 +1,7 @@
 import json
 from controllers.sage_controllers.invoice_items import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_todays_invoices
-from database.reports import update_report
+# from database.reports import update_report
 
 
 def add_product_stock_sold_report(report, product_id): 

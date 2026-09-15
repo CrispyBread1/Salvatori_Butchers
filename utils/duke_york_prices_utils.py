@@ -2,8 +2,8 @@ import calendar
 import json
 from controllers.sage_controllers.invoice_items import get_invoice_items_id
 from controllers.sage_controllers.invoices import get_customer_invoices_by_month
-from database.duke_york_prices import fetch_duke_york_prices_by_date_range
-from database.reports import fetch_report_by_id
+# from database.duke_york_prices import fetch_duke_york_prices_by_date_range
+# from database.reports import fetch_report_by_id
 
 def get_duke_york_prices_complete(date):
     start_month = date.replace(day=1).strftime("%Y-%m-%d %H:%M:%S")

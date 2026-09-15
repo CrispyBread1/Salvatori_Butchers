@@ -1,18 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
+
 from PyInstaller.utils.hooks import collect_submodules
 
-env_file = os.path.join(os.getcwd(), '.env')
-print(f"Packaging .env file from: {env_file}")
-print(f"File exists: {os.path.exists(env_file)}")
 
-hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + collect_submodules("database") + collect_submodules("resources") + collect_submodules("dotenv") + collect_submodules("openpyxl") + collect_submodules("matplotlib")
+hiddenimports = (
+    collect_submodules("gui")
+    + collect_submodules("dotenv")
+    + collect_submodules("openpyxl")
+    + collect_submodules("matplotlib")
+)
+
 
 a = Analysis(
     ["main.py"],
     pathex=[],
     binaries=[],
-    datas=[(env_file, ".")],
+    datas=[],
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
@@ -21,7 +24,13 @@ a = Analysis(
     win_private_assemblies=False,
 )
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=None)
+
+pyz = PYZ(
+    a.pure,
+    a.zipped_data,
+    cipher=None
+)
+
 
 exe = EXE(
     pyz,
@@ -35,6 +44,6 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,  # Changed from True to False to hide console window
-    icon=None,  # Replace with 'assets/icon.ico' if you have it
+    console=False,
+    icon=None,
 )

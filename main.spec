@@ -1,17 +1,21 @@
+# -*- mode: python ; coding: utf-8 -*-
+
 from PyInstaller.utils.hooks import collect_submodules
 
-env_file = os.path.join(os.getcwd(), '.env')
-print(f"Packaging .env file from: {env_file}")
-print(f"File exists: {os.path.exists(env_file)}")
 
+hiddenimports = (
+    collect_submodules("gui")
+    + collect_submodules("dotenv")
+    + collect_submodules("openpyxl")
+    + ["pandas"]
+)
 
-hiddenimports = collect_submodules("psycopg2") + collect_submodules("gui") + collect_submodules("database") + collect_submodules("resources") + collect_submodules("dotenv") + collect_submodules("openpyxl") + ["pandas"]
 
 a = Analysis(
     ["main.py"],
     pathex=[],
     binaries=[],
-    datas=[(env_file, ".")], 
+    datas=[],
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
@@ -19,7 +23,15 @@ a = Analysis(
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
 )
-pyz = PYZ(a.pure, a.zipped_data, cipher=None)
+
+
+pyz = PYZ(
+    a.pure,
+    a.zipped_data,
+    cipher=None
+)
+
+
 exe = EXE(
     pyz,
     a.scripts,

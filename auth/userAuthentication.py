@@ -1,13 +1,17 @@
 import os
 import time
 import threading
-
 from urllib.parse import urlparse
 
 import requests
 
 from database.users import fetch_user
 from database.supabase_client import set_auth_service
+
+from config.supabase_config import (
+    PRODUCTION_SUPABASE_URL,
+    PRODUCTION_SUPABASE_ANON_KEY
+)
 
 
 class AuthService:
@@ -19,12 +23,31 @@ class AuthService:
 
         self.session_lock = threading.RLock()
 
-        self.supabase_url = (
-            os.getenv("SUPABASE_URL") or ""
-        ).rstrip("/")
+        self.app_env = os.getenv(
+            "APP_ENV",
+            "production"
+        ).lower()
 
-        self.supabase_anon_key = os.getenv("SUPABASE_ANON_KEY")
-        self.app_env = os.getenv("APP_ENV", "").lower()
+
+        if self.app_env == "production":
+
+            self.supabase_url = (
+                PRODUCTION_SUPABASE_URL
+            ).rstrip("/")
+
+            self.supabase_anon_key = (
+                PRODUCTION_SUPABASE_ANON_KEY
+            )
+
+        else:
+
+            self.supabase_url = (
+                os.getenv("SUPABASE_URL") or ""
+            ).rstrip("/")
+
+            self.supabase_anon_key = os.getenv(
+                "SUPABASE_ANON_KEY"
+            )
 
         # Share this authentication service with the controllers.
         set_auth_service(self)

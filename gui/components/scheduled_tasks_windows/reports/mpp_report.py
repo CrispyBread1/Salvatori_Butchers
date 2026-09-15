@@ -11,7 +11,7 @@ from gui.components.reusable.animations.loading_component import LoadingManager
 from controllers.sage_controllers.invoices import *
 from gui.components.reusable.date_input_dialog import DateInputDialog
 from resources.excel_exporter import ExcelExporter
-from utils.mpp_report_utils import add_customer_mpp_report, remove_customer_mpp_report
+# from utils.mpp_report_utils import add_customer_mpp_report, remove_customer_mpp_report
 
 class MPPReport(QWidget):
 

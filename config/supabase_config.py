@@ -1,0 +1,7 @@
+PRODUCTION_SUPABASE_URL = (
+    "https://qebranyoffuyctlpemxx.supabase.co"
+)
+
+PRODUCTION_SUPABASE_ANON_KEY = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlYnJhbnlvZmZ1eWN0bHBlbXh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyMDQ2ODYsImV4cCI6MjA1Nzc4MDY4Nn0.sRpu7J8ItQ1a9bc6a4cs7wcVaWtpGjAlQwIZcNPg1LU"
+)
