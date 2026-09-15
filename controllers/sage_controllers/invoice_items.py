@@ -8,101 +8,99 @@ from controllers.sage_controllers.resources.sage_connection import (
     use_dummy_sage,
 )
 
-from controllers.sage_controllers.dummy_data.invoice_items import DUMMY_INVOICE_ITEMS
+from controllers.sage_controllers.dummy_data.invoice_items import (
+    DUMMY_INVOICE_ITEMS
+)
+
+from database.supabase_client import request_function
+
 
 
 def get_invoice_items_id(invoices_ids):
+
     """
-    Fetch a specific invoice by its ID from the Sage API.
+
+    Fetch invoice items for specific invoice IDs.
+
     """
 
     if use_dummy_sage():
-        return DUMMY_INVOICE_ITEMS['results']
 
-    API_URL, API_TOKEN = get_sage_config()
-
-    url = f"{API_URL}/api/searchInvoiceItem/"
-
-    payload = json.dumps([
-        {
-            "field": "INVOICE_NUMBER",
-            "type": "in",
-            "value": invoices_ids
-        }
-    ])
-
-    headers = {
-        'Content-Type': 'application/json',
-        'AuthToken': API_TOKEN
-    }
+        return DUMMY_INVOICE_ITEMS["results"]
 
     try:
 
-        if is_internal_network():
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                verify=False
-            )
-
-        else:
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload
-            )
-
-        response.raise_for_status()
-
-        invoice_items = response.json()
-
-        print(
-            f"Fetch in controller completed successfully: "
-            f"{len(invoice_items['results'])}"
+        invoice_items = request_function(
+            "sage-invoice-items",
+            {
+                "invoice_numbers": invoices_ids
+            }
         )
 
-        return invoice_items['results']
+        print(
 
-    except requests.RequestException as e:
+            f"Fetch in controller completed successfully: "
+
+            f"{len(invoice_items['results'])}"
+
+        )
+
+        return invoice_items["results"]
+
+    except RuntimeError as e:
 
         print(f"Error fetching invoice items: {e}")
 
         return None
+
 
 
 def get_invoice_items_date_sage_code(date, product_sage_codes):
+
     """
+
     Fetch a specific invoice by its ID from the Sage API.
+
     """
 
     if use_dummy_sage():
-        return DUMMY_INVOICE_ITEMS['results']
+
+        return DUMMY_INVOICE_ITEMS["results"]
 
     API_URL, API_TOKEN = get_sage_config()
 
     url = f"{API_URL}/api/searchInvoiceItem/"
 
     payload = json.dumps([
+
         {
+
             "field": "RECORD_CREATE_DATE",
+
             "type": "eq",
+
             "value": date
+
         },
+
         {
+
             "field": "STOCK_CODE",
+
             "type": "in",
+
             "value": product_sage_codes
+
         }
+
     ])
 
     headers = {
+
         'Content-Type': 'application/json',
+
         'AuthToken': API_TOKEN
+
     }
 
     try:
@@ -110,20 +108,31 @@ def get_invoice_items_date_sage_code(date, product_sage_codes):
         if is_internal_network():
 
             response = requests.request(
+
                 "POST",
+
                 url,
+
                 headers=headers,
+
                 data=payload,
+
                 verify=False
+
             )
 
         else:
 
             response = requests.request(
+
                 "POST",
+
                 url,
+
                 headers=headers,
+
                 data=payload
+
             )
 
         response.raise_for_status()
@@ -131,8 +140,11 @@ def get_invoice_items_date_sage_code(date, product_sage_codes):
         invoice_items = response.json()
 
         print(
+
             f"Fetch in controller completed successfully: "
+
             f"{len(invoice_items['results'])}"
+
         )
 
         return invoice_items['results']
@@ -144,34 +156,53 @@ def get_invoice_items_date_sage_code(date, product_sage_codes):
         return None
 
 
+
 def get_invoice_items_between_time_frame(date, previous_week_date):
+
     """
+
     Fetch a specific invoice by its ID from the Sage API.
+
     """
 
     if use_dummy_sage():
-        return DUMMY_INVOICE_ITEMS['results']
+
+        return DUMMY_INVOICE_ITEMS["results"]
 
     API_URL, API_TOKEN = get_sage_config()
 
     url = f"{API_URL}/api/searchInvoiceItem/"
 
     payload = json.dumps([
+
         {
+
             "field": "RECORD_CREATE_DATE",
+
             "type": "lte",
+
             "value": date
+
         },
+
         {
+
             "field": "STOCK_CODE",
+
             "type": "gte",
+
             "value": previous_week_date
+
         }
+
     ])
 
     headers = {
+
         'Content-Type': 'application/json',
+
         'AuthToken': API_TOKEN
+
     }
 
     try:
@@ -179,20 +210,31 @@ def get_invoice_items_between_time_frame(date, previous_week_date):
         if is_internal_network():
 
             response = requests.request(
+
                 "POST",
+
                 url,
+
                 headers=headers,
+
                 data=payload,
+
                 verify=False
+
             )
 
         else:
 
             response = requests.request(
+
                 "POST",
+
                 url,
+
                 headers=headers,
+
                 data=payload
+
             )
 
         response.raise_for_status()
@@ -200,8 +242,11 @@ def get_invoice_items_between_time_frame(date, previous_week_date):
         invoice_items = response.json()
 
         print(
+
             f"Fetch in controller completed successfully: "
+
             f"{len(invoice_items['results'])}"
+
         )
 
         return invoice_items['results']
