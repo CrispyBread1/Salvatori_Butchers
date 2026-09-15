@@ -188,3 +188,61 @@ def fetch_rows(table, params):
 
         rows.extend(page)
         offset += len(page)
+
+def request_function(function_name, data=None):
+    """Call a Supabase Edge Function using the current user's session."""
+
+    if _auth_service is None:
+        raise RuntimeError(
+            "Please log in before accessing Sage."
+        )
+
+    access_token = _auth_service.get_access_token()
+
+    headers = {
+        "apikey": _auth_service.supabase_anon_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(
+            (
+                f"{_auth_service.supabase_url}/functions/v1/"
+                f"{function_name}"
+            ),
+            json=data,
+            headers=headers,
+            timeout=(30, 90)
+        )
+
+    except requests.Timeout:
+        raise RuntimeError(
+            "The Sage request timed out."
+        ) from None
+
+    except requests.RequestException:
+        raise RuntimeError(
+            "Could not connect to the Sage service."
+        ) from None
+
+    if not response.ok:
+
+        print(
+            "Edge Function error:",
+            response.status_code,
+            response.text
+        )
+
+        if response.status_code in (401, 403):
+            raise RuntimeError(
+                "Your session has expired or you do not have permission."
+            )
+
+        raise RuntimeError(
+            f"Sage service failed (HTTP {response.status_code})."
+        )
+    if response.content:
+        return response.json()
+
+    return None

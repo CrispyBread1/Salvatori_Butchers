@@ -1,7 +1,7 @@
 import json
 
 import requests
-
+from database.supabase_client import request_function
 from controllers.sage_controllers.resources.sage_connection import (
     get_sage_config,
     is_internal_network,
@@ -12,65 +12,37 @@ from controllers.sage_controllers.dummy_data.invoices import DUMMY_INVOICES
 
 
 def get_todays_invoices(date):
+
     """
-    Fetch all invoices for a specific date from the Sage API.
+
+    Fetch all invoices for a specific date from Sage.
+
     """
 
     if use_dummy_sage():
+
         return DUMMY_INVOICES
-
-    API_URL, API_TOKEN = get_sage_config()
-
-    url = f"{API_URL}/api/searchInvoice"
-
-    payload = json.dumps([
-        {
-            "field": "INVOICE_DATE",
-            "type": "eq",
-            "value": date
-        }
-    ])
-
-    headers = {
-        'Content-Type': 'application/json',
-        'AuthToken': API_TOKEN
-    }
 
     try:
 
-        if is_internal_network():
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90),
-                verify=False
-            )
-
-        else:
-
-            response = requests.request(
-                "POST",
-                url,
-                headers=headers,
-                data=payload,
-                timeout=(30, 90)
-            )
-
-        response.raise_for_status()
-
-        invoices = response.json()
+        invoices = request_function(
+            "sage-invoices",
+            {
+                "date": date
+            }
+        )
 
         print(
+
             f"Fetch in controller completed successfully: "
+
             f"{len(invoices['results'])}"
+
         )
 
         return invoices
 
-    except requests.RequestException as e:
+    except RuntimeError as e:
 
         print(f"Error fetching invoices: {e}")
 
