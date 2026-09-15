@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QFrame, QHBoxLayout, QMainWindow
 )
 from matplotlib.dates import relativedelta
-from controllers.sage_controllers.invoice_items import get_invoice_items_between_time_frame, get_invoice_items_id
+from controllers.sage_controllers.invoice_items import get_invoice_items_id
 from database.products import fetch_products
 from database.reports import fetch_report_by_id
 from gui.components.reusable.animations.loading_component import LoadingManager
